@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crazy Trout Arena — Клиентский интерфейс</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Desktop wrapper with phone frame -->
+  <div class="desktop-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="sidebar-brand-name">Crazy Trout Arena</div>
+          <div class="sidebar-brand-sub">CRM Client Prototype</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-label">Экраны</div>
+        <button class="sidebar-link active" data-screen="splash">🚀 Заставка</button>
+        <button class="sidebar-link" data-screen="auth-phone">📱 Авторизация</button>
+        <button class="sidebar-link" data-screen="auth-otp">🔐 OTP-код</button>
+        <button class="sidebar-link" data-screen="home">🏠 Главная</button>
+        <button class="sidebar-link" data-screen="spots">📍 Водоёмы</button>
+        <button class="sidebar-link" data-screen="spot-detail">🐟 Детали водоёма</button>
+        <button class="sidebar-link" data-screen="booking">📅 Бронирование</button>
+        <button class="sidebar-link" data-screen="booking-pay">💳 Оплата</button>
+        <button class="sidebar-link" data-screen="booking-done">✅ Подтверждение</button>
+        <button class="sidebar-link" data-screen="profile">👤 Профиль</button>
+        <button class="sidebar-link" data-screen="history">📋 История</button>
+        <button class="sidebar-link" data-screen="stats">📊 Статистика</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span>v0.1 — MVP Prototype</span>
+      </div>
+    </aside>
+
+    <main class="phone-viewport">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen" id="phoneScreen">
+
+          <!-- ===== SPLASH ===== -->
+          <div class="screen active" id="screen-splash">
+            <div class="splash-content">
+              <div class="splash-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                  <circle cx="40" cy="40" r="38" fill="#E89829" stroke="#14130F" stroke-width="3"/>
+                  <path d="M25 45 Q30 25 40 30 Q50 35 55 25" stroke="#14130F" stroke-width="3" fill="none" stroke-linecap="round"/>
+                  <circle cx="55" cy="24" r="3" fill="#14130F"/>
+                  <path d="M30 50 Q35 55 40 52 Q45 49 50 54" stroke="#FAF6EE" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="splash-title">Crazy Trout<br>Arena</div>
+              <div class="splash-sub">Лучшие водоёмы для рыбалки</div>
+              <div class="splash-loader">
+                <div class="splash-loader-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== AUTH PHONE ===== -->
+          <div class="screen" id="screen-auth-phone">
+            <div class="screen-header">
+              <div class="brand-mini">
+                <div class="brand-dot-sm"></div>
+                <span>Crazy Trout Arena</span>
+              </div>
+            </div>
+            <div class="screen-body auth-body">
+              <div class="auth-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <rect x="12" y="4" width="24" height="40" rx="4" stroke="#E89829" stroke-width="2.5"/>
+                  <line x1="12" y1="10" x2="36" y2="10" stroke="#E7E0D1" stroke-width="1.5"/>
+                  <line x1="12" y1="36" x2="36" y2="36" stroke="#E7E0D1" stroke-width="1.5"/>
+                  <circle cx="24" cy="41" r="2" fill="#8C8576"/>
+                </svg>
+              </div>
+              <h2 class="auth-title">Вход в аккаунт</h2>
+              <p class="auth-desc">Введите номер телефона для получения кода подтверждения</p>
+              <div class="field-group">
+                <label class="field-label">Номер телефона</label>
+                <div class="phone-input-row">
+                  <div class="phone-prefix">+7</div>
+                  <input type="tel" class="field-input" id="phoneInput" placeholder="900 123-45-67" maxlength="15">
+                </div>
+              </div>
+              <button class="btn btn-primary btn-block" id="btnSendCode">Получить код</button>
+              <div class="auth-alt">
+                <span>или</span>
+              </div>
+              <button class="btn btn-outline btn-block">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Войти как гость
+              </button>
+            </div>
+          </div>
+
+          <!-- ===== AUTH OTP ===== -->
+          <div class="screen" id="screen-auth-otp">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="auth-phone">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Подтверждение</div>
+              <div style="width:20px"></div>
+            </div>
+            <div class="screen-body auth-body">
+              <div class="auth-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <rect x="6" y="14" width="36" height="24" rx="3" stroke="#E89829" stroke-width="2.5"/>
+                  <path d="M6 18l18 12 18-12" stroke="#E89829" stroke-width="2.5" fill="none"/>
+                </svg>
+              </div>
+              <h2 class="auth-title">Введите код</h2>
+              <p class="auth-desc">Мы отправили SMS на <strong id="otpPhone">+7 900 ***-**-67</strong></p>
+              <div class="otp-row" id="otpRow">
+                <div class="otp-box" data-idx="0"></div>
+                <div class="otp-box" data-idx="1"></div>
+                <div class="otp-box" data-idx="2"></div>
+                <div class="otp-box" data-idx="3"></div>
+                <div class="otp-box" data-idx="4"></div>
+                <div class="otp-box" data-idx="5"></div>
+              </div>
+              <div class="otp-timer">Повторная отправка через <span id="otpTimer">0:30</span></div>
+              <button class="btn btn-primary btn-block" id="btnVerifyOtp" disabled>Подтвердить</button>
+            </div>
+          </div>
+
+          <!-- ===== HOME ===== -->
+          <div class="screen" id="screen-home">
+            <div class="screen-header home-header">
+              <div>
+                <div class="home-greeting">Добрый день 👋</div>
+                <div class="home-username">Алексей</div>
+              </div>
+              <div class="header-avatar" data-screen="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAF6EE" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0112 0v1"/></svg>
+              </div>
+            </div>
+            <div class="screen-body home-body">
+              <!-- Search -->
+              <div class="home-search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <span>Найти водоём или рыбу...</span>
+              </div>
+
+              <!-- Quick filters -->
+              <div class="filter-chips">
+                <button class="chip active">Все</button>
+                <button class="chip">🎣 Форель</button>
+                <button class="chip">🐟 Карп</button>
+                <button class="chip">🐠 Осётр</button>
+                <button class="chip">⚡ Быстрая</button>
+              </div>
+
+              <!-- Featured spot -->
+              <div class="featured-card" data-screen="spot-detail">
+                <div class="featured-img">
+                  <div class="featured-badge">Популярное</div>
+                  <svg width="100%" height="140" viewBox="0 0 340 140">
+                    <rect width="340" height="140" fill="#2A6A7E"/>
+                    <ellipse cx="170" cy="120" rx="160" ry="40" fill="#1d5566" opacity="0.5"/>
+                    <path d="M0 90 Q60 70 120 85 Q180 100 240 80 Q300 60 340 75 L340 140 L0 140Z" fill="#3FA66B" opacity="0.3"/>
+                    <circle cx="280" cy="35" r="20" fill="#E89829" opacity="0.6"/>
+                    <text x="170" y="85" text-anchor="middle" fill="#FAF6EE" font-size="14" font-family="Inter" font-weight="700">🏞️ Пруд «Лесной»</text>
+                  </svg>
+                </div>
+                <div class="featured-info">
+                  <div class="featured-name">Пруд «Лесной»</div>
+                  <div class="featured-meta">
+                    <span>📍 12 км</span>
+                    <span>⭐ 4.8</span>
+                    <span>🎣 Форель, Карп</span>
+                  </div>
+                  <div class="featured-price">от 2 500 ₽ / смена</div>
+                </div>
+              </div>
+
+              <!-- Nearby spots -->
+              <div class="section-header">
+                <span>Ближайшие водоёмы</span>
+                <button class="link-btn" data-screen="spots">Все →</button>
+              </div>
+              <div class="spots-scroll">
+                <div class="spot-card-mini" data-screen="spot-detail">
+                  <div class="spot-mini-img" style="background:#2A6A7E">
+                    <svg width="100%" height="70" viewBox="0 0 140 70"><rect width="140" height="70" fill="#2A6A7E"/><text x="70" y="40" text-anchor="middle" fill="#FAF6EE" font-size="22">🏞️</text></svg>
+                  </div>
+                  <div class="spot-mini-name">Озеро «Тихое»</div>
+                  <div class="spot-mini-meta">8 км · ⭐ 4.6</div>
+                  <div class="spot-mini-price">от 1 800 ₽</div>
+                </div>
+                <div class="spot-card-mini" data-screen="spot-detail">
+                  <div class="spot-mini-img" style="background:#3FA66B">
+                    <svg width="100%" height="70" viewBox="0 0 140 70"><rect width="140" height="70" fill="#3FA66B"/><text x="70" y="40" text-anchor="middle" fill="#FAF6EE" font-size="22">🐟</text></svg>
+                  </div>
+                  <div class="spot-mini-name">Река «Быстрая»</div>
+                  <div class="spot-mini-meta">15 км · ⭐ 4.9</div>
+                  <div class="spot-mini-price">от 3 200 ₽</div>
+                </div>
+                <div class="spot-card-mini" data-screen="spot-detail">
+                  <div class="spot-mini-img" style="background:#D4A85A">
+                    <svg width="100%" height="70" viewBox="0 0 140 70"><rect width="140" height="70" fill="#D4A85A"/><text x="70" y="40" text-anchor="middle" fill="#FAF6EE" font-size="22">🐠</text></svg>
+                  </div>
+                  <div class="spot-mini-name">Платный «Усадьба»</div>
+                  <div class="spot-mini-meta">5 км · ⭐ 4.7</div>
+                  <div class="spot-mini-price">от 2 000 ₽</div>
+                </div>
+              </div>
+
+              <!-- Map preview -->
+              <div class="section-header">
+                <span>На карте</span>
+                <button class="link-btn" data-screen="spots">Открыть карту →</button>
+              </div>
+              <div class="map-preview" data-screen="spots">
+                <svg width="100%" height="130" viewBox="0 0 340 130">
+                  <rect width="340" height="130" rx="12" fill="#E3DCC9"/>
+                  <path d="M0 60 Q80 40 160 65 Q240 90 340 55" stroke="#2A6A7E" stroke-width="3" fill="none" opacity="0.4"/>
+                  <path d="M0 80 Q100 60 200 85 Q300 110 340 70" stroke="#2A6A7E" stroke-width="2" fill="none" opacity="0.3"/>
+                  <!-- Pins -->
+                  <g transform="translate(80,35)"><circle r="8" fill="#E89829"/><circle r="3" fill="#FAF6EE"/><path d="M0 8 L0 16" stroke="#E89829" stroke-width="2"/></g>
+                  <g transform="translate(170,55)"><circle r="8" fill="#3FA66B"/><circle r="3" fill="#FAF6EE"/><path d="M0 8 L0 16" stroke="#3FA66B" stroke-width="2"/></g>
+                  <g transform="translate(260,40)"><circle r="8" fill="#E89829"/><circle r="3" fill="#FAF6EE"/><path d="M0 8 L0 16" stroke="#E89829" stroke-width="2"/></g>
+                  <g transform="translate(130,80)"><circle r="8" fill="#2A6A7E"/><circle r="3" fill="#FAF6EE"/><path d="M0 8 L0 16" stroke="#2A6A7E" stroke-width="2"/></g>
+                  <g transform="translate(300,70)"><circle r="8" fill="#D4A85A"/><circle r="3" fill="#FAF6EE"/><path d="M0 8 L0 16" stroke="#D4A85A" stroke-width="2"/></g>
+                  <!-- You are here -->
+                  <g transform="translate(200,65)">
+                    <circle r="12" fill="#E89829" opacity="0.2"/>
+                    <circle r="6" fill="#E89829"/>
+                    <circle r="2.5" fill="#FAF6EE"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
+            <!-- Bottom nav -->
+            <nav class="bottom-nav">
+              <button class="nav-item active" data-screen="home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+                <span>Главная</span>
+              </button>
+              <button class="nav-item" data-screen="spots">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>Карта</span>
+              </button>
+              <button class="nav-item" data-screen="booking">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Бронь</span>
+              </button>
+              <button class="nav-item" data-screen="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0112 0v1"/></svg>
+                <span>Профиль</span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- ===== SPOTS (Map + List) ===== -->
+          <div class="screen" id="screen-spots">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Водоёмы</div>
+              <button class="btn-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="screen-body spots-body">
+              <!-- Full map -->
+              <div class="map-full">
+                <svg width="100%" height="220" viewBox="0 0 340 220">
+                  <rect width="340" height="220" fill="#E3DCC9"/>
+                  <!-- Terrain -->
+                  <ellipse cx="80" cy="100" rx="60" ry="30" fill="#d4cfc0" opacity="0.5"/>
+                  <ellipse cx="260" cy="150" rx="50" ry="25" fill="#d4cfc0" opacity="0.5"/>
+                  <!-- Water -->
+                  <path d="M0 100 Q60 80 120 105 Q180 130 240 100 Q300 70 340 90" stroke="#2A6A7E" stroke-width="4" fill="none" opacity="0.4"/>
+                  <path d="M0 140 Q80 120 160 145 Q240 170 340 130" stroke="#2A6A7E" stroke-width="3" fill="none" opacity="0.3"/>
+                  <!-- Pins -->
+                  <g class="map-pin" transform="translate(60,60)" data-spot="1">
+                    <circle r="12" fill="#E89829" opacity="0.2"/>
+                    <circle r="7" fill="#E89829"/>
+                    <circle r="3" fill="#FAF6EE"/>
+                  </g>
+                  <g class="map-pin" transform="translate(150,95)" data-spot="2">
+                    <circle r="12" fill="#3FA66B" opacity="0.2"/>
+                    <circle r="7" fill="#3FA66B"/>
+                    <circle r="3" fill="#FAF6EE"/>
+                  </g>
+                  <g class="map-pin" transform="translate(250,70)" data-spot="3">
+                    <circle r="12" fill="#E89829" opacity="0.2"/>
+                    <circle r="7" fill="#E89829"/>
+                    <circle r="3" fill="#FAF6EE"/>
+                  </g>
+                  <g class="map-pin" transform="translate(100,150)" data-spot="4">
+                    <circle r="12" fill="#2A6A7E" opacity="0.2"/>
+                    <circle r="7" fill="#2A6A7E"/>
+                    <circle r="3" fill="#FAF6EE"/>
+                  </g>
+                  <g class="map-pin" transform="translate(300,130)" data-spot="5">
+                    <circle r="12" fill="#D4A85A" opacity="0.2"/>
+                    <circle r="7" fill="#D4A85A"/>
+                    <circle r="3" fill="#FAF6EE"/>
+                  </g>
+                  <!-- You -->
+                  <g transform="translate(200,110)">
+                    <circle r="16" fill="#E89829" opacity="0.15"/>
+                    <circle r="8" fill="#E89829"/>
+                    <circle r="3" fill="#FAF6EE"/>
+                    <text x="0" y="-20" text-anchor="middle" fill="#14130F" font-size="8" font-weight="700">Вы</text>
+                  </g>
+                </svg>
+              </div>
+              <!-- Spot list -->
+              <div class="spots-list">
+                <div class="spot-row" data-screen="spot-detail">
+                  <div class="spot-row-img" style="background:#2A6A7E">🏞️</div>
+                  <div class="spot-row-info">
+                    <div class="spot-row-name">Пруд «Лесной»</div>
+                    <div class="spot-row-meta">12 км · Форель, Карп · ⭐ 4.8</div>
+                  </div>
+                  <div class="spot-row-price">2 500 ₽</div>
+                </div>
+                <div class="spot-row" data-screen="spot-detail">
+                  <div class="spot-row-img" style="background:#3FA66B">🐟</div>
+                  <div class="spot-row-info">
+                    <div class="spot-row-name">Озеро «Тихое»</div>
+                    <div class="spot-row-meta">8 км · Карп, Щука · ⭐ 4.6</div>
+                  </div>
+                  <div class="spot-row-price">1 800 ₽</div>
+                </div>
+                <div class="spot-row" data-screen="spot-detail">
+                  <div class="spot-row-img" style="background:#E89829">🐠</div>
+                  <div class="spot-row-info">
+                    <div class="spot-row-name">Река «Быстрая»</div>
+                    <div class="spot-row-meta">15 км · Форель, Осётр · ⭐ 4.9</div>
+                  </div>
+                  <div class="spot-row-price">3 200 ₽</div>
+                </div>
+                <div class="spot-row" data-screen="spot-detail">
+                  <div class="spot-row-img" style="background:#D4A85A">🎣</div>
+                  <div class="spot-row-info">
+                    <div class="spot-row-name">Платный «Усадьба»</div>
+                    <div class="spot-row-meta">5 км · Карп, Линь · ⭐ 4.7</div>
+                  </div>
+                  <div class="spot-row-price">2 000 ₽</div>
+                </div>
+                <div class="spot-row" data-screen="spot-detail">
+                  <div class="spot-row-img" style="background:#2A6A7E">🏕️</div>
+                  <div class="spot-row-info">
+                    <div class="spot-row-name">База «Заречье»</div>
+                    <div class="spot-row-meta">22 км · Форель, Судак · ⭐ 4.5</div>
+                  </div>
+                  <div class="spot-row-price">2 800 ₽</div>
+                </div>
+              </div>
+            </div>
+            <nav class="bottom-nav">
+              <button class="nav-item" data-screen="home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+                <span>Главная</span>
+              </button>
+              <button class="nav-item active" data-screen="spots">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>Карта</span>
+              </button>
+              <button class="nav-item" data-screen="booking">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Бронь</span>
+              </button>
+              <button class="nav-item" data-screen="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0112 0v1"/></svg>
+                <span>Профиль</span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- ===== SPOT DETAIL ===== -->
+          <div class="screen" id="screen-spot-detail">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="spots">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Пруд «Лесной»</div>
+              <button class="btn-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z"/></svg>
+              </button>
+            </div>
+            <div class="screen-body spot-detail-body">
+              <div class="spot-hero">
+                <svg width="100%" height="160" viewBox="0 0 340 160">
+                  <rect width="340" height="160" fill="#2A6A7E"/>
+                  <ellipse cx="170" cy="140" rx="180" ry="50" fill="#1d5566" opacity="0.5"/>
+                  <path d="M0 100 Q80 80 160 105 Q240 130 340 95 L340 160 L0 160Z" fill="#3FA66B" opacity="0.3"/>
+                  <circle cx="280" cy="30" r="24" fill="#E89829" opacity="0.5"/>
+                  <text x="170" y="75" text-anchor="middle" fill="#FAF6EE" font-size="28">🏞️</text>
+                </svg>
+                <div class="spot-hero-badge">⭐ 4.8 · 12 км</div>
+              </div>
+              <div class="spot-detail-content">
+                <div class="spot-fish-tags">
+                  <span class="pill pill-green">🎣 Форель</span>
+                  <span class="pill pill-blue">🐟 Карп</span>
+                  <span class="pill pill-orange">🐠 Осётр</span>
+                </div>
+                <p class="spot-desc">Живописный пруд в лесной зоне. Чистая вода, ухоженные берега, удобные места для рыбалки. Есть беседки, мангалы и parking.</p>
+                <div class="spot-amenities">
+                  <div class="amenity"><span>🅿️</span> Парковка</div>
+                  <div class="amenity"><span>🏠</span> Беседки</div>
+                  <div class="amenity"><span>🔥</span> Мангал</div>
+                  <div class="amenity"><span>🚻</span> Туалет</div>
+                  <div class="amenity"><span>💡</span> Освещение</div>
+                  <div class="amenity"><span>🎣</span> Прокат</div>
+                </div>
+                <div class="spot-pricing">
+                  <div class="pricing-row">
+                    <span>Дневная смена (8:00–16:00)</span>
+                    <strong>2 500 ₽</strong>
+                  </div>
+                  <div class="pricing-row">
+                    <span>Вечерняя смена (16:00–22:00)</span>
+                    <strong>2 000 ₽</strong>
+                  </div>
+                  <div class="pricing-row">
+                    <span>Суточное пребывание</span>
+                    <strong>4 000 ₽</strong>
+                  </div>
+                </div>
+                <div class="spot-reviews">
+                  <div class="section-header"><span>Отзывы (47)</span></div>
+                  <div class="review-card">
+                    <div class="review-header">
+                      <div class="review-avatar">АМ</div>
+                      <div>
+                        <div class="review-name">Андрей М.</div>
+                        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                      </div>
+                      <div class="review-date">3 дня назад</div>
+                    </div>
+                    <div class="review-text">Отличное место! Поймал 3 форели за смену. Беседки чистые, персонал приветливый.</div>
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-block" data-screen="booking">Забронировать</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== BOOKING ===== -->
+          <div class="screen" id="screen-booking">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="spot-detail">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Бронирование</div>
+              <div style="width:20px"></div>
+            </div>
+            <div class="screen-body booking-body">
+              <!-- Spot summary -->
+              <div class="booking-spot-card">
+                <div class="booking-spot-img" style="background:#2A6A7E">🏞️</div>
+                <div>
+                  <div class="booking-spot-name">Пруд «Лесной»</div>
+                  <div class="booking-spot-meta">Дневная смена · 12 км</div>
+                </div>
+              </div>
+
+              <!-- Date picker -->
+              <div class="field-group">
+                <label class="field-label">Дата</label>
+                <div class="date-grid" id="dateGrid">
+                  <button class="date-btn" data-date="2026-07-08">
+                    <span class="date-day">Ср</span>
+                    <span class="date-num">8</span>
+                  </button>
+                  <button class="date-btn active" data-date="2026-07-09">
+                    <span class="date-day">Чт</span>
+                    <span class="date-num">9</span>
+                  </button>
+                  <button class="date-btn" data-date="2026-07-10">
+                    <span class="date-day">Пт</span>
+                    <span class="date-num">10</span>
+                  </button>
+                  <button class="date-btn" data-date="2026-07-11">
+                    <span class="date-day">Сб</span>
+                    <span class="date-num">11</span>
+                  </button>
+                  <button class="date-btn" data-date="2026-07-12">
+                    <span class="date-day">Вс</span>
+                    <span class="date-num">12</span>
+                  </button>
+                  <button class="date-btn" data-date="2026-07-13">
+                    <span class="date-day">Пн</span>
+                    <span class="date-num">13</span>
+                  </button>
+                  <button class="date-btn" data-date="2026-07-14">
+                    <span class="date-day">Вт</span>
+                    <span class="date-num">14</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Time shift -->
+              <div class="field-group">
+                <label class="field-label">Смена</label>
+                <div class="time-row">
+                  <button class="time-btn active">🌅 Дневная<br><small>8:00–16:00</small></button>
+                  <button class="time-btn">🌆 Вечерняя<br><small>16:00–22:00</small></button>
+                  <button class="time-btn">🌙 Суточная<br><small>24 часа</small></button>
+                </div>
+              </div>
+
+              <!-- Guests -->
+              <div class="field-group">
+                <label class="field-label">Количество человек</label>
+                <div class="counter-row">
+                  <button class="counter-btn" id="guestsMinus">−</button>
+                  <span class="counter-val" id="guestsCount">2</span>
+                  <button class="counter-btn" id="guestsPlus">+</button>
+                </div>
+              </div>
+
+              <!-- Extras -->
+              <div class="field-group">
+                <label class="field-label">Дополнительно</label>
+                <div class="extras-list">
+                  <label class="extra-check">
+                    <input type="checkbox" checked>
+                    <span>🏠 Беседка (500 ₽)</span>
+                  </label>
+                  <label class="extra-check">
+                    <input type="checkbox">
+                    <span>🎣 Прокат удочки (300 ₽)</span>
+                  </label>
+                  <label class="extra-check">
+                    <input type="checkbox">
+                    <span>🪑 Стул складной (100 ₽)</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Summary -->
+              <div class="booking-summary">
+                <div class="summary-row"><span>2 × Дневная смена</span><span>5 000 ₽</span></div>
+                <div class="summary-row"><span>Беседка</span><span>500 ₽</span></div>
+                <div class="summary-row total"><span>Итого</span><span>5 500 ₽</span></div>
+              </div>
+
+              <button class="btn btn-primary btn-block" data-screen="booking-pay">Перейти к оплате</button>
+            </div>
+          </div>
+
+          <!-- ===== BOOKING PAY ===== -->
+          <div class="screen" id="screen-booking-pay">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="booking">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Оплата</div>
+              <div style="width:20px"></div>
+            </div>
+            <div class="screen-body pay-body">
+              <div class="pay-amount">
+                <div class="pay-amount-label">К оплате</div>
+                <div class="pay-amount-val">5 500 ₽</div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Способ оплаты</label>
+                <div class="pay-methods">
+                  <button class="pay-method active">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#14130F" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <span>Карта</span>
+                  </button>
+                  <button class="pay-method">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>СБП</span>
+                  </button>
+                  <button class="pay-method">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    <span>ЮMoney</span>
+                  </button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Номер карты</label>
+                <input type="text" class="field-input" value="4276 •••• •••• 8901" readonly>
+              </div>
+              <div class="field-row-2">
+                <div class="field-group">
+                  <label class="field-label">Срок</label>
+                  <input type="text" class="field-input" value="09/28" readonly>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">CVV</label>
+                  <input type="password" class="field-input" value="123" readonly>
+                </div>
+              </div>
+              <div class="pay-booking-ref">
+                <div class="ref-row"><span>Водоём</span><strong>Пруд «Лесной»</strong></div>
+                <div class="ref-row"><span>Дата</span><strong>9 июля 2026</strong></div>
+                <div class="ref-row"><span>Смена</span><strong>Дневная (8:00–16:00)</strong></div>
+                <div class="ref-row"><span>Гостей</span><strong>2</strong></div>
+              </div>
+              <button class="btn btn-primary btn-block" id="btnPay">Оплатить 5 500 ₽</button>
+              <div class="pay-secure">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3FA66B" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                Безопасная оплата через Stripe
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== BOOKING DONE ===== -->
+          <div class="screen" id="screen-booking-done">
+            <div class="screen-body done-body">
+              <div class="done-icon">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                  <circle cx="40" cy="40" r="36" fill="#E1F1E6" stroke="#3FA66B" stroke-width="3"/>
+                  <path d="M24 40l10 10 22-22" stroke="#3FA66B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h2 class="done-title">Бронь подтверждена!</h2>
+              <p class="done-desc">Детали отправлены на ваш телефон. Номер брони:</p>
+              <div class="done-code">CTA-2026-07891</div>
+              <div class="done-details">
+                <div class="ref-row"><span>Водоём</span><strong>Пруд «Лесной»</strong></div>
+                <div class="ref-row"><span>Дата</span><strong>9 июля 2026</strong></div>
+                <div class="ref-row"><span>Смена</span><strong>Дневная (8:00–16:00)</strong></div>
+                <div class="ref-row"><span>Гостей</span><strong>2</strong></div>
+                <div class="ref-row"><span>Оплачено</span><strong>5 500 ₽</strong></div>
+              </div>
+              <button class="btn btn-primary btn-block" data-screen="home">На главную</button>
+              <button class="btn btn-outline btn-block" data-screen="profile">Перейти в профиль</button>
+            </div>
+          </div>
+
+          <!-- ===== PROFILE ===== -->
+          <div class="screen" id="screen-profile">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Профиль</div>
+              <button class="btn-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              </button>
+            </div>
+            <div class="screen-body profile-body">
+              <!-- Profile card -->
+              <div class="profile-card">
+                <div class="profile-avatar">АК</div>
+                <div class="profile-name">Алексей Козлов</div>
+                <div class="profile-phone">+7 900 123-45-67</div>
+                <div class="profile-member">Участник с марта 2025</div>
+              </div>
+
+              <!-- Stats row -->
+              <div class="profile-stats-row">
+                <div class="profile-stat">
+                  <div class="profile-stat-num">12</div>
+                  <div class="profile-stat-label">Поездок</div>
+                </div>
+                <div class="profile-stat">
+                  <div class="profile-stat-num">47</div>
+                  <div class="profile-stat-label">Кг улова</div>
+                </div>
+                <div class="profile-stat">
+                  <div class="profile-stat-num">850</div>
+                  <div class="profile-stat-label">Бонусов</div>
+                </div>
+              </div>
+
+              <!-- Loyalty -->
+              <div class="loyalty-card">
+                <div class="loyalty-header">
+                  <span>🏆 Программа лояльности</span>
+                  <span class="loyalty-level">Золото</span>
+                </div>
+                <div class="loyalty-bar">
+                  <div class="loyalty-fill" style="width:70%"></div>
+                </div>
+                <div class="loyalty-hint">До платины: 3 поездки / 1 500 бонусов</div>
+              </div>
+
+              <!-- Menu items -->
+              <div class="profile-menu">
+                <button class="menu-item" data-screen="history">
+                  <span>📋</span>
+                  <span>История бронирований</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button class="menu-item" data-screen="stats">
+                  <span>📊</span>
+                  <span>Моя статистика</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button class="menu-item">
+                  <span>🎣</span>
+                  <span>Избранные водоёмы</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button class="menu-item">
+                  <span>🎁</span>
+                  <span>Бонусы и промокоды</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button class="menu-item">
+                  <span>⚙️</span>
+                  <span>Настройки</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button class="menu-item">
+                  <span>💬</span>
+                  <span>Поддержка</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C8576" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+              <button class="btn btn-outline btn-block logout-btn">Выйти из аккаунта</button>
+            </div>
+            <nav class="bottom-nav">
+              <button class="nav-item" data-screen="home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+                <span>Главная</span>
+              </button>
+              <button class="nav-item" data-screen="spots">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>Карта</span>
+              </button>
+              <button class="nav-item" data-screen="booking">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Бронь</span>
+              </button>
+              <button class="nav-item active" data-screen="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0112 0v1"/></svg>
+                <span>Профиль</span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- ===== HISTORY ===== -->
+          <div class="screen" id="screen-history">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">История</div>
+              <div style="width:20px"></div>
+            </div>
+            <div class="screen-body history-body">
+              <div class="history-tabs">
+                <button class="htab active">Все</button>
+                <button class="htab">Предстоящие</button>
+                <button class="htab">Завершённые</button>
+              </div>
+              <div class="history-list">
+                <!-- Upcoming -->
+                <div class="history-card upcoming">
+                  <div class="history-badge">Предстоящая</div>
+                  <div class="history-card-header">
+                    <div class="history-spot-icon" style="background:#2A6A7E">🏞️</div>
+                    <div>
+                      <div class="history-spot-name">Пруд «Лесной»</div>
+                      <div class="history-date">9 июля 2026 · Дневная смена</div>
+                    </div>
+                  </div>
+                  <div class="history-card-footer">
+                    <span>2 гостя · 5 500 ₽</span>
+                    <span class="history-code">CTA-2026-07891</span>
+                  </div>
+                </div>
+                <!-- Past -->
+                <div class="history-card">
+                  <div class="history-badge past">Завершена</div>
+                  <div class="history-card-header">
+                    <div class="history-spot-icon" style="background:#3FA66B">🐟</div>
+                    <div>
+                      <div class="history-spot-name">Озеро «Тихое»</div>
+                      <div class="history-date">28 июня 2026 · Дневная смена</div>
+                    </div>
+                  </div>
+                  <div class="history-card-footer">
+                    <span>3 гостя · 5 900 ₽</span>
+                    <span class="history-code">CTA-2026-06734</span>
+                  </div>
+                  <div class="history-catch">
+                    <span>🎣 Улов:</span>
+                    <span>Форель 2.5 кг, Карп 4 кг</span>
+                  </div>
+                </div>
+                <div class="history-card">
+                  <div class="history-badge past">Завершена</div>
+                  <div class="history-card-header">
+                    <div class="history-spot-icon" style="background:#E89829">🐠</div>
+                    <div>
+                      <div class="history-spot-name">Река «Быстрая»</div>
+                      <div class="history-date">15 июня 2026 · Суточная</div>
+                    </div>
+                  </div>
+                  <div class="history-card-footer">
+                    <span>2 гостя · 7 200 ₽</span>
+                    <span class="history-code">CTA-2026-06412</span>
+                  </div>
+                  <div class="history-catch">
+                    <span>🎣 Улов:</span>
+                    <span>Осётр 6 кг, Форель 1.8 кг</span>
+                  </div>
+                </div>
+                <div class="history-card">
+                  <div class="history-badge past">Завершена</div>
+                  <div class="history-card-header">
+                    <div class="history-spot-icon" style="background:#D4A85A">🎣</div>
+                    <div>
+                      <div class="history-spot-name">Платный «Усадьба»</div>
+                      <div class="history-date">1 июня 2026 · Вечерняя смена</div>
+                    </div>
+                  </div>
+                  <div class="history-card-footer">
+                    <span>1 гость · 2 300 ₽</span>
+                    <span class="history-code">CTA-2026-06198</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== STATS ===== -->
+          <div class="screen" id="screen-stats">
+            <div class="screen-header">
+              <button class="btn-back" data-screen="profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="header-title">Статистика</div>
+              <div style="width:20px"></div>
+            </div>
+            <div class="screen-body stats-body">
+              <!-- Period selector -->
+              <div class="stats-period">
+                <button class="period-btn">Месяц</button>
+                <button class="period-btn active">Полгода</button>
+                <button class="period-btn">Год</button>
+              </div>
+
+              <!-- Catch chart -->
+              <div class="stats-card">
+                <div class="stats-card-title">Улов по месяцам</div>
+                <div class="chart-bars">
+                  <div class="bar-col"><div class="bar" style="height:40%"><span>8 кг</span></div><small>Янв</small></div>
+                  <div class="bar-col"><div class="bar" style="height:25%"><span>5 кг</span></div><small>Фев</small></div>
+                  <div class="bar-col"><div class="bar" style="height:55%"><span>11 кг</span></div><small>Мар</small></div>
+                  <div class="bar-col"><div class="bar" style="height:30%"><span>6 кг</span></div><small>Апр</small></div>
+                  <div class="bar-col"><div class="bar" style="height:70%"><span>14 кг</span></div><small>Май</small></div>
+                  <div class="bar-col"><div class="bar" style="height:90%"><span>18 кг</span></div><small>Июн</small></div>
+                </div>
+              </div>
+
+              <!-- Fish breakdown -->
+              <div class="stats-card">
+                <div class="stats-card-title">По видам рыбы</div>
+                <div class="fish-stats">
+                  <div class="fish-stat-row">
+                    <span class="fish-icon">🎣</span>
+                    <span class="fish-name">Форель</span>
+                    <div class="fish-bar-wrap"><div class="fish-bar" style="width:60%;background:#3FA66B"></div></div>
+                    <span class="fish-val">18 кг</span>
+                  </div>
+                  <div class="fish-stat-row">
+                    <span class="fish-icon">🐟</span>
+                    <span class="fish-name">Карп</span>
+                    <div class="fish-bar-wrap"><div class="fish-bar" style="width:40%;background:#2A6A7E"></div></div>
+                    <span class="fish-val">12 кг</span>
+                  </div>
+                  <div class="fish-stat-row">
+                    <span class="fish-icon">🐠</span>
+                    <span class="fish-name">Осётр</span>
+                    <div class="fish-bar-wrap"><div class="fish-bar" style="width:30%;background:#E89829"></div></div>
+                    <span class="fish-val">9 кг</span>
+                  </div>
+                  <div class="fish-stat-row">
+                    <span class="fish-icon">🐡</span>
+                    <span class="fish-name">Щука</span>
+                    <div class="fish-bar-wrap"><div class="fish-bar" style="width:25%;background:#D4A85A"></div></div>
+                    <span class="fish-val">8 кг</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Top spots -->
+              <div class="stats-card">
+                <div class="stats-card-title">Любимые водоёмы</div>
+                <div class="top-spots">
+                  <div class="top-spot-row">
+                    <span class="top-rank">1</span>
+                    <span>Пруд «Лесной»</span>
+                    <span class="top-visits">5 поездок</span>
+                  </div>
+                  <div class="top-spot-row">
+                    <span class="top-rank">2</span>
+                    <span>Река «Быстрая»</span>
+                    <span class="top-visits">3 поездки</span>
+                  </div>
+                  <div class="top-spot-row">
+                    <span class="top-rank">3</span>
+                    <span>Озеро «Тихое»</span>
+                    <span class="top-visits">2 поездки</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /phone-screen -->
+      </div><!-- /phone-frame -->
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
