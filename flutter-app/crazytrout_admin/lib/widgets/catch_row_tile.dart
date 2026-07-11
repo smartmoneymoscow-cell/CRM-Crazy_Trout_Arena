@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/demo_data.dart';
 import '../models/catch_row.dart';
 
-class CatchRowTile extends StatelessWidget {
+class CatchRowTile extends StatefulWidget {
   final CatchRow row;
   final VoidCallback onChanged;
   final VoidCallback onRemove;
@@ -14,6 +14,32 @@ class CatchRowTile extends StatelessWidget {
     required this.onChanged,
     required this.onRemove,
   });
+
+  @override
+  State<CatchRowTile> createState() => _CatchRowTileState();
+}
+
+class _CatchRowTileState extends State<CatchRowTile> {
+  late final TextEditingController _kgCtrl;
+  late final TextEditingController _gramsCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _kgCtrl = TextEditingController(
+      text: widget.row.kg == widget.row.kg.roundToDouble()
+          ? widget.row.kg.toInt().toString()
+          : widget.row.kg.toString(),
+    );
+    _gramsCtrl = TextEditingController(text: widget.row.grams.toString());
+  }
+
+  @override
+  void dispose() {
+    _kgCtrl.dispose();
+    _gramsCtrl.dispose();
+    super.dispose();
+  }
 
   String _money(num n) {
     final rounded = n.round();
@@ -37,7 +63,7 @@ class CatchRowTile extends StatelessWidget {
             child: _Field(
               label: 'Порода',
               child: DropdownButtonFormField<String>(
-                value: row.species,
+                value: widget.row.species,
                 isExpanded: true,
                 decoration: _decoration(),
                 items: kSpecies
@@ -45,9 +71,9 @@ class CatchRowTile extends StatelessWidget {
                     .toList(),
                 onChanged: (v) {
                   if (v == null) return;
-                  row.species = v;
-                  row.pricePerKg = kSpeciesPrice[v] ?? row.pricePerKg;
-                  onChanged();
+                  widget.row.species = v;
+                  widget.row.pricePerKg = kSpeciesPrice[v] ?? widget.row.pricePerKg;
+                  widget.onChanged();
                 },
               ),
             ),
@@ -57,13 +83,13 @@ class CatchRowTile extends StatelessWidget {
             flex: 7,
             child: _Field(
               label: 'Кг',
-              child: TextFormField(
-                initialValue: row.kg == row.kg.roundToDouble() ? row.kg.toInt().toString() : row.kg.toString(),
+              child: TextField(
+                controller: _kgCtrl,
                 keyboardType: const TextInputType.numberWithOptions(decimal: false),
                 decoration: _decoration(),
                 onChanged: (v) {
-                  row.kg = double.tryParse(v) ?? 0;
-                  onChanged();
+                  widget.row.kg = double.tryParse(v) ?? 0;
+                  widget.onChanged();
                 },
               ),
             ),
@@ -73,16 +99,16 @@ class CatchRowTile extends StatelessWidget {
             flex: 7,
             child: _Field(
               label: 'Грамм',
-              child: TextFormField(
-                initialValue: row.grams.toString(),
+              child: TextField(
+                controller: _gramsCtrl,
                 keyboardType: TextInputType.number,
                 decoration: _decoration(),
                 onChanged: (v) {
                   var g = int.tryParse(v) ?? 0;
                   if (g > 999) g = 999;
                   if (g < 0) g = 0;
-                  row.grams = g;
-                  onChanged();
+                  widget.row.grams = g;
+                  widget.onChanged();
                 },
               ),
             ),
@@ -95,7 +121,7 @@ class CatchRowTile extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  _money(row.sum),
+                  _money(widget.row.sum),
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                   textAlign: TextAlign.right,
                 ),
@@ -104,7 +130,7 @@ class CatchRowTile extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Color(0xFFB4483A)),
-            onPressed: onRemove,
+            onPressed: widget.onRemove,
           ),
         ],
       ),

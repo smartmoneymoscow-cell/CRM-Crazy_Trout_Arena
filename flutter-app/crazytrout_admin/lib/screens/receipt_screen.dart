@@ -72,7 +72,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       _rows.add(CatchRow(
         id: _rowSeq++,
         species: kSpecies.first,
-        kg: 1,
+        kg: 0,
         grams: 0,
         pricePerKg: kSpeciesPrice[kSpecies.first]!,
       ));
