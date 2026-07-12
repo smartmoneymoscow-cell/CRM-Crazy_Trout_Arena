@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart';
 import '../models/catch_row.dart';
+import '../utils/format.dart';
 
 class CatchRowTile extends StatefulWidget {
   final CatchRow row;
@@ -44,15 +45,6 @@ class _CatchRowTileState extends State<CatchRowTile> {
     _kgCtrl.dispose();
     _gramsCtrl.dispose();
     super.dispose();
-  }
-
-  String _money(num n) {
-    final rounded = n.round();
-    final s = rounded.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]} ',
-        );
-    return '$s ₽';
   }
 
   @override
@@ -149,7 +141,7 @@ class _CatchRowTileState extends State<CatchRowTile> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      _money(widget.row.sum),
+                      money(widget.row.sum),
                       style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                       textAlign: TextAlign.right,
                     ),

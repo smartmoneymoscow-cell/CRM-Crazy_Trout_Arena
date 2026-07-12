@@ -4,20 +4,11 @@ import 'package:crazytrout_admin/models/catch_row.dart';
 import 'package:crazytrout_admin/models/client.dart';
 import 'package:crazytrout_admin/models/receipt.dart';
 import 'package:crazytrout_admin/models/tariff.dart';
+import 'package:crazytrout_admin/utils/format.dart';
 
 /// Имитация логики экрана ReceiptScreen для тестирования.
 /// В реальном приложении это приватные методы State-класса,
 /// но для тестирования вынесены в standalone-функции.
-
-/// Форматирование суммы (из receipt_screen.dart).
-String money(num n) {
-  final rounded = n.round();
-  final s = rounded.toString().replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-        (m) => '${m[1]} ',
-      );
-  return '$s ₽';
-}
 
 /// Поиск клиентов (из receipt_screen.dart).
 List<Client> searchClients(String query) {

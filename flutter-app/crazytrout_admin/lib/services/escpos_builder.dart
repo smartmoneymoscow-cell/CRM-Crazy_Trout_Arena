@@ -40,7 +40,7 @@ Uint8List buildEscPos(Receipt r) {
   // Клиент
   raw.addAll(_encodeCp866('Клиент: ${r.clientLine}'));
   raw.addAll([0x0A]);
-  raw.addAll(_encodeCp866('Тариф ${r.tariffLabel}: ${r.tariffPrice} ₽'));
+  raw.addAll(_encodeCp866('Тариф ${r.tariffLabel}: ${r.tariffPrice} руб.'));
   raw.addAll([0x0A]);
   raw.addAll(_encodeCp866('--------------------------------'));
   raw.addAll([0x0A]);
@@ -48,7 +48,7 @@ Uint8List buildEscPos(Receipt r) {
   // Улов
   for (final it in r.rows) {
     raw.addAll(_encodeCp866(
-      '${it.name} ${it.weight.toStringAsFixed(2)}кг × ${it.price.round()} = ${it.sum.round()} ₽',
+      '${it.name} ${it.weight.toStringAsFixed(2)}кг × ${it.price.round()} = ${it.sum.round()} руб.',
     ));
     raw.addAll([0x0A]);
   }
@@ -58,7 +58,7 @@ Uint8List buildEscPos(Receipt r) {
   raw.addAll([0x0A]);
   raw.addAll([0x1B, 0x45, 0x01]); // жирный
   raw.addAll([0x1B, 0x21, 0x10]); // двойная высота
-  raw.addAll(_encodeCp866('ИТОГО: ${r.total.round()} ₽'));
+  raw.addAll(_encodeCp866('ИТОГО: ${r.total.round()} руб.'));
   raw.addAll([0x0A]);
   raw.addAll([0x1B, 0x21, 0x00]); // сброс размера
   raw.addAll([0x1B, 0x45, 0x00]); // сброс жирного
@@ -112,7 +112,11 @@ int? _unicodeToCp866(String ch) {
   // Ё: U+0401 → 0xF0
   if (code == 0x0401) return 0xF0;
   // Знак рубля ₽: U+20BD → используем «р» (0xE0) как замену
-  if (code == 0x20BD) return 0x70; // 'p' в ASCII
+  if (code == 0x20BD) return 0xE0; // «р» в CP866
+  // Дефис/минус: U+2013, U+2014, U+2212 → обычный дефис
+  if (code == 0x2013 || code == 0x2014 || code == 0x2212) return 0x2D;
+  // Неразрывный пробел: U+00A0 → обычный пробел
+  if (code == 0x00A0) return 0x20;
   // Пробел
   if (code == 0x20) return 0x20;
   // Точка, запятая, скобки и прочее — ASCII-совместимые

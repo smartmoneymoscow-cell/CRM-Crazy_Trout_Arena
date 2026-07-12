@@ -11,6 +11,7 @@ import '../widgets/segmented_control.dart';
 import '../utils/permission_helper.dart' deferred as perm_helper;
 import 'qr_scan_route.dart' deferred as qr_route;
 import '../utils/qr_lookup.dart';
+import '../utils/format.dart';
 
 class ReceiptScreen extends StatefulWidget {
   const ReceiptScreen({super.key});
@@ -31,7 +32,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
   PaymentMethod _payment = PaymentMethod.card;
   bool _fiscal = true;
-  int _receiptSeq = 1247;
+  int _receiptSeq = 1247; // TODO: сохранять в SharedPreferences для сквозной нумерации
 
   double get _catchTotal => _rows.fold(0.0, (s, r) => s + r.sum);
   double get _total => _tariff.price + _catchTotal;
@@ -169,15 +170,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     });
   }
 
-  String _money(num n) {
-    final rounded = n.round();
-    final s = rounded.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]} ',
-        );
-    return '$s ₽';
-  }
-
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -259,12 +251,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   TextFormField(
                     key: ValueKey(_tariff.id),
                     initialValue: _tariff.price.toString(),
-                    keyboardType: TextInputType.number,
-                    decoration: _fieldDecoration(),
-                    onChanged: (v) {
-                      final price = int.tryParse(v) ?? _tariff.price;
-                      setState(() => _tariff = Tariff(id: _tariff.id, label: _tariff.label, price: price));
-                    },
+                    readOnly: true,
+                    decoration: _fieldDecoration().copyWith(
+                      fillColor: const Color(0xFFEDE8DC),
+                    ),
                   ),
                 ),
               ),
@@ -305,10 +295,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(16)),
           child: Column(
             children: [
-              _summaryRow('Тариф клиента', _money(_tariff.price), color: Colors.white70),
-              _summaryRow('Улов · ${_rows.length} поз.', _money(_catchTotal), color: Colors.white70),
+              _summaryRow('Тариф клиента', money(_tariff.price), color: Colors.white70),
+              _summaryRow('Улов · ${_rows.length} поз.', money(_catchTotal), color: Colors.white70),
               const Divider(color: Colors.white24, height: 24),
-              _summaryRow('ИТОГО', _money(_total), color: Colors.white, big: true),
+              _summaryRow('ИТОГО', money(_total), color: Colors.white, big: true),
             ],
           ),
         ),

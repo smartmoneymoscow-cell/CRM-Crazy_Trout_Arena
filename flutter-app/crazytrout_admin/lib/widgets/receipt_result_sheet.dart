@@ -2,15 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/receipt.dart';
 import '../services/print_route.dart' deferred as print_route;
-
-String _money(num n) {
-  final rounded = n.round();
-  final s = rounded.toString().replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-        (m) => '${m[1]} ',
-      );
-  return '$s ₽';
-}
+import '../utils/format.dart';
 
 Future<void> showReceiptResultSheet(BuildContext context, Receipt r) {
   return showModalBottomSheet(
@@ -69,14 +61,14 @@ class _ReceiptResultSheet extends StatelessWidget {
                     ),
                     const Divider(height: 24),
                     _row('Клиент', r.clientLine),
-                    _row('Тариф · ${r.tariffLabel}', _money(r.tariffPrice)),
+                    _row('Тариф · ${r.tariffLabel}', money(r.tariffPrice)),
                     const Divider(height: 24),
                     ...r.rows.map((it) => _row(
                           '${it.name} ${it.weight.toStringAsFixed(2)}кг × ${it.price.round()}',
-                          _money(it.sum),
+                          money(it.sum),
                         )),
                     const Divider(height: 24),
-                    _row('ИТОГО', _money(r.total), bold: true),
+                    _row('ИТОГО', money(r.total), bold: true),
                     _row('Оплата', r.payment.label),
                     _row('Тип чека', r.fiscal ? 'Фискальный ${r.fiscalDoc ?? ""}' : 'Без ФН'),
                   ],
