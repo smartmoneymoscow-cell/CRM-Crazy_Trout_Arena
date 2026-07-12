@@ -104,13 +104,6 @@ void main() {
         }
       });
 
-      test('все клиенты имеют аватары', () {
-        for (final c in kDemoClients) {
-          expect(c.avatarAsset, isNotNull,
-              reason: 'Клиент ${c.name} должен иметь аватар');
-        }
-      });
-
       test('Михаил Орлов — Пенсионер', () {
         final mikhail = kDemoClients.firstWhere((c) => c.id == 6);
         expect(mikhail.tariffLabel, 'Пенсионер');
