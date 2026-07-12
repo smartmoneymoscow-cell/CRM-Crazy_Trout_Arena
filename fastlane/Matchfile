@@ -1,0 +1,29 @@
+# Matchfile — управление сертификатами и provisioning profiles
+#
+# match хранит сертификаты в приватном Git-репозитории.
+# CI автоматически подтягивает их при сборке.
+#
+# Настройка:
+#   1. Создай приватный репозиторий (например, github.com/smartmoneymoscow-cell/certificates)
+#   2. Укажи его URL в git_url
+#   3. Добавь SSH ключ в GitHub Secrets (MATCH_GIT_PRIVATE_KEY)
+#   4. Запусти локально: fastlane match appstore --readonly
+
+git_url("git@github.com:smartmoneymoscow-cell/certificates.git")
+
+storage_mode("git")
+
+type("appstore")
+
+app_identifier("com.crazytroutarena.crazytrout_admin")
+
+username("smart.money.moscow@gmail.com")
+
+# Для CI — только чтение (не генерировать новые сертификаты)
+readonly(is_ci)
+
+# Автоматически удалять просроченные сертификаты
+force(false)
+
+# Не перезаписывать существующие profiles
+force_for_new_devices(false)
