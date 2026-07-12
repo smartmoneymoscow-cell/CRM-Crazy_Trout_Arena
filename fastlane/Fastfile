@@ -1,0 +1,63 @@
+# Fastfile — автоматизация iOS-сборки для Crazy Trout Arena
+#
+# Использование:
+#   fastlane ios beta     — сборка + загрузка в TestFlight
+#   fastlane ios screenshots — скриншоты для App Store
+#
+# Требования:
+#   - Apple Developer Program ($99/год)
+#   - Настроенный match (см. Matchfile)
+#   - Секреты в ENV: APP_STORE_CONNECT_API_KEY_ID, APP_STORE_CONNECT_API_ISSUER_ID, APP_STORE_CONNECT_API_KEY_CONTENT
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Сборка и загрузка в TestFlight"
+  lane :beta do
+    # Получение сертификатов через match
+    match(
+      type: "appstore",
+      readonly: is_ci,
+      app_identifier: "com.crazytroutarena.crazytrout_admin"
+    )
+
+    # Инкремент build number
+    increment_build_number(
+      xcodeproj: "Runner.xcodeproj",
+      build_number: latest_testflight_build_number + 1
+    )
+
+    # Сборка
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "CrazyTrout.ipa"
+    )
+
+    # Загрузка в TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Создание скриншотов для App Store"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      output_directory: "./fastlane/screenshots"
+    )
+  end
+
+  desc "Загрузка метаданных в App Store Connect"
+  lane :deliver_metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      force: true,
+      metadata_path: "./fastlane/metadata"
+    )
+  end
+end
