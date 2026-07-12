@@ -24,7 +24,7 @@ dependencies:
 
   # Запрос рантайм-разрешений BLUETOOTH_SCAN/BLUETOOTH_CONNECT на Android 12+ —
   # без них FlutterBluePlus.startScan() падает молча (кнопка «ничего не делает»).
-  permission_handler: ^11.3.0
+  permission_handler: ^12.0.3
 
   intl: ^0.19.0
 
