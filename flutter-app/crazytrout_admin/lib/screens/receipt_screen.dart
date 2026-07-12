@@ -10,6 +10,7 @@ import '../widgets/catch_row_tile.dart';
 import '../widgets/receipt_result_sheet.dart';
 import '../widgets/segmented_control.dart';
 import 'qr_scan_screen.dart';
+import '../utils/qr_lookup.dart';
 
 class ReceiptScreen extends StatefulWidget {
   const ReceiptScreen({super.key});
@@ -68,29 +69,13 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
       if (code == null || code.isEmpty || !mounted) return;
 
-      // Ищем клиента по id из QR (формат: "client:<id>" или просто id)
-      final idStr = code.contains(':') ? code.split(':').last : code;
-      final clientId = int.tryParse(idStr);
-
-      if (clientId != null) {
-        final match = kDemoClients.where((c) => c.id == clientId);
-        if (match.isNotEmpty) {
-          _selectClient(match.first);
-          return;
-        }
-      }
-
-      // Фолбэк: ищем как строку в имени/телефоне
-      final lower = code.toLowerCase();
-      final match = kDemoClients.where(
-        (c) => c.name.toLowerCase().contains(lower) || c.phone.contains(code),
-      );
-      if (match.isNotEmpty) {
-        _selectClient(match.first);
+      final result = findClientByQr(code);
+      if (result.client != null) {
+        _selectClient(result.client!);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Клиент с QR «$code» не найден')),
+            SnackBar(content: Text(result.error!)),
           );
         }
       }
