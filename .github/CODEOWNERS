@@ -1,0 +1,18 @@
+# CODEOWNERS — авто-назначение ревьюеров при Pull Request
+# Формат: <паттерн> <@owner>
+# Документация: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# По умолчанию — владелец репозитория
+*                               @smartmoneymoscow-cell
+
+# Flutter/Dart код
+*.dart                          @smartmoneymoscow-cell
+flutter-app/                    @smartmoneymoscow-cell
+
+# CI/CD и конфигурация
+.github/                        @smartmoneymoscow-cell
+Gemfile                         @smartmoneymoscow-cell
+fastlane/                       @smartmoneymoscow-cell
+
+# Конфигурация проекта
+pubspec.yaml                    @smartmoneymoscow-cell
