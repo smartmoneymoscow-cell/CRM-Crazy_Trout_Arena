@@ -104,17 +104,10 @@ void main() {
         }
       });
 
-      test('первые 4 клиента имеют аватары', () {
-        for (var i = 0; i < 4; i++) {
-          expect(kDemoClients[i].avatarAsset, isNotNull,
-              reason: 'Клиент ${kDemoClients[i].name} должен иметь аватар');
-        }
-      });
-
-      test('последние 3 клиента НЕ имеют аватаров', () {
-        for (var i = 4; i < kDemoClients.length; i++) {
-          expect(kDemoClients[i].avatarAsset, isNull,
-              reason: 'Клиент ${kDemoClients[i].name} не должен иметь аватар');
+      test('все клиенты имеют аватары', () {
+        for (final c in kDemoClients) {
+          expect(c.avatarAsset, isNotNull,
+              reason: 'Клиент ${c.name} должен иметь аватар');
         }
       });
 
