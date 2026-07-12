@@ -41,8 +41,9 @@ class _HomeShellState extends State<HomeShell> {
         ),
         child: SafeArea(
           top: false,
-          child: SizedBox(
-            height: 52,
+          child: Padding(
+            // Уменьшены ТОЛЬКО отступы сверху и снизу
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
             child: Row(
               children: List.generate(_items.length, (i) {
                 final item = _items[i];
@@ -52,20 +53,20 @@ class _HomeShellState extends State<HomeShell> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () => setState(() => _index = i),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           item.icon,
-                          size: 22,
-                          color: selected ? const Color(0xFFE8912B) : Colors.grey.shade500,
+                          size: 24, // ← без изменений
+                          color: selected ? const Color(0xFFE8912B) : Colors.grey.shade600,
                         ),
-                        const SizedBox(height: 1),
+                        const SizedBox(height: 2),
                         Text(
                           item.label,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 12, // ← без изменений
                             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                            color: selected ? const Color(0xFFE8912B) : Colors.grey.shade500,
+                            color: selected ? const Color(0xFFE8912B) : Colors.grey.shade600,
                           ),
                         ),
                       ],
