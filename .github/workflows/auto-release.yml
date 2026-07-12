@@ -1,0 +1,70 @@
+name: Auto Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Нужна вся история для changelog
+
+      - name: Генерация changelog из conventional commits
+        id: changelog
+        run: |
+          # Получаем предыдущий тег
+          PREV_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
+          CURR_TAG=${GITHUB_REF#refs/tags/}
+
+          echo "## 🚀 $CURR_TAG" > CHANGELOG_BODY.md
+          echo "" >> CHANGELOG_BODY.md
+
+          if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$CURR_TAG" ]; then
+            echo "Первый релиз!" >> CHANGELOG_BODY.md
+          else
+            echo "### Изменения с $PREV_TAG" >> CHANGELOG_BODY.md
+            echo "" >> CHANGELOG_BODY.md
+
+            # Features
+            FEATS=$(git log ${PREV_TAG}..${CURR_TAG} --pretty=format:"%s" --no-merges | grep "^feat" | sed 's/^feat[:\(]*/- /' | sed 's/)$//')
+            if [ -n "$FEATS" ]; then
+              echo "#### ✨ Новые функции" >> CHANGELOG_BODY.md
+              echo "$FEATS" >> CHANGELOG_BODY.md
+              echo "" >> CHANGELOG_BODY.md
+            fi
+
+            # Fixes
+            FIXES=$(git log ${PREV_TAG}..${CURR_TAG} --pretty=format:"%s" --no-merges | grep "^fix" | sed 's/^fix[:\(]*/- /' | sed 's/)$//')
+            if [ -n "$FIXES" ]; then
+              echo "#### 🐛 Исправления" >> CHANGELOG_BODY.md
+              echo "$FIXES" >> CHANGELOG_BODY.md
+              echo "" >> CHANGELOG_BODY.md
+            fi
+
+            # Other
+            OTHERS=$(git log ${PREV_TAG}..${CURR_TAG} --pretty=format:"%s" --no-merges | grep -v "^feat\|^fix\|^chore\|^docs\|^ci\|^refactor\|^test\|^perf")
+            if [ -n "$OTHERS" ]; then
+              echo "#### 📦 Прочее" >> CHANGELOG_BODY.md
+              echo "$OTHERS" | sed 's/^/- /' >> CHANGELOG_BODY.md
+              echo "" >> CHANGELOG_BODY.md
+            fi
+
+            # Stats
+            COMMITS=$(git log ${PREV_TAG}..${CURR_TAG} --oneline --no-merges | wc -l)
+            echo "---" >> CHANGELOG_BODY.md
+            echo "**$COMMITS коммитов** с $PREV_TAG" >> CHANGELOG_BODY.md
+          fi
+
+      - name: Создание GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG_BODY.md
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
