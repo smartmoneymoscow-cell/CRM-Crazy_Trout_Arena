@@ -5,6 +5,8 @@ import 'package:crazytrout_admin/models/client.dart';
 /// Имитация логики поиска клиента по QR-коду из receipt_screen.dart.
 /// Вынесена в отдельную функцию для тестирования.
 Client? findClientByQr(String code) {
+  if (code.trim().isEmpty) return null;
+
   // Ищем по id из QR (формат: "client:<id>" или просто id)
   final idStr = code.contains(':') ? code.split(':').last : code;
   final clientId = int.tryParse(idStr);
@@ -94,6 +96,11 @@ void main() {
 
       test('QR "client:999" возвращает null (нет такого id)', () {
         final client = findClientByQr('client:999');
+        expect(client, isNull);
+      });
+
+      test('QR "zzzzzzzzz" (точно нет совпадений) возвращает null', () {
+        final client = findClientByQr('zzzzzzzzz');
         expect(client, isNull);
       });
 
