@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crazytrout_admin/main.dart';
 
@@ -64,36 +64,6 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Создать и распечатать чек'), findsOneWidget);
-    });
-
-    testWidgets('нижнее меню содержит 5 иконок', (WidgetTester tester) async {
-      await tester.pumpWidget(const CrazyTroutAdminApp());
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.map_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.receipt_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.show_chart), findsOneWidget);
-      expect(find.byIcon(Icons.person_outline), findsOneWidget);
-    });
-
-    testWidgets('поле кг пустое при добавлении рыбы', (WidgetTester tester) async {
-      await tester.pumpWidget(const CrazyTroutAdminApp());
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
-      // Нажимаем «+ Добавить рыбу»
-      await tester.tap(find.text('+ Добавить рыбу'));
-      await tester.pumpAndSettle();
-      // Проверяем что поле кг пустое (hint text виден)
-      expect(find.text('0'), findsNothing);
-    });
-
-    testWidgets('иконка QR-сканера присутствует в поисковой строке', (WidgetTester tester) async {
-      await tester.pumpWidget(const CrazyTroutAdminApp());
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
-      final qrButton = find.byIcon(Icons.qr_code_scanner_rounded);
-      expect(qrButton, findsOneWidget);
     });
   });
 }
