@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/receipt.dart';
-import '../services/print_service.dart';
+import '../services/print_route.dart' deferred as print_route;
 
 String _money(num n) {
   final rounded = n.round();
@@ -92,7 +92,10 @@ class _ReceiptResultSheet extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.search),
                 label: const Text('Найти принтер и распечатать', style: TextStyle(fontWeight: FontWeight.bold)),
-                onPressed: () => PrintService.printViaBluetooth(context, r),
+                onPressed: () async {
+                  await print_route.loadLibrary();
+                  print_route.printViaBluetooth(context, r);
+                },
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
@@ -104,7 +107,10 @@ class _ReceiptResultSheet extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.print_outlined),
                 label: const Text('Печать через AirPrint', style: TextStyle(fontWeight: FontWeight.bold)),
-                onPressed: () => PrintService.printViaSystemDialog(r),
+                onPressed: () async {
+                  await print_route.loadLibrary();
+                  print_route.printViaSystemDialog(r);
+                },
               ),
               const SizedBox(height: 12),
               Text(

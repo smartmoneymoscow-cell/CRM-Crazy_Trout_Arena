@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../data/demo_data.dart';
 import '../models/catch_row.dart';
@@ -9,6 +8,7 @@ import '../models/tariff.dart';
 import '../widgets/catch_row_tile.dart';
 import '../widgets/receipt_result_sheet.dart';
 import '../widgets/segmented_control.dart';
+import '../utils/permission_helper.dart' deferred as perm_helper;
 import 'qr_scan_route.dart' deferred as qr_route;
 import '../utils/qr_lookup.dart';
 
@@ -51,8 +51,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
   Future<void> _scanQr() async {
     try {
-      final status = await Permission.camera.request();
-      if (!status.isGranted) {
+      await perm_helper.loadLibrary();
+      final granted = await perm_helper.requestCameraPermission();
+      if (!granted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Нет разрешения на камеру — разрешите доступ в настройках')),
