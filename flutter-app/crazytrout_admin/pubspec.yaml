@@ -28,8 +28,8 @@ dependencies:
 
   intl: ^0.19.0
 
-  # Сканер QR-кода — идентификация клиента через камеру.
-  mobile_scanner: ^5.2.3
+  # Сканер QR-кода — ZXing вместо ML Kit (экономия ~4.5 МБ в APK).
+  qr_code_scanner: ^1.0.1
 
 dev_dependencies:
   flutter_test:

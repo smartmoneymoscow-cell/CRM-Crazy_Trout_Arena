@@ -1,0 +1,262 @@
+From f70cefcf802ad4208b7f11c4b8caf5888c21b1ea Mon Sep 17 00:00:00 2001
+From: Fix Bot <fix@local>
+Date: Sun, 12 Jul 2026 16:37:23 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20CP866=20=D1=80=D1=83=D0=B1=D0=BB=D1=8C,?=
+ =?UTF-8?q?=20=D1=82=D0=B0=D1=80=D0=B8=D1=84=20readOnly,=20=D1=83=D1=82?=
+ =?UTF-8?q?=D0=B8=D0=BB=D0=B8=D1=82=D0=B0=20money(),=20=D0=B4=D0=B5=D1=84?=
+ =?UTF-8?q?=D0=B8=D1=81=D1=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- escpos_builder: ₽ → 0xE0 (р в CP866) вместо 0x70 (p в ASCII)
+- escpos_builder: ₽ в тексте чека → 'руб.' (гарантированно на любом принтере)
+- escpos_builder: добавлена обработка дефисов U+2013/2014/2212 и неразрывного пробела
+- receipt_screen: поле цены тарифа readOnly (редактирование не сохранялось)
+- receipt_screen: TODO для SharedPreferences на _receiptSeq
+- utils/format.dart: вынесена общая функция money() (была продублирована 3 раза)
+- receipt_result_sheet, catch_row_tile: используют money() из utils
+- тесты: импорт money() из utils вместо локальной копии
+---
+ .../lib/screens/receipt_screen.dart           | 28 ++++++-------------
+ .../lib/services/escpos_builder.dart          | 12 +++++---
+ .../crazytrout_admin/lib/utils/format.dart    |  9 ++++++
+ .../lib/widgets/catch_row_tile.dart           | 12 ++------
+ .../lib/widgets/receipt_result_sheet.dart     | 16 +++--------
+ .../screens/receipt_screen_logic_test.dart    | 11 +-------
+ 6 files changed, 33 insertions(+), 55 deletions(-)
+ create mode 100644 flutter-app/crazytrout_admin/lib/utils/format.dart
+
+diff --git a/flutter-app/crazytrout_admin/lib/screens/receipt_screen.dart b/flutter-app/crazytrout_admin/lib/screens/receipt_screen.dart
+index 8be56eb..1919831 100644
+--- a/flutter-app/crazytrout_admin/lib/screens/receipt_screen.dart
++++ b/flutter-app/crazytrout_admin/lib/screens/receipt_screen.dart
+@@ -11,6 +11,7 @@ import '../widgets/segmented_control.dart';
+ import '../utils/permission_helper.dart' deferred as perm_helper;
+ import 'qr_scan_route.dart' deferred as qr_route;
+ import '../utils/qr_lookup.dart';
++import '../utils/format.dart';
+ 
+ class ReceiptScreen extends StatefulWidget {
+   const ReceiptScreen({super.key});
+@@ -31,7 +32,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
+ 
+   PaymentMethod _payment = PaymentMethod.card;
+   bool _fiscal = true;
+-  int _receiptSeq = 1247;
++  int _receiptSeq = 1247; // TODO: сохранять в SharedPreferences для сквозной нумерации
+ 
+   double get _catchTotal => _rows.fold(0.0, (s, r) => s + r.sum);
+   double get _total => _tariff.price + _catchTotal;
+@@ -169,15 +170,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
+     });
+   }
+ 
+-  String _money(num n) {
+-    final rounded = n.round();
+-    final s = rounded.toString().replaceAllMapped(
+-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+-          (m) => '${m[1]} ',
+-        );
+-    return '$s ₽';
+-  }
+-
+   @override
+   Widget build(BuildContext context) {
+     return ListView(
+@@ -259,12 +251,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
+                   TextFormField(
+                     key: ValueKey(_tariff.id),
+                     initialValue: _tariff.price.toString(),
+-                    keyboardType: TextInputType.number,
+-                    decoration: _fieldDecoration(),
+-                    onChanged: (v) {
+-                      final price = int.tryParse(v) ?? _tariff.price;
+-                      setState(() => _tariff = Tariff(id: _tariff.id, label: _tariff.label, price: price));
+-                    },
++                    readOnly: true,
++                    decoration: _fieldDecoration().copyWith(
++                      fillColor: const Color(0xFFEDE8DC),
++                    ),
+                   ),
+                 ),
+               ),
+@@ -305,10 +295,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
+           decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(16)),
+           child: Column(
+             children: [
+-              _summaryRow('Тариф клиента', _money(_tariff.price), color: Colors.white70),
+-              _summaryRow('Улов · ${_rows.length} поз.', _money(_catchTotal), color: Colors.white70),
++              _summaryRow('Тариф клиента', money(_tariff.price), color: Colors.white70),
++              _summaryRow('Улов · ${_rows.length} поз.', money(_catchTotal), color: Colors.white70),
+               const Divider(color: Colors.white24, height: 24),
+-              _summaryRow('ИТОГО', _money(_total), color: Colors.white, big: true),
++              _summaryRow('ИТОГО', money(_total), color: Colors.white, big: true),
+             ],
+           ),
+         ),
+diff --git a/flutter-app/crazytrout_admin/lib/services/escpos_builder.dart b/flutter-app/crazytrout_admin/lib/services/escpos_builder.dart
+index b9763f9..8ce5d13 100644
+--- a/flutter-app/crazytrout_admin/lib/services/escpos_builder.dart
++++ b/flutter-app/crazytrout_admin/lib/services/escpos_builder.dart
+@@ -40,7 +40,7 @@ Uint8List buildEscPos(Receipt r) {
+   // Клиент
+   raw.addAll(_encodeCp866('Клиент: ${r.clientLine}'));
+   raw.addAll([0x0A]);
+-  raw.addAll(_encodeCp866('Тариф ${r.tariffLabel}: ${r.tariffPrice} ₽'));
++  raw.addAll(_encodeCp866('Тариф ${r.tariffLabel}: ${r.tariffPrice} руб.'));
+   raw.addAll([0x0A]);
+   raw.addAll(_encodeCp866('--------------------------------'));
+   raw.addAll([0x0A]);
+@@ -48,7 +48,7 @@ Uint8List buildEscPos(Receipt r) {
+   // Улов
+   for (final it in r.rows) {
+     raw.addAll(_encodeCp866(
+-      '${it.name} ${it.weight.toStringAsFixed(2)}кг × ${it.price.round()} = ${it.sum.round()} ₽',
++      '${it.name} ${it.weight.toStringAsFixed(2)}кг × ${it.price.round()} = ${it.sum.round()} руб.',
+     ));
+     raw.addAll([0x0A]);
+   }
+@@ -58,7 +58,7 @@ Uint8List buildEscPos(Receipt r) {
+   raw.addAll([0x0A]);
+   raw.addAll([0x1B, 0x45, 0x01]); // жирный
+   raw.addAll([0x1B, 0x21, 0x10]); // двойная высота
+-  raw.addAll(_encodeCp866('ИТОГО: ${r.total.round()} ₽'));
++  raw.addAll(_encodeCp866('ИТОГО: ${r.total.round()} руб.'));
+   raw.addAll([0x0A]);
+   raw.addAll([0x1B, 0x21, 0x00]); // сброс размера
+   raw.addAll([0x1B, 0x45, 0x00]); // сброс жирного
+@@ -112,7 +112,11 @@ int? _unicodeToCp866(String ch) {
+   // Ё: U+0401 → 0xF0
+   if (code == 0x0401) return 0xF0;
+   // Знак рубля ₽: U+20BD → используем «р» (0xE0) как замену
+-  if (code == 0x20BD) return 0x70; // 'p' в ASCII
++  if (code == 0x20BD) return 0xE0; // «р» в CP866
++  // Дефис/минус: U+2013, U+2014, U+2212 → обычный дефис
++  if (code == 0x2013 || code == 0x2014 || code == 0x2212) return 0x2D;
++  // Неразрывный пробел: U+00A0 → обычный пробел
++  if (code == 0x00A0) return 0x20;
+   // Пробел
+   if (code == 0x20) return 0x20;
+   // Точка, запятая, скобки и прочее — ASCII-совместимые
+diff --git a/flutter-app/crazytrout_admin/lib/utils/format.dart b/flutter-app/crazytrout_admin/lib/utils/format.dart
+new file mode 100644
+index 0000000..f985ff9
+--- /dev/null
++++ b/flutter-app/crazytrout_admin/lib/utils/format.dart
+@@ -0,0 +1,9 @@
++/// Форматирование чисел в денежный формат: 1 500 ₽
++String money(num n) {
++  final rounded = n.round();
++  final s = rounded.toString().replaceAllMapped(
++        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
++        (m) => '${m[1]} ',
++      );
++  return '$s ₽';
++}
+diff --git a/flutter-app/crazytrout_admin/lib/widgets/catch_row_tile.dart b/flutter-app/crazytrout_admin/lib/widgets/catch_row_tile.dart
+index 8d14308..05444b0 100644
+--- a/flutter-app/crazytrout_admin/lib/widgets/catch_row_tile.dart
++++ b/flutter-app/crazytrout_admin/lib/widgets/catch_row_tile.dart
+@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
+ 
+ import '../data/demo_data.dart';
+ import '../models/catch_row.dart';
++import '../utils/format.dart';
+ 
+ class CatchRowTile extends StatefulWidget {
+   final CatchRow row;
+@@ -46,15 +47,6 @@ class _CatchRowTileState extends State<CatchRowTile> {
+     super.dispose();
+   }
+ 
+-  String _money(num n) {
+-    final rounded = n.round();
+-    final s = rounded.toString().replaceAllMapped(
+-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+-          (m) => '${m[1]} ',
+-        );
+-    return '$s ₽';
+-  }
+-
+   @override
+   Widget build(BuildContext context) {
+     return Container(
+@@ -149,7 +141,7 @@ class _CatchRowTileState extends State<CatchRowTile> {
+                   child: Padding(
+                     padding: const EdgeInsets.symmetric(vertical: 12),
+                     child: Text(
+-                      _money(widget.row.sum),
++                      money(widget.row.sum),
+                       style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                       textAlign: TextAlign.right,
+                     ),
+diff --git a/flutter-app/crazytrout_admin/lib/widgets/receipt_result_sheet.dart b/flutter-app/crazytrout_admin/lib/widgets/receipt_result_sheet.dart
+index efab6d8..03c5f44 100644
+--- a/flutter-app/crazytrout_admin/lib/widgets/receipt_result_sheet.dart
++++ b/flutter-app/crazytrout_admin/lib/widgets/receipt_result_sheet.dart
+@@ -2,15 +2,7 @@ import 'package:flutter/material.dart';
+ 
+ import '../models/receipt.dart';
+ import '../services/print_route.dart' deferred as print_route;
+-
+-String _money(num n) {
+-  final rounded = n.round();
+-  final s = rounded.toString().replaceAllMapped(
+-        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+-        (m) => '${m[1]} ',
+-      );
+-  return '$s ₽';
+-}
++import '../utils/format.dart';
+ 
+ Future<void> showReceiptResultSheet(BuildContext context, Receipt r) {
+   return showModalBottomSheet(
+@@ -69,14 +61,14 @@ class _ReceiptResultSheet extends StatelessWidget {
+                     ),
+                     const Divider(height: 24),
+                     _row('Клиент', r.clientLine),
+-                    _row('Тариф · ${r.tariffLabel}', _money(r.tariffPrice)),
++                    _row('Тариф · ${r.tariffLabel}', money(r.tariffPrice)),
+                     const Divider(height: 24),
+                     ...r.rows.map((it) => _row(
+                           '${it.name} ${it.weight.toStringAsFixed(2)}кг × ${it.price.round()}',
+-                          _money(it.sum),
++                          money(it.sum),
+                         )),
+                     const Divider(height: 24),
+-                    _row('ИТОГО', _money(r.total), bold: true),
++                    _row('ИТОГО', money(r.total), bold: true),
+                     _row('Оплата', r.payment.label),
+                     _row('Тип чека', r.fiscal ? 'Фискальный ${r.fiscalDoc ?? ""}' : 'Без ФН'),
+                   ],
+diff --git a/flutter-app/crazytrout_admin/test/screens/receipt_screen_logic_test.dart b/flutter-app/crazytrout_admin/test/screens/receipt_screen_logic_test.dart
+index 2e23000..2afdf5a 100644
+--- a/flutter-app/crazytrout_admin/test/screens/receipt_screen_logic_test.dart
++++ b/flutter-app/crazytrout_admin/test/screens/receipt_screen_logic_test.dart
+@@ -4,21 +4,12 @@ import 'package:crazytrout_admin/models/catch_row.dart';
+ import 'package:crazytrout_admin/models/client.dart';
+ import 'package:crazytrout_admin/models/receipt.dart';
+ import 'package:crazytrout_admin/models/tariff.dart';
++import 'package:crazytrout_admin/utils/format.dart';
+ 
+ /// Имитация логики экрана ReceiptScreen для тестирования.
+ /// В реальном приложении это приватные методы State-класса,
+ /// но для тестирования вынесены в standalone-функции.
+ 
+-/// Форматирование суммы (из receipt_screen.dart).
+-String money(num n) {
+-  final rounded = n.round();
+-  final s = rounded.toString().replaceAllMapped(
+-        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+-        (m) => '${m[1]} ',
+-      );
+-  return '$s ₽';
+-}
+-
+ /// Поиск клиентов (из receipt_screen.dart).
+ List<Client> searchClients(String query) {
+   if (query.trim().isEmpty) return [];
+-- 
+2.43.0
+
