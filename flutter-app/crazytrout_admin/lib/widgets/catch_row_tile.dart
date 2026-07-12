@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/demo_data.dart';
 import '../models/catch_row.dart';
 import '../utils/format.dart';
+import 'app_dropdown_field.dart';
 
 class CatchRowTile extends StatefulWidget {
   final CatchRow row;
@@ -68,15 +69,16 @@ class _CatchRowTileState extends State<CatchRowTile> {
               Expanded(
                 child: _Field(
                   label: 'Порода',
-                  child: DropdownButtonFormField<String>(
+                  child: AppDropdownField<String>(
                     value: widget.row.species,
-                    isExpanded: true,
-                    decoration: _decoration(),
                     items: kSpecies
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis)))
+                        .map((s) => AppDropdownItem(
+                              value: s,
+                              child: Text(s, overflow: TextOverflow.ellipsis),
+                            ))
                         .toList(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     onChanged: (v) {
-                      if (v == null) return;
                       widget.row.species = v;
                       widget.row.pricePerKg = kSpeciesPrice[v] ?? widget.row.pricePerKg;
                       widget.onChanged();

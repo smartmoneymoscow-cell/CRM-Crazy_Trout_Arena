@@ -42,8 +42,9 @@ class _HomeShellState extends State<HomeShell> {
         child: SafeArea(
           top: false,
           child: Padding(
-            // Уменьшены ТОЛЬКО отступы сверху и снизу
-            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            // +1px добавлен сверху (над иконками), как попросили —
+            // остальные отступы не тронуты.
+            padding: const EdgeInsets.only(top: 5, bottom: 4),
             child: Row(
               children: List.generate(_items.length, (i) {
                 final item = _items[i];

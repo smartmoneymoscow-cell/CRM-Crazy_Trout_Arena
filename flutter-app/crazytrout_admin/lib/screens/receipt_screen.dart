@@ -5,6 +5,7 @@ import '../models/catch_row.dart';
 import '../models/client.dart';
 import '../models/receipt.dart';
 import '../models/tariff.dart';
+import '../widgets/app_dropdown_field.dart';
 import '../widgets/catch_row_tile.dart';
 import '../widgets/receipt_result_sheet.dart';
 import '../widgets/segmented_control.dart';
@@ -209,17 +210,26 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   ),
                 ),
               const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: _selectGuest,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: Color(0xFFDDD3BC), style: BorderStyle.solid),
+              if (_selectedClient != null)
+                _SelectedClientCard(
+                  client: _selectedClient!,
+                  onClear: () => setState(() {
+                    _selectedClient = null;
+                    _searchCtrl.clear();
+                  }),
+                )
+              else
+                OutlinedButton(
+                  onPressed: _selectGuest,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: Color(0xFFDDD3BC), style: BorderStyle.solid),
+                    ),
                   ),
+                  child: Text(_isGuest ? '✓ Гость · без анкеты' : 'Гость · без анкеты'),
                 ),
-                child: Text(_isGuest ? '✓ Гость · без анкеты' : 'Гость · без анкеты'),
-              ),
             ],
           ),
         ),
@@ -231,16 +241,12 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
               Expanded(
                 child: _labeledField(
                   'ТАРИФ',
-                  DropdownButtonFormField<Tariff>(
+                  AppDropdownField<Tariff>(
                     value: _tariff,
-                    isExpanded: true,
-                    decoration: _fieldDecoration(),
                     items: kTariffs
-                        .map((t) => DropdownMenuItem(value: t, child: Text('${t.label} · ${t.price}')))
+                        .map((t) => AppDropdownItem(value: t, child: Text(t.label)))
                         .toList(),
-                    onChanged: (t) {
-                      if (t != null) setState(() => _tariff = t);
-                    },
+                    onChanged: (t) => setState(() => _tariff = t),
                   ),
                 ),
               ),
@@ -402,24 +408,73 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 /// Круглый аватар клиента: фото, если есть, иначе инициалы.
 class _ClientAvatar extends StatelessWidget {
   final Client client;
-  const _ClientAvatar({required this.client});
+  final double radius;
+  const _ClientAvatar({required this.client, this.radius = 20});
 
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      radius: 20,
+      radius: radius,
       backgroundColor: const Color(0xFFF3EEE4),
       backgroundImage: client.avatarAsset != null ? AssetImage(client.avatarAsset!) : null,
       child: client.avatarAsset == null
           ? Text(
               client.initials,
-              style: const TextStyle(
-                fontSize: 14,
+              style: TextStyle(
+                fontSize: radius * 0.7,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF8A6D1E),
+                color: const Color(0xFF8A6D1E),
               ),
             )
           : null,
+    );
+  }
+}
+
+/// Карточка выбранного клиента — занимает место кнопки «Гость · без анкеты»
+/// после выбора клиента из поиска или сканирования QR.
+class _SelectedClientCard extends StatelessWidget {
+  final Client client;
+  final VoidCallback onClear;
+  const _SelectedClientCard({required this.client, required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EEE4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDDD3BC)),
+      ),
+      child: Row(
+        children: [
+          _ClientAvatar(client: client, radius: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  client.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  '${client.phone} · ${client.tariffLabel}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Color(0xFF9C9484)),
+            tooltip: 'Убрать клиента',
+            onPressed: onClear,
+          ),
+        ],
+      ),
     );
   }
 }
