@@ -13,12 +13,7 @@ Future<void> main() async {
 
   await SentryFlutter.init(
     (options) {
-      // TODO: заменить на реальный DSN из https://sentry.io
-      // Создайте проект Flutter → Settings → Client Keys (DSN)
-      options.dsn = const String.fromEnvironment(
-        'SENTRY_DSN',
-        defaultValue: '',
-      );
+      options.dsn = 'https://497130229ebbe402ac2995fa888709cd@o4511723482382336.ingest.us.sentry.io/4511723747278848';
       // Среда (development / production)
       options.environment = const String.fromEnvironment(
         'SENTRY_ENV',
