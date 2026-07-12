@@ -49,6 +49,13 @@ flutter:
     - assets/avatars/avatar_3.jpeg
     - assets/avatars/avatar_4.jpeg
     - assets/icon/splash_logo.png
+    - assets/fish/sturgeon.png
+    - assets/fish/carp.png
+    - assets/fish/grass_carp.png
+    - assets/fish/tench.png
+    - assets/fish/trout.png
+    - assets/icon/splash_logo.jpg
+    - assets/icon/icon_check.png
 
 # Автогенерация нативных иконок (Android + iOS) из логотипа компании.
 # После `flutter pub get` запустите: flutter pub run flutter_launcher_icons
