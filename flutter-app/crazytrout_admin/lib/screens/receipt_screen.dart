@@ -247,6 +247,8 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         .map((t) => AppDropdownItem(value: t, child: Text(t.label)))
                         .toList(),
                     onChanged: (t) => setState(() => _tariff = t),
+                    fillColor: const Color(0xFFEDE8DC),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                   ),
                 ),
               ),
