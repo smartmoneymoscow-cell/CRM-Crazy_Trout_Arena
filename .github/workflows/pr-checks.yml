@@ -1,0 +1,36 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-app/crazytrout_admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Генерация обёрток проекта
+        run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
+
+      - name: Установка зависимостей
+        run: flutter pub get
+
+      - name: Анализ кода (flutter analyze)
+        run: flutter analyze --fatal-infos
+
+      - name: Запуск тестов
+        run: flutter test
