@@ -49,16 +49,72 @@ jobs:
               <uses-permission android:name="android.permission.CAMERA" />' \
             android/app/src/main/AndroidManifest.xml
 
-      - name: ProGuard-правила для mobile_scanner (иначе release ломает сканер QR)
-        # R8 в релизной сборке обфусцирует/вырезает классы CameraX и ML Kit
-        # Barcode Scanning, к которым mobile_scanner обращается через
-        # рефлексию при старте камеры. Без keep-правил это падает с
-        # "MobileScannerException: genericError ... on a null object
-        # reference" сразу при открытии экрана сканера — в debug-сборке
-        # (minifyEnabled=false) всё работает, поэтому баг незаметен локально
-        # и проявляется только в релизном APK.
+      - name: Гарантировать minifyEnabled/shrinkResources в release (Groovy или Kotlin DSL)
+        run: |
+          python3 << 'PYEOF'
+          import re, pathlib
+
+          groovy = pathlib.Path('android/app/build.gradle')
+          kts = pathlib.Path('android/app/build.gradle.kts')
+          path = kts if kts.exists() else groovy
+          text = path.read_text()
+
+          if 'minifyEnabled' in text or 'isMinifyEnabled' in text:
+              print(f'{path}: minify уже настроен явно, не трогаю')
+          elif path == kts:
+              # Kotlin DSL: release { signingConfig = ... }
+              new_release = (
+                  'release {\n'
+                  '            signingConfig = signingConfigs.getByName("debug")\n'
+                  '            isMinifyEnabled = true\n'
+                  '            isShrinkResources = true\n'
+                  '            proguardFiles(\n'
+                  '                getDefaultProguardFile("proguard-android-optimize.txt"),\n'
+                  '                "proguard-rules.pro"\n'
+                  '            )\n'
+                  '        }'
+              )
+              text2 = re.sub(r'release\s*\{[^}]*\}', new_release, text, count=1, flags=re.S)
+              path.write_text(text2)
+              print(f'{path}: добавлены minify/shrink/proguardFiles (Kotlin DSL)')
+          else:
+              # Groovy: release { signingConfig ... }
+              new_release = (
+                  'release {\n'
+                  '            signingConfig signingConfigs.debug\n'
+                  '            minifyEnabled true\n'
+                  '            shrinkResources true\n'
+                  '            proguardFiles getDefaultProguardFile(\'proguard-android-optimize.txt\'), \'proguard-rules.pro\'\n'
+                  '        }'
+              )
+              text2 = re.sub(r'release\s*\{[^}]*\}', new_release, text, count=1, flags=re.S)
+              path.write_text(text2)
+              print(f'{path}: добавлены minify/shrink/proguardFiles (Groovy)')
+          PYEOF
+          echo "--- итоговый release-блок ---"
+          grep -A8 "release {" android/app/build.gradle.kts 2>/dev/null || grep -A8 "release {" android/app/build.gradle
+
+      - name: ProGuard-правила (R8 в релизе иначе ломает плагины через рефлексию)
+        # Раньше здесь были keep-правила только для mobile_scanner — но R8
+        # в минифицированной сборке точно так же может обфусцировать/вырезать
+        # классы ЛЮБОГО плагина без явного keep-правила, включая сам
+        # механизм регистрации плагинов Flutter (GeneratedPluginRegistrant),
+        # который вызывается СРАЗУ при старте приложения — то есть без
+        # базового "io.flutter.**" правила крэш происходит уже при попытке
+        # открыть приложение, а не только при использовании конкретного
+        # плагина. Добавлены недостающие правила для flutter_blue_plus,
+        # printing/pdf и permission_handler, плюс обязательный базовый набор.
         run: |
           cat >> android/app/proguard-rules.pro << 'EOF'
+
+          # --- Базовые правила Flutter embedding (обязательны при minifyEnabled) ---
+          -keep class io.flutter.app.** { *; }
+          -keep class io.flutter.plugin.** { *; }
+          -keep class io.flutter.util.** { *; }
+          -keep class io.flutter.view.** { *; }
+          -keep class io.flutter.** { *; }
+          -keep class io.flutter.plugins.** { *; }
+          -dontwarn io.flutter.embedding.**
 
           # --- mobile_scanner / CameraX / ML Kit Barcode Scanning ---
           -keep class dev.steenbakker.mobile_scanner.** { *; }
@@ -72,6 +128,18 @@ jobs:
           -dontwarn com.google.android.gms.internal.mlkit_vision_barcode.**
           -dontwarn com.google.android.gms.internal.mlkit_vision_common.**
           -dontwarn androidx.camera.**
+
+          # --- flutter_blue_plus (Bluetooth-печать) ---
+          -keep class com.lib.flutter_blue_plus.** { *; }
+          -dontwarn com.lib.flutter_blue_plus.**
+
+          # --- printing / pdf (системный диалог печати) ---
+          -keep class net.nfet.flutter.printing.** { *; }
+          -dontwarn net.nfet.flutter.printing.**
+
+          # --- permission_handler ---
+          -keep class com.baseflow.permissionhandler.** { *; }
+          -dontwarn com.baseflow.permissionhandler.**
           EOF
 
       - name: Установка зависимостей
