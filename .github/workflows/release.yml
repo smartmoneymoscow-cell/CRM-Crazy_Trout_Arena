@@ -1,24 +1,68 @@
-name: Build APK & IPA
+name: Release
 
 on:
   push:
-    branches: [ main ]
     tags: [ 'v*' ]
-  workflow_dispatch: {}
 
-# Отмена предыдущих запусков при новом пуше
 concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
   # ──────────────────────────────────────────────
+  # Валидация ассетов
+  # ──────────────────────────────────────────────
+  validate-assets:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-app/crazytrout_admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Проверка наличия всех ассетов из кода
+        run: |
+          echo "Поиск ссылок на ассеты в Dart-коде..."
+          MISSING=0
+          while IFS= read -r ref; do
+            path=$(echo "$ref" | grep -oP "assets/[^'\"]+")
+            if [ -n "$path" ] && [ ! -f "$path" ]; then
+              echo "❌ MISSING: $path"
+              MISSING=$((MISSING + 1))
+            fi
+          done < <(grep -rh --include='*.dart' -oP "assets/[^'\"]+\.(png|jpeg|jpg|gif|svg|webp|ttf|otf)" lib/ | sort -u)
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo ""
+            echo "🔴 Найдено $MISSING отсутствующих ассетов!"
+            echo "Добавьте файлы в git и зарегистрируйте в pubspec.yaml"
+            exit 1
+          fi
+          echo "✅ Все ассеты на месте"
+
+      - name: Проверка pubspec.yaml
+        run: |
+          MISSING=0
+          for f in $(find assets/ -type f \( -name '*.png' -o -name '*.jpeg' -o -name '*.jpg' -o -name '*.ttf' \) | sort); do
+            if ! grep -q "$f" pubspec.yaml; then
+              echo "❌ NOT IN PUBSPEC: $f"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ "$MISSING" -gt 0 ]; then
+            echo "🔴 $MISSING файлов не зарегистрированы в pubspec.yaml!"
+            exit 1
+          fi
+          echo "✅ Все ассеты зарегистрированы"
+
+  # ──────────────────────────────────────────────
   # Android APK
   # ──────────────────────────────────────────────
   build-android:
+    needs: validate-assets
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -32,7 +76,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Генерация обёрток проекта (Android + iOS)
+      - name: Генерация обёрток проекта
         run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
 
       - name: Красивое название приложения
@@ -49,20 +93,17 @@ jobs:
               <uses-permission android:name="android.permission.CAMERA" />' \
             android/app/src/main/AndroidManifest.xml
 
-      - name: Гарантировать minifyEnabled/shrinkResources в release (Groovy или Kotlin DSL)
+      - name: Гарантировать minifyEnabled/shrinkResources в release
         run: |
           python3 << 'PYEOF'
           import re, pathlib
-
           groovy = pathlib.Path('android/app/build.gradle')
           kts = pathlib.Path('android/app/build.gradle.kts')
           path = kts if kts.exists() else groovy
           text = path.read_text()
-
           if 'minifyEnabled' in text or 'isMinifyEnabled' in text:
               print(f'{path}: minify уже настроен явно, не трогаю')
           elif path == kts:
-              # Kotlin DSL: release { signingConfig = ... }
               new_release = (
                   'release {\n'
                   '            signingConfig = signingConfigs.getByName("debug")\n'
@@ -78,7 +119,6 @@ jobs:
               path.write_text(text2)
               print(f'{path}: добавлены minify/shrink/proguardFiles (Kotlin DSL)')
           else:
-              # Groovy: release { signingConfig ... }
               new_release = (
                   'release {\n'
                   '            signingConfig signingConfigs.debug\n'
@@ -91,86 +131,41 @@ jobs:
               path.write_text(text2)
               print(f'{path}: добавлены minify/shrink/proguardFiles (Groovy)')
           PYEOF
-          echo "--- итоговый release-блок ---"
-          grep -A8 "release {" android/app/build.gradle.kts 2>/dev/null || grep -A8 "release {" android/app/build.gradle
 
-      - name: ProGuard-правила (R8 в релизе иначе ломает плагины через рефлексию)
-        # Раньше здесь были keep-правила только для mobile_scanner — но R8
-        # в минифицированной сборке точно так же может обфусцировать/вырезать
-        # классы ЛЮБОГО плагина без явного keep-правила, включая сам
-        # механизм регистрации плагинов Flutter (GeneratedPluginRegistrant),
-        # который вызывается СРАЗУ при старте приложения — то есть без
-        # базового "io.flutter.**" правила крэш происходит уже при попытке
-        # открыть приложение, а не только при использовании конкретного
-        # плагина. Добавлены недостающие правила для flutter_blue_plus,
-        # printing/pdf и permission_handler, плюс обязательный базовый набор.
+      - name: Копирование ProGuard-правил из репозитория
         run: |
-          cat >> android/app/proguard-rules.pro << 'EOF'
-
-          # --- Базовые правила Flutter embedding (обязательны при minifyEnabled) ---
-          -keep class io.flutter.app.** { *; }
-          -keep class io.flutter.plugin.** { *; }
-          -keep class io.flutter.util.** { *; }
-          -keep class io.flutter.view.** { *; }
-          -keep class io.flutter.** { *; }
-          -keep class io.flutter.plugins.** { *; }
-          -dontwarn io.flutter.embedding.**
-
-          # --- mobile_scanner / CameraX / ML Kit Barcode Scanning ---
-          -keep class dev.steenbakker.mobile_scanner.** { *; }
-          -keep class com.google.mlkit.vision.barcode.** { *; }
-          -keep class com.google.mlkit.vision.codescanner.** { *; }
-          -keep class com.google.mlkit.vision.common.** { *; }
-          -keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }
-          -keep class com.google.android.gms.internal.mlkit_vision_common.** { *; }
-          -keep class androidx.camera.** { *; }
-          -dontwarn com.google.mlkit.**
-          -dontwarn com.google.android.gms.internal.mlkit_vision_barcode.**
-          -dontwarn com.google.android.gms.internal.mlkit_vision_common.**
-          -dontwarn androidx.camera.**
-
-          # --- flutter_blue_plus (Bluetooth-печать) ---
-          -keep class com.lib.flutter_blue_plus.** { *; }
-          -dontwarn com.lib.flutter_blue_plus.**
-
-          # --- printing / pdf (системный диалог печати) ---
-          -keep class net.nfet.flutter.printing.** { *; }
-          -dontwarn net.nfet.flutter.printing.**
-
-          # --- permission_handler ---
-          -keep class com.baseflow.permissionhandler.** { *; }
-          -dontwarn com.baseflow.permissionhandler.**
-          EOF
+          if [ -f android/app/proguard-rules.pro ]; then
+            echo "✅ proguard-rules.pro найден в репозитории"
+          else
+            echo "⚠️ proguard-rules.pro не найден"
+          fi
 
       - name: Установка зависимостей
         run: flutter pub get
 
-      - name: Генерация иконки приложения из логотипа
+      - name: Генерация иконки приложения
         run: dart run flutter_launcher_icons
 
       - name: Запуск тестов
         run: flutter test
 
-      # --target-platform android-arm64 режет только движок Flutter и Dart-код,
-      # но НЕ нативные библиотеки плагинов (например, сканер штрихкодов
-      # добавляет .so под arm64+armv7+x86_64 разом, +12 МБ лишнего). Поэтому
-      # используем --split-per-abi и берём только arm64-сборку явно.
-      - name: Сборка релизного APK (split-per-abi, только arm64)
+      - name: Сборка APK (split-per-abi, arm64)
         run: |
           flutter build apk --release --split-per-abi
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
              build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Публикация APK как артефакта
+      - name: Публикация APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: flutter-app/crazytrout_admin/build/app/outputs/flutter-apk/app-release.apk
 
   # ──────────────────────────────────────────────
-  # iOS IPA (требует macOS-раннер)
+  # iOS IPA
   # ──────────────────────────────────────────────
   build-ios:
+    needs: validate-assets
     runs-on: macos-latest
     defaults:
       run:
@@ -184,7 +179,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Генерация обёрток проекта (Android + iOS)
+      - name: Генерация обёрток проекта
         run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
 
       - name: Установка зависимостей
@@ -200,33 +195,32 @@ jobs:
       - name: Минимальная версия iOS 13.0
         run: sed -i '' 's/platform :ios, .*/platform :ios, '"'"'13.0'"'"'/g' ios/Podfile
 
-      - name: Генерация иконки приложения из логотипа
+      - name: Генерация иконки приложения
         run: dart run flutter_launcher_icons
 
       - name: Запуск тестов
         run: flutter test
 
-      - name: Сборка iOS без кодирования (no-codesign)
+      - name: Сборка iOS (no-codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Создание IPA из .app
+      - name: Создание IPA
         run: |
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r app-release.ipa Payload
           rm -rf Payload
 
-      - name: Публикация IPA как артефакта
+      - name: Публикация IPA
         uses: actions/upload-artifact@v4
         with:
           name: app-release-ipa
           path: flutter-app/crazytrout_admin/app-release.ipa
 
   # ──────────────────────────────────────────────
-  # Релиз — создаётся ОДИН раз после обоих билдов
+  # GitHub Release — ОДИН job, ждёт оба билда
   # ──────────────────────────────────────────────
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
     needs: [build-android, build-ios]
     runs-on: ubuntu-latest
     steps:
@@ -245,6 +239,7 @@ jobs:
       - name: Создание GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          generate_release_notes: true
           files: |
             artifacts/apk/app-release.apk
             artifacts/ipa/app-release.ipa

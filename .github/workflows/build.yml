@@ -1,0 +1,227 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Валидация ассетов — проверяет что все файлы
+  # на которые ссылается код через AssetImage/кавычки
+  # реально существуют в репозитории
+  # ──────────────────────────────────────────────
+  validate-assets:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-app/crazytrout_admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Проверка наличия всех ассетов из кода
+        run: |
+          echo "Поиск ссылок на ассеты в Dart-коде..."
+          MISSING=0
+          while IFS= read -r ref; do
+            # Извлекаем путь после assets/
+            path=$(echo "$ref" | grep -oP "assets/[^'\"]+")
+            if [ -n "$path" ] && [ ! -f "$path" ]; then
+              echo "❌ MISSING: $path"
+              MISSING=$((MISSING + 1))
+            fi
+          done < <(grep -rh --include='*.dart' -oP "assets/[^'\"]+\.(png|jpeg|jpg|gif|svg|webp|ttf|otf)" lib/ | sort -u)
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo ""
+            echo "🔴 Найдено $MISSING отсутствующих ассетов!"
+            echo "Добавьте файлы в git и зарегистрируйте в pubspec.yaml"
+            exit 1
+          fi
+          echo "✅ Все ассеты на месте"
+
+      - name: Проверка pubspec.yaml — все ассеты зарегистрированы
+        run: |
+          echo "Проверка что ассеты из assets/ зарегистрированы в pubspec.yaml..."
+          MISSING=0
+          for f in $(find assets/ -type f \( -name '*.png' -o -name '*.jpeg' -o -name '*.jpg' -o -name '*.ttf' \) | sort); do
+            if ! grep -q "$f" pubspec.yaml; then
+              echo "❌ NOT IN PUBSPEC: $f"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ "$MISSING" -gt 0 ]; then
+            echo ""
+            echo "🔴 $MISSING файлов не зарегистрированы в pubspec.yaml!"
+            exit 1
+          fi
+          echo "✅ Все ассеты зарегистрированы"
+
+  # ──────────────────────────────────────────────
+  # Android APK
+  # ──────────────────────────────────────────────
+  build-android:
+    needs: validate-assets
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-app/crazytrout_admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Генерация обёрток проекта
+        run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
+
+      - name: Красивое название приложения
+        run: sed -i 's/android:label="crazytrout_admin"/android:label="Crazy Trout"/g' android/app/src/main/AndroidManifest.xml
+
+      - name: Разрешения Bluetooth + Камера
+        run: |
+          sed -i '/<manifest /a \
+              <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />\
+              <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />\
+              <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />\
+              <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />\
+              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />\
+              <uses-permission android:name="android.permission.CAMERA" />' \
+            android/app/src/main/AndroidManifest.xml
+
+      - name: Гарантировать minifyEnabled/shrinkResources в release
+        run: |
+          python3 << 'PYEOF'
+          import re, pathlib
+          groovy = pathlib.Path('android/app/build.gradle')
+          kts = pathlib.Path('android/app/build.gradle.kts')
+          path = kts if kts.exists() else groovy
+          text = path.read_text()
+          if 'minifyEnabled' in text or 'isMinifyEnabled' in text:
+              print(f'{path}: minify уже настроен явно, не трогаю')
+          elif path == kts:
+              new_release = (
+                  'release {\n'
+                  '            signingConfig = signingConfigs.getByName("debug")\n'
+                  '            isMinifyEnabled = true\n'
+                  '            isShrinkResources = true\n'
+                  '            proguardFiles(\n'
+                  '                getDefaultProguardFile("proguard-android-optimize.txt"),\n'
+                  '                "proguard-rules.pro"\n'
+                  '            )\n'
+                  '        }'
+              )
+              text2 = re.sub(r'release\s*\{[^}]*\}', new_release, text, count=1, flags=re.S)
+              path.write_text(text2)
+              print(f'{path}: добавлены minify/shrink/proguardFiles (Kotlin DSL)')
+          else:
+              new_release = (
+                  'release {\n'
+                  '            signingConfig signingConfigs.debug\n'
+                  '            minifyEnabled true\n'
+                  '            shrinkResources true\n'
+                  '            proguardFiles getDefaultProguardFile(\'proguard-android-optimize.txt\'), \'proguard-rules.pro\'\n'
+                  '        }'
+              )
+              text2 = re.sub(r'release\s*\{[^}]*\}', new_release, text, count=1, flags=re.S)
+              path.write_text(text2)
+              print(f'{path}: добавлены minify/shrink/proguardFiles (Groovy)')
+          PYEOF
+
+      - name: Копирование ProGuard-правил из репозитория
+        run: |
+          # ProGuard-правила хранятся в git, а не инжектятся в CI.
+          # Если файл есть — копируем (перезаписываем то что сгенерировал flutter create).
+          if [ -f android/app/proguard-rules.pro ]; then
+            echo "✅ proguard-rules.pro найден в репозитории"
+            cat android/app/proguard-rules.pro
+          else
+            echo "⚠️ proguard-rules.pro не найден — R8 будет работать без keep-rules"
+          fi
+
+      - name: Установка зависимостей
+        run: flutter pub get
+
+      - name: Генерация иконки приложения
+        run: dart run flutter_launcher_icons
+
+      - name: Запуск тестов
+        run: flutter test
+
+      - name: Сборка APK (split-per-abi, arm64)
+        run: |
+          flutter build apk --release --split-per-abi
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+             build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Публикация APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: flutter-app/crazytrout_admin/build/app/outputs/flutter-apk/app-release.apk
+
+  # ──────────────────────────────────────────────
+  # iOS IPA
+  # ──────────────────────────────────────────────
+  build-ios:
+    needs: validate-assets
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: flutter-app/crazytrout_admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Генерация обёрток проекта
+        run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
+
+      - name: Установка зависимостей
+        run: flutter pub get
+
+      - name: Разрешения iOS (Info.plist)
+        run: |
+          PLIST=ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Для сканирования QR-кодов клиентов'" $PLIST || true
+          /usr/libexec/PlistBuddy -c "Add :NSBluetoothAlwaysUsageDescription string 'Для печати чеков через Bluetooth-принтер'" $PLIST || true
+          /usr/libexec/PlistBuddy -c "Add :NSBluetoothPeripheralUsageDescription string 'Для печати чеков через Bluetooth-принтер'" $PLIST || true
+
+      - name: Минимальная версия iOS 13.0
+        run: sed -i '' 's/platform :ios, .*/platform :ios, '"'"'13.0'"'"'/g' ios/Podfile
+
+      - name: Генерация иконки приложения
+        run: dart run flutter_launcher_icons
+
+      - name: Запуск тестов
+        run: flutter test
+
+      - name: Сборка iOS (no-codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Создание IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r app-release.ipa Payload
+          rm -rf Payload
+
+      - name: Публикация IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-ipa
+          path: flutter-app/crazytrout_admin/app-release.ipa

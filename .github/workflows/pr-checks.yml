@@ -29,6 +29,22 @@ jobs:
       - name: Установка зависимостей
         run: flutter pub get
 
+      - name: Проверка ассетов
+        run: |
+          MISSING=0
+          while IFS= read -r ref; do
+            path=$(echo "$ref" | grep -oP "assets/[^'\"]+")
+            if [ -n "$path" ] && [ ! -f "$path" ]; then
+              echo "❌ MISSING: $path"
+              MISSING=$((MISSING + 1))
+            fi
+          done < <(grep -rh --include='*.dart' -oP "assets/[^'\"]+\.\(png\|jpeg\|jpg\|gif\|svg\|webp\|ttf\|otf\)" lib/ | sort -u)
+          if [ "$MISSING" -gt 0 ]; then
+            echo "🔴 $MISSING ассетов не найдено!"
+            exit 1
+          fi
+          echo "✅ Все ассеты на месте"
+
       - name: Анализ кода (flutter analyze)
         run: flutter analyze --fatal-infos
 
