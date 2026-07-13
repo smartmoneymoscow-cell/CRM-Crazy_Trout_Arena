@@ -35,6 +35,15 @@ jobs:
       - name: Генерация обёрток проекта (Android + iOS)
         run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
 
+      - name: Диагностика build.gradle.kts
+        run: |
+          echo "=== build.gradle.kts после flutter create ==="
+          cat android/app/build.gradle.kts
+          echo "=== proguard-rules.pro ==="
+          cat android/app/proguard-rules.pro 2>/dev/null || echo "(не найден)"
+          echo "=== Gradle version ==="
+          cat android/gradle/wrapper/gradle-wrapper.properties 2>/dev/null | grep distributionUrl
+
       - name: Красивое название приложения
         run: sed -i 's/android:label="crazytrout_admin"/android:label="Crazy Trout"/g' android/app/src/main/AndroidManifest.xml
 
