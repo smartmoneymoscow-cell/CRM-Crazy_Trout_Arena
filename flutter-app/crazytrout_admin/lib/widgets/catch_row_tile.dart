@@ -76,16 +76,18 @@ class _CatchRowTileState extends State<CatchRowTile> {
                               value: s,
                               child: Row(
                                 children: [
-                                  if (kSpeciesImage[s] != null) ...[
-                                    Image.asset(
-                                      kSpeciesImage[s]!,
-                                      height: kSpeciesImageHeight[s] ?? kSpeciesImageHeightDefault,
-                                      fit: BoxFit.contain,
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
+                                  Text(s, overflow: TextOverflow.ellipsis),
                                   Expanded(
-                                    child: Text(s, overflow: TextOverflow.ellipsis),
+                                    child: Center(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Image.asset(
+                                          kSpeciesImage[s]!,
+                                          height: kSpeciesImageHeight[s] ?? kSpeciesImageHeightDefault,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
