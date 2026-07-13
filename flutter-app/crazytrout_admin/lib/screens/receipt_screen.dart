@@ -174,9 +174,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
       children: [
-        const Text('Выставление чека', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+        const Text('Выставление чека', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         _card(
           title: 'Клиент',
@@ -218,13 +218,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     _searchCtrl.clear();
                   }),
                 )
-              else if (_isGuest)
-                _GuestCard(
-                  onClear: () => setState(() {
-                    _isGuest = false;
-                    _tariff = kTariffs.first;
-                  }),
-                )
               else
                 OutlinedButton(
                   onPressed: _selectGuest,
@@ -235,7 +228,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                       side: const BorderSide(color: Color(0xFFDDD3BC), style: BorderStyle.solid),
                     ),
                   ),
-                  child: const Text('Гость · без анкеты'),
+                  child: Text(_isGuest ? '✓ Гость · без анкеты' : 'Гость · без анкеты'),
                 ),
             ],
           ),
@@ -254,8 +247,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         .map((t) => AppDropdownItem(value: t, child: Text(t.label)))
                         .toList(),
                     onChanged: (t) => setState(() => _tariff = t),
-                    fillColor: const Color(0xFFF3EEE4),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                   ),
                 ),
               ),
@@ -268,7 +259,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     initialValue: _tariff.price.toString(),
                     readOnly: true,
                     decoration: _fieldDecoration().copyWith(
-                      fillColor: const Color(0xFFF3EEE4),
+                      fillColor: const Color(0xFFEDE8DC),
                     ),
                   ),
                 ),
@@ -480,56 +471,6 @@ class _SelectedClientCard extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.close, color: Color(0xFF9C9484)),
             tooltip: 'Убрать клиента',
-            onPressed: onClear,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Карточка гостя — вместо аватара показывает иконку инкогнито.
-class _GuestCard extends StatelessWidget {
-  final VoidCallback onClear;
-  const _GuestCard({required this.onClear});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3EEE4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDD3BC)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: const Color(0xFFE0DDD5),
-            backgroundImage: const AssetImage('assets/avatars/incognito.png'),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Гость · без анкеты',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'Без регистрации',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Color(0xFF9C9484)),
-            tooltip: 'Убрать гостя',
             onPressed: onClear,
           ),
         ],
