@@ -2,6 +2,19 @@
 
 > Нативная кроссплатформенная CRM-система для чек-кассы пруда платной рыбалки.
 
+## 📱 Демонстрационный лендинг
+
+Интерактивный мокап экрана профиля клиента для демонстрации добавления клиента через сканирование QR-кода из приложения админа.
+
+🔗 **https://smartmoneymoscow-cell.github.io/CRM-/**
+
+- Отображает экран профиля клиента (Уэйд Джереми, id: 100)
+- При нажатии на QR-иконку отображается QR-код для сканирования
+- QR-код:  — при сканировании в приложении подтягивается тестовый клиент
+- Аватар и данные идентичны мок-клиенту в 
+
+
+
 [![Build APK & IPA](https://github.com/smartmoneymoscow-cell/CRM-/actions/workflows/build-apk.yml/badge.svg)](https://github.com/smartmoneymoscow-cell/CRM-/actions/workflows/build-apk.yml)
 [![Latest Release](https://img.shields.io/github/v/release/smartmoneymoscow-cell/CRM-)](https://github.com/smartmoneymoscow-cell/CRM-/releases/latest)
 [![License](https://img.shields.io/badge/license-proprietary-red)](#)
