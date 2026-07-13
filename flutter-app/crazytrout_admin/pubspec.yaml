@@ -31,6 +31,14 @@ dependencies:
   # Сканер QR-кода — идентификация клиента через камеру.
   mobile_scanner: ^5.2.3
 
+  # Мониторинг ошибок и крашей в продакшене — единственный способ получить
+  # реальный crash trace без физического доступа к устройству (adb logcat).
+  # DSN продублирован на нативном уровне через AndroidManifest meta-data
+  # (см. workflow) — так Sentry стартует ДО инициализации Dart/Flutter и
+  # ловит даже самые ранние нативные краши, которые Dart-level init()
+  # мог бы пропустить.
+  sentry_flutter: ^9.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
