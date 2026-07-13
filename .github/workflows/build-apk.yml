@@ -49,36 +49,6 @@ jobs:
               <uses-permission android:name="android.permission.CAMERA" />' \
             android/app/src/main/AndroidManifest.xml
 
-      - name: Sentry native DSN (ловит краши ДО старта Dart/Flutter)
-        # SentryFlutter.init() в main.dart выполняется уже ПОСЛЕ старта
-        # Flutter-движка — если краш нативный и происходит раньше, Dart-level
-        # init просто не успевает. meta-data в AndroidManifest заставляет
-        # нативный слой Sentry (Android SDK) стартовать в момент запуска
-        # процесса приложения, независимо от того, дошло ли дело до Dart.
-        #
-        # Тег <application> в шаблоне flutter create многострочный
-        # (атрибуты на отдельных строках), поэтому вставляем через python
-        # regex по первому ">", закрывающему открывающий тег — построчный
-        # sed здесь ломает XML (проверено локально перед пушем).
-        run: |
-          python3 << 'PYEOF'
-          import re
-          path = 'android/app/src/main/AndroidManifest.xml'
-          text = open(path).read()
-          meta = (
-              '\n        <meta-data android:name="io.sentry.dsn" '
-              'android:value="https://497130229ebbe402ac2995fa888709cd@o4511723482382336.ingest.us.sentry.io/4511723747278848" />'
-              '\n        <meta-data android:name="io.sentry.anr.enable" android:value="true" />'
-              '\n        <meta-data android:name="io.sentry.attach-anr-thread-dump" android:value="true" />'
-          )
-          match = re.search(r'<application\b[^>]*>', text, flags=re.S)
-          if not match:
-              raise SystemExit('Тег <application> не найден в AndroidManifest.xml!')
-          pos = match.end()
-          open(path, 'w').write(text[:pos] + meta + text[pos:])
-          print('Sentry native DSN добавлен')
-          PYEOF
-
       - name: Установка зависимостей
         run: flutter pub get
 

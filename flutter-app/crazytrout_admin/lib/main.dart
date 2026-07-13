@@ -1,32 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'screens/home_shell.dart';
 import 'screens/splash_screen.dart';
 
-// DSN и на Dart-уровне (для Dart-исключений/ANR), и продублирован в
-// android/app/src/main/AndroidManifest.xml как meta-data (для нативных
-// крашей ДО старта Flutter-движка — см. шаг workflow "Sentry native DSN").
-const _sentryDsn =
-    'https://497130229ebbe402ac2995fa888709cd@o4511723482382336.ingest.us.sentry.io/4511723747278848';
-
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Фиксируем вертикальную ориентацию (портрет) — чек-касса не нужна в альбомной.
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = _sentryDsn;
-      options.environment = 'production';
-      options.tracesSampleRate = 1.0;
-      // Ловим и то, что происходит ДО первого кадра (важно именно для
-      // краша "вылетает сразу при открытии").
-      options.enableAutoSessionTracking = true;
-    },
-    appRunner: () => runApp(const CrazyTroutAdminApp()),
-  );
+  runApp(const CrazyTroutAdminApp());
 }
 
 class CrazyTroutAdminApp extends StatelessWidget {
