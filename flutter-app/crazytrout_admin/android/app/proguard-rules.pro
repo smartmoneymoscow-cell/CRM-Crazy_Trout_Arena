@@ -21,12 +21,21 @@
 -keep class com.google.mlkit.vision.barcode.** { *; }
 -keep class com.google.mlkit.vision.codescanner.** { *; }
 -keep class com.google.mlkit.vision.common.** { *; }
+# ВАЖНО: com.google.mlkit.common.** (без .vision) — это ядро ML Kit
+# (MlKitInitProvider, DI-контейнер sdkinternal.*). Без этого правила R8
+# вырезает com.google.mlkit.common.sdkinternal.d как "неиспользуемый"
+# (он подключается через рефлексию/DI, а не прямые вызовы), и приложение
+# крашится СРАЗУ при старте — ContentProvider ML Kit регистрируется в
+# AndroidManifest и запускается до какого-либо Dart/Flutter кода.
+-keep class com.google.mlkit.common.** { *; }
 -keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }
 -keep class com.google.android.gms.internal.mlkit_vision_common.** { *; }
+-keep class com.google.android.gms.internal.mlkit_common.** { *; }
 -keep class androidx.camera.** { *; }
 -dontwarn com.google.mlkit.**
 -dontwarn com.google.android.gms.internal.mlkit_vision_barcode.**
 -dontwarn com.google.android.gms.internal.mlkit_vision_common.**
+-dontwarn com.google.android.gms.internal.mlkit_common.**
 -dontwarn androidx.camera.**
 
 # --- flutter_blue_plus (Bluetooth-печать) ---
@@ -40,4 +49,3 @@
 # --- permission_handler ---
 -keep class com.baseflow.permissionhandler.** { *; }
 -dontwarn com.baseflow.permissionhandler.**
-

@@ -35,6 +35,18 @@ jobs:
       - name: Генерация обёрток проекта (Android + iOS)
         run: flutter create . --platforms=android,ios --project-name=crazytrout_admin --org=com.crazytroutarena
 
+      # ВАЖНО: без этого шага каждый CI-ран получает СВОЙ debug.keystore
+      # (генерируется Gradle с нуля на чистой машине), а значит каждый
+      # следующий APK подписан ДРУГИМ ключом. Android при установке видит
+      # смену подписи и требует "удалите предыдущую версию" — обновление
+      # поверх старой версии становится невозможным. Кэшируем keystore по
+      # фиксированному ключу, чтобы он был одним и тем же между релизами.
+      - name: Кэш debug-keystore (стабильная подпись между релизами)
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: android-debug-keystore-v1
+
       - name: Красивое название приложения
         run: sed -i 's/android:label="crazytrout_admin"/android:label="Crazy Trout"/g' android/app/src/main/AndroidManifest.xml
 
@@ -48,6 +60,15 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />\
               <uses-permission android:name="android.permission.CAMERA" />' \
             android/app/src/main/AndroidManifest.xml
+
+      - name: Отключить R8 (minify) в release сборке
+        # Flutter 3.44 генерирует build.gradle.kts с isMinifyEnabled = true.
+        # R8 без корректных ProGuard-правил вырезает ML Kit DI → краш при старте.
+        # Отключаем minify — приложение маленькое, выигрыш от R8 незначителен.
+        run: |
+          sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/g' android/app/build.gradle.kts
+          echo "--- release block после патча ---"
+          grep -A10 "release" android/app/build.gradle.kts | head -15
 
       - name: Sentry native DSN (ловит краши ДО старта Dart/Flutter)
         # SentryFlutter.init() в main.dart выполняется уже ПОСЛЕ старта
@@ -109,6 +130,12 @@ jobs:
   # ──────────────────────────────────────────────
   build-ios:
     runs-on: macos-latest
+    # Раньше падение этого job'а (macOS-раннеры менее стабильны, а IPA всё
+    # равно unsigned и не устанавливается на обычный iPhone) блокировало
+    # весь релиз через "needs: [build-android, build-ios]" ниже — Android
+    # мог быть собран идеально, а релиз просто не создавался. Теперь
+    # неудача iOS не мешает выпуску Android-релиза.
+    continue-on-error: true
     defaults:
       run:
         working-directory: flutter-app/crazytrout_admin
@@ -173,8 +200,9 @@ jobs:
           name: app-release-apk
           path: artifacts/apk
 
-      - name: Скачивание IPA
+      - name: Скачивание IPA (необязательно — iOS может не собраться)
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: app-release-ipa
           path: artifacts/ipa
@@ -182,6 +210,9 @@ jobs:
       - name: Создание GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # Wildcard вместо точного имени файла: если IPA не скачался
+          # (iOS job упал), softprops просто не найдёт файлов по маске
+          # и не уронит релиз из-за отсутствующего пути.
           files: |
             artifacts/apk/app-release.apk
-            artifacts/ipa/app-release.ipa
+            artifacts/ipa/*.ipa
