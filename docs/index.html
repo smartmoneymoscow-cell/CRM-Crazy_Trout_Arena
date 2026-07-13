@@ -897,9 +897,9 @@ h1{ font-family:'Inter Tight',sans-serif; font-weight:800; font-size:30px; line-
 .app-brand-dot{background-color:transparent !important;width:22px !important;height:22px !important;border-radius:4px !important;}
 .app-brand{gap:8px;}
 
-/* === FIX: light page background === */
-body {
-  background: #DDD8CC !important;
+.phone-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
 }
 </style>
 <style>
@@ -1056,6 +1056,24 @@ body {
 .phone-frame {
   width: 375px !important;
   min-height: 700px;
+}
+
+/* === LAYOUT FIXES === */
+.phone-frame {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 812px !important;
+}
+.phone-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+}
+.nav-bar {
+  flex-shrink: 0 !important;
+  margin-top: auto !important;
+}
+body {
+  background: #DDD8CC !important;
 }
 </style>
 </head>
