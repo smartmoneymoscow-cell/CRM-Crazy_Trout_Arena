@@ -36,16 +36,29 @@ class _QrScanScreenState extends State<QrScanScreen> {
       return;
     }
 
-    // 2. Инициализируем контроллер С задержкой — даём камере время
-    //    Null pointer в mobile_scanner возникает при обращении к камере
-    //    до полной инициализации native-слоя.
+    // 2. Создаём контроллер. Запуск камеры (start()) делает сам виджет
+    //    MobileScanner через autoStart при монтировании — не нужно (и
+    //    опасно) звать controller.start() здесь самим: в mobile_scanner
+    //    5.2.3 start() ждёт, пока MobileScanner-виджет примонтируется
+    //    (_isAttachedCompleter), а виджет мы рендерим только когда
+    //    _cameraReady == true — вызов start() до этого момента просто
+    //    висел бы до тайм-аута.
+    //
+    //    Прежняя задержка в 500 мс была бесполезна: контроллер в этот
+    //    момент ещё не примонтирован в дерево виджетов, реальная нативная
+    //    инициализация камеры начинается позже, когда рендерится
+    //    MobileScanner — так что падать в момент задержки было нечему.
+    //    Настоящая причина "MobileScannerException: genericError ...
+    //    on a null object reference" именно в релизной сборке — R8/ProGuard
+    //    обфусцирует и вырезает классы CameraX и ML Kit Barcode Scanning,
+    //    к которым mobile_scanner обращается через рефлексию при первом
+    //    старте камеры. Исправлено добавлением keep-правил в
+    //    android/app/proguard-rules.pro через CI-воркфлоу (см. diff).
     try {
       _controller = MobileScannerController(
         detectionSpeed: DetectionSpeed.noDuplicates,
         formats: const [BarcodeFormat.qrCode],
       );
-      // Пауза даёт native-стороне завершить инициализацию
-      await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) setState(() => _cameraReady = true);
     } catch (e) {
       if (mounted) setState(() => _initError = e.toString());

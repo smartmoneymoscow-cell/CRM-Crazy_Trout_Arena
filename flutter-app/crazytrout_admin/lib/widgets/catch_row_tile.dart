@@ -77,7 +77,7 @@ class _CatchRowTileState extends State<CatchRowTile> {
                               child: Text(s, overflow: TextOverflow.ellipsis),
                             ))
                         .toList(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     onChanged: (v) {
                       widget.row.species = v;
                       widget.row.pricePerKg = kSpeciesPrice[v] ?? widget.row.pricePerKg;
@@ -159,7 +159,7 @@ class _CatchRowTileState extends State<CatchRowTile> {
 
   InputDecoration _decoration() => InputDecoration(
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         filled: true,
         fillColor: const Color(0xFFF3EEE4),
         border: OutlineInputBorder(
