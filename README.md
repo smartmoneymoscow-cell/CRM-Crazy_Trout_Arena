@@ -94,7 +94,7 @@ flutter-app/crazytrout_admin/
 | `flutter_blue_plus` | ^1.32.12 | Bluetooth-принтер (ESC/POS) |
 | `printing` | ^5.12.0 | Системный диалог печати (AirPrint/PDF) |
 | `pdf` | ^3.10.8 | Генерация PDF для печати |
-| `mobile_scanner` | ^5.2.3 | QR-сканер через камеру |
+| `mobile_scanner` | 5.2.3 | QR-сканер через камеру |
 | `permission_handler` | ^11.3.0 | Запрос разрешений (камера, Bluetooth) |
 | `intl` | ^0.19.0 | Локализация и форматирование |
 | `cupertino_icons` | ^1.0.6 | Иконки в стиле iOS |
@@ -178,9 +178,10 @@ GitHub Actions автоматически собирает приложение 
 
 1. **Android:**
    - Генерация обёрток проекта
+   - Кэш debug-keystore (стабильная подпись между релизами)
    - Установка Bluetooth/Camera разрешений в AndroidManifest.xml
-   - ProGuard keep-правила для mobile_scanner (CameraX, ML Kit)
-   - Явное включение R8 в release
+   - Отключение R8 (`isMinifyEnabled = true → false`) — без этого ML Kit DI крашится при старте
+   - Sentry native DSN в AndroidManifest (ловит краши до старта Dart/Flutter)
    - Установка зависимостей, генерация иконки
    - Запуск тестов
    - Сборка APK (split-per-abi, arm64)
@@ -198,6 +199,7 @@ GitHub Actions автоматически собирает приложение 
 3. **Release** (при теге `v*`):
    - Скачивание APK и IPA
    - Создание GitHub Release с артефактами
+   - iOS job имеет `continue-on-error: true` — если IPA не собрался, Android-релиз всё равно создаётся
 
 ---
 
@@ -222,7 +224,9 @@ GitHub Actions автоматически собирает приложение 
 
 | Версия | Дата | Изменения |
 |--------|------|-----------|
-| **v1.3.4** | 12.07.2026 | Гостевой режим с инкогнито, аватарки всех клиентов, QR-сканер ProGuard-фикс, единый стиль полей |
+| **v1.3.16** | 13.07.2026 | ML Kit crash-фикс + UI v1.3.4 (гостевой режим, аватарки, фото рыб) |
+| **v1.3.15** | 13.07.2026 | Фикс краша при старте: отключение R8, keep-правила ML Kit, фиксация mobile_scanner 5.2.3, Sentry |
+| v1.3.4 | 12.07.2026 | Гостевой режим с инкогнито, аватарки всех клиентов, QR-сканер ProGuard-фикс, единый стиль полей |
 | v1.3.3 | 12.07.2026 | Мок-клиент для QR-тестирования |
 | v1.3.2 | 12.07.2026 | Кастомный дропдаун, карточка выбранного клиента |
 | v1.3.1 | 12.07.2026 | Возврат на mobile_scanner, фикс null pointer |
@@ -239,7 +243,7 @@ GitHub Actions автоматически собирает приложение 
 ## 🛠️ Технические детали
 
 ### Минимальные требования
-- **Android:** minSdkVersion 21 (Android 5.0+)
+- **Android:** minSdkVersion 24 (Android 7.0+)
 - **iOS:** 13.0+ (пересечение mobile_scanner ≥12.0 и flutter_blue_plus ≥13.0)
 - **Flutter:** 3.44.0+
 - **Dart SDK:** ≥3.3.0 <4.0.0
@@ -255,16 +259,35 @@ GitHub Actions автоматически собирает приложение 
 - `BLUETOOTH` / `BLUETOOTH_ADMIN` — Bluetooth (Android ≤11)
 - `ACCESS_FINE_LOCATION` — Bluetooth-сканирование (Android ≤11)
 
+### Sentry
+Приложение интегрировано с [Sentry](https://sentry.io) для мониторинга крашей:
+- **Dart-level:** `SentryFlutter.init()` в `main.dart`
+- **Native-level:** `meta-data` в `AndroidManifest.xml` (ловит краши до старта Flutter-движка)
+
 ### ProGuard/R8
-Для корректной работы QR-сканера в релизной сборке добавлены keep-правила:
+R8 отключён в workflow (`isMinifyEnabled = false`). ProGuard keep-правила оставлены как страховка:
 ```proguard
--keep class dev.steenbakker.mobile_scanner.** { *; }
+# Flutter embedding
+-keep class io.flutter.** { *; }
+
+# ML Kit common (DI-система, MlKitInitProvider)
+-keep class com.google.mlkit.common.** { *; }
+
+# ML Kit barcode scanning
 -keep class com.google.mlkit.vision.barcode.** { *; }
--keep class com.google.mlkit.vision.codescanner.** { *; }
 -keep class com.google.mlkit.vision.common.** { *; }
 -keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }
--keep class com.google.android.gms.internal.mlkit_vision_common.** { *; }
+-keep class com.google.android.gms.internal.mlkit_common.** { *; }
 -keep class androidx.camera.** { *; }
+
+# Bluetooth-принтер
+-keep class com.lib.flutter_blue_plus.** { *; }
+
+# Печать
+-keep class net.nfet.flutter.printing.** { *; }
+
+# Разрешения
+-keep class com.baseflow.permissionhandler.** { *; }
 ```
 
 ---
