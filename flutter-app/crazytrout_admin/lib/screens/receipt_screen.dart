@@ -272,14 +272,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
               Expanded(
                 child: _labeledField(
                   'ЦЕНА, ₽',
-                  TextFormField(
-                    key: ValueKey(_tariff.id),
-                    initialValue: _tariff.price.toString(),
-                    readOnly: true,
-                    decoration: _fieldDecoration().copyWith(
-                      fillColor: const Color(0xFFF3EEE4),
-                    ),
-                  ),
+                  _ReadOnlyField(value: _tariff.price.toString()),
                 ),
               ),
             ],
@@ -490,6 +483,34 @@ class _SelectedClientCard extends StatelessWidget {
             icon: const Icon(Icons.close, color: Color(0xFF9C9484)),
             tooltip: 'Убрать клиента',
             onPressed: onClear,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Поле «Цена» — только для чтения, с тем же BoxDecoration что и AppDropdownField,
+/// чтобы высота совпадала с полем «Тариф» на всех устройствах.
+class _ReadOnlyField extends StatelessWidget {
+  final String value;
+  const _ReadOnlyField({required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EEE4),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14),
+            ),
           ),
         ],
       ),

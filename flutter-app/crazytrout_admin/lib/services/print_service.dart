@@ -112,11 +112,23 @@ class PrintService {
         return;
       }
 
-      final adapterOn = await FlutterBluePlus.adapterState.firstWhere((s) => s == BluetoothAdapterState.on).timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => BluetoothAdapterState.unknown,
-          );
-      if (adapterOn != BluetoothAdapterState.on) {
+      // Проверяем текущее состояние адаптера — напрямую, а не через стрим.
+      // firstWhere() на стриме ненадёжен: после выдачи разрешений стрим может
+      // не успеть эмитить `on` за 5 секунд → timeout → тихий выход.
+      var adapterState = FlutterBluePlus.adapterStateNow;
+
+      // Если состояние unknown (ещё не инициализировано) — подписываемся на стрим
+      // и ждём до 5 секунд.
+      if (adapterState != BluetoothAdapterState.on) {
+        adapterState = await FlutterBluePlus.adapterState
+            .firstWhere((s) => s == BluetoothAdapterState.on)
+            .timeout(
+              const Duration(seconds: 5),
+              onTimeout: () => BluetoothAdapterState.unknown,
+            );
+      }
+
+      if (adapterState != BluetoothAdapterState.on) {
         if (context.mounted) _toast(context, 'Включите Bluetooth на устройстве');
         return;
       }
