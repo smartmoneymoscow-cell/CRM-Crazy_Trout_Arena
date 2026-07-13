@@ -49,30 +49,40 @@ jobs:
               <uses-permission android:name="android.permission.CAMERA" />' \
             android/app/src/main/AndroidManifest.xml
 
-      - name: ProGuard-правила для mobile_scanner (иначе release ломает сканер QR)
-        # R8 в релизной сборке обфусцирует/вырезает классы CameraX и ML Kit
-        # Barcode Scanning, к которым mobile_scanner обращается через
-        # рефлексию при старте камеры. Без keep-правил это падает с
-        # "MobileScannerException: genericError ... on a null object
-        # reference" сразу при открытии экрана сканера — в debug-сборке
-        # (minifyEnabled=false) всё работает, поэтому баг незаметен локально
-        # и проявляется только в релизном APK.
+      - name: Подключить ProGuard-правила в build.gradle.kts
+        # flutter create генерирует build.gradle.kts с isMinifyEnabled=true,
+        # но НЕ подключает proguard-rules.pro (нет proguardFiles).
+        # Без этого R8 работает без keep-правил → вырезает ML Kit DI → краш.
         run: |
-          cat >> android/app/proguard-rules.pro << 'EOF'
-
-          # --- mobile_scanner / CameraX / ML Kit Barcode Scanning ---
-          -keep class dev.steenbakker.mobile_scanner.** { *; }
-          -keep class com.google.mlkit.vision.barcode.** { *; }
-          -keep class com.google.mlkit.vision.codescanner.** { *; }
-          -keep class com.google.mlkit.vision.common.** { *; }
-          -keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }
-          -keep class com.google.android.gms.internal.mlkit_vision_common.** { *; }
-          -keep class androidx.camera.** { *; }
-          -dontwarn com.google.mlkit.**
-          -dontwarn com.google.android.gms.internal.mlkit_vision_barcode.**
-          -dontwarn com.google.android.gms.internal.mlkit_vision_common.**
-          -dontwarn androidx.camera.**
-          EOF
+          python3 << 'PYEOF2'
+          import re, pathlib
+          kts = pathlib.Path('android/app/build.gradle.kts')
+          if not kts.exists():
+              print('build.gradle.kts не найден, пропускаю')
+              exit(0)
+          text = kts.read_text()
+          if 'proguardFiles' in text:
+              print('proguardFiles уже настроен')
+              exit(0)
+          # Добавить proguardFiles в release buildType
+          text2 = re.sub(
+              r'(isMinifyEnabled\s*=\s*true)',
+              r'\1\n            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")',
+              text,
+              count=1
+          )
+          if text2 == text:
+              # Если isMinifyEnabled не найден, добавить весь блок
+              text2 = re.sub(
+                  r'(release\s*\{[^}]*)(signingConfig[^}]*\})',
+                  r'\1\2\n            isMinifyEnabled = true\n            isShrinkResources = true\n            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")',
+                  text,
+                  count=1,
+                  flags=re.S
+              )
+          kts.write_text(text2)
+          print('proguardFiles добавлен в build.gradle.kts')
+          PYEOF2
 
       - name: Установка зависимостей
         run: flutter pub get
