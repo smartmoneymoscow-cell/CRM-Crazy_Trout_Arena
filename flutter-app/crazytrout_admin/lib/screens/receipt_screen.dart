@@ -47,7 +47,16 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     setState(() {
       _searchResults = kDemoClients
           .where((c) => c.name.toLowerCase().contains(query) || c.phone.contains(query))
-          .toList();
+          .toList()
+        // Сортировка: имя начинается с запроса → выше, потом по алфавиту
+        ..sort((a, b) {
+          final an = a.name.toLowerCase();
+          final bn = b.name.toLowerCase();
+          final aStarts = an.startsWith(query) ? 0 : 1;
+          final bStarts = bn.startsWith(query) ? 0 : 1;
+          if (aStarts != bStarts) return aStarts - bStarts;
+          return an.compareTo(bn);
+        });
     });
   }
 
