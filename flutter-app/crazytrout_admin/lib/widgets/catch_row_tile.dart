@@ -74,7 +74,21 @@ class _CatchRowTileState extends State<CatchRowTile> {
                     items: kSpecies
                         .map((s) => AppDropdownItem(
                               value: s,
-                              child: Text(s, overflow: TextOverflow.ellipsis),
+                              child: Row(
+                                children: [
+                                  if (kSpeciesImage[s] != null) ...[
+                                    Image.asset(
+                                      kSpeciesImage[s]!,
+                                      height: kSpeciesImageHeight[s] ?? kSpeciesImageHeightDefault,
+                                      fit: BoxFit.contain,
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Expanded(
+                                    child: Text(s, overflow: TextOverflow.ellipsis),
+                                  ),
+                                ],
+                              ),
                             ))
                         .toList(),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
