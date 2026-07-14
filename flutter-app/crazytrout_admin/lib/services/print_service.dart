@@ -204,6 +204,25 @@ class PrintService {
         return;
       }
 
+      // Сначала проверяем текущее состояние BT
+      var adapterState = await FlutterBluePlus.adapterState.first;
+
+      // Если BT выключен — пробуем включить (на поддерживаемых устройствах)
+      if (adapterState != BluetoothAdapterState.on) {
+        try {
+          await FlutterBluePlus.turnOn();
+        } catch (_) {
+          // turnOn() не поддерживается на всех устройствах — игнорируем
+        }
+        // Ждём систему
+        await Future.delayed(const Duration(milliseconds: 1500));
+        adapterState = await FlutterBluePlus.adapterState.first;
+        if (adapterState != BluetoothAdapterState.on) {
+          if (context.mounted) _toast(context, 'Bluetooth выключен — включите его в настройках');
+          return;
+        }
+      }
+
       // Разрешения BLUETOOTH_SCAN / BLUETOOTH_CONNECT / геолокация
       final statuses = await [
         Permission.bluetoothScan,
@@ -219,18 +238,6 @@ class PrintService {
         return;
       }
 
-      // Проверяем что Bluetooth реально включён после выдачи прав
-      final isOn = await FlutterBluePlus.adapterState.first;
-      if (isOn != BluetoothAdapterState.on) {
-        // Даём системе время включить адаптер после выдачи прав
-        await Future.delayed(const Duration(seconds: 1));
-        final isOnRetry = await FlutterBluePlus.adapterState.first;
-        if (isOnRetry != BluetoothAdapterState.on) {
-          if (context.mounted) _toast(context, 'Bluetooth выключен — включите его в настройках');
-          return;
-        }
-      }
-
       // Показываем прелоадер с поплавком
       _PreloaderController? preloader;
       if (context.mounted) {
@@ -239,17 +246,25 @@ class PrintService {
 
       final found = <ScanResult>[];
       final sub = FlutterBluePlus.scanResults.listen((results) {
-        found
-          ..clear()
-          ..addAll(results.where((r) => r.device.platformName.isNotEmpty));
+        for (final r in results) {
+          if (r.device.platformName.isNotEmpty &&
+              !found.any((f) => f.device.remoteId == r.device.remoteId)) {
+            found.add(r);
+          }
+        }
       });
 
       try {
-        await FlutterBluePlus.startScan(timeout: const Duration(seconds: 4));
+        await FlutterBluePlus.startScan(
+          timeout: const Duration(seconds: 5),
+          androidUsesFineLocation: false,
+        );
       } catch (e) {
         await sub.cancel();
         preloader?.close();
-        if (context.mounted) _toast(context, 'Включите Bluetooth на устройстве');
+        if (context.mounted) {
+          _toast(context, 'Не удалось начать поиск: $e');
+        }
         return;
       }
 
