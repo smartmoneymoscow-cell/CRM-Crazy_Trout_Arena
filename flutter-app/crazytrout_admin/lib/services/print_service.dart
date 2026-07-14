@@ -248,6 +248,12 @@ class PrintService {
           if (r.device.platformName.isNotEmpty &&
               !found.any((f) => f.device.remoteId == r.device.remoteId)) {
             found.add(r);
+            // Обновляем лейбл прелоадера в реальном времени
+            preloader?.updateLabel(
+              found.isEmpty
+                  ? 'Ищем принтеры…'
+                  : 'Найдено: ${found.length} ${_pluralPrinters(found.length)}',
+            );
           }
         }
       });
@@ -503,6 +509,12 @@ class PrintService {
         ),
       ),
     );
+  }
+
+  static String _pluralPrinters(int n) {
+    if (n % 10 == 1 && n % 100 != 11) return 'принтер';
+    if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return 'принтера';
+    return 'принтеров';
   }
 
   static void _toast(BuildContext context, String msg) {
