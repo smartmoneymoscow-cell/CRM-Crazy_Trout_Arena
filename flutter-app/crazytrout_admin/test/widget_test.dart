@@ -34,12 +34,18 @@ void main() {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      // Начальный экран — Карта, переходим на вкладку Чек
+      await tester.tap(find.text('Чек'));
+      await tester.pumpAndSettle();
       expect(find.text('Выставление чека'), findsOneWidget);
     });
 
     testWidgets('поиск клиента и QR-кнопка присутствуют', (WidgetTester tester) async {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      // Начальный экран — Карта, переходим на вкладку Чек
+      await tester.tap(find.text('Чек'));
       await tester.pumpAndSettle();
       expect(find.text('Поиск по имени или телефону…'), findsOneWidget);
       expect(find.byTooltip('Сканировать QR клиента'), findsOneWidget);
@@ -49,6 +55,9 @@ void main() {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      // Начальный экран — Карта, переходим на вкладку Чек
+      await tester.tap(find.text('Чек'));
+      await tester.pumpAndSettle();
       expect(find.text('Гость · без анкеты'), findsOneWidget);
       expect(find.text('+ Добавить рыбу'), findsOneWidget);
     });
@@ -56,6 +65,9 @@ void main() {
     testWidgets('кнопка печати видна после скролла вниз', (WidgetTester tester) async {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      // Начальный экран — Карта, переходим на вкладку Чек
+      await tester.tap(find.text('Чек'));
       await tester.pumpAndSettle();
 
       // Кнопка «Создать и распечатать чек» находится внизу ListView
