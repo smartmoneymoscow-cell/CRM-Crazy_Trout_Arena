@@ -86,7 +86,7 @@ class _ReceiptResultSheet extends StatelessWidget {
                 label: const Text('Найти принтер и распечатать', style: TextStyle(fontWeight: FontWeight.bold)),
                 onPressed: () async {
                   await print_route.loadLibrary();
-                  print_route.printViaBluetooth(context, r);
+                  await print_route.printViaBluetooth(context, r);
                 },
               ),
               const SizedBox(height: 10),
@@ -101,7 +101,7 @@ class _ReceiptResultSheet extends StatelessWidget {
                 label: const Text('Печать через AirPrint', style: TextStyle(fontWeight: FontWeight.bold)),
                 onPressed: () async {
                   await print_route.loadLibrary();
-                  print_route.printViaSystemDialog(r);
+                  await print_route.printViaSystemDialog(r);
                 },
               ),
               const SizedBox(height: 12),
