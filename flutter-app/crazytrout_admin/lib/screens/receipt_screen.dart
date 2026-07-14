@@ -185,7 +185,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
       children: [
-        const Text('Выставление чека', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+        const Text('Выставление чека', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
         const SizedBox(height: 16),
         _card(
           title: 'Клиент',
@@ -538,15 +538,11 @@ class _GuestCard extends StatelessWidget {
             child: SizedBox(
               width: 40,
               height: 40,
-              child: Transform.translate(
-                offset: const Offset(2, 0),
-                child: Image.asset(
-                  'assets/avatars/incognito.png',
-                  fit: BoxFit.cover,
-                  width: 40,
-                  height: 40,
-                  color: null,
-                ),
+              child: Image.asset(
+                'assets/avatars/incognito.png',
+                fit: BoxFit.cover,
+                width: 40,
+                height: 40,
               ),
             ),
           ),

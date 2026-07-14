@@ -17,7 +17,7 @@ class StubScreen extends StatelessWidget {
           children: [
             Icon(icon, size: 40, color: const Color(0xFFBBAF95)),
             const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(
               note,
