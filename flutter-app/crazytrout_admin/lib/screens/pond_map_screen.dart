@@ -1004,8 +1004,6 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
   static const double _itemHeight = 44.0;
   static const double _dropdownVPadding = 8.0;
   static const double _gap = 4.0;
-  // Высота нижнего меню (nav-bar + safe area)
-  static const double _bottomNavReserved = 80;
 
   void _toggleDropdown() {
     if (_isOpen) {
@@ -1030,8 +1028,6 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
   OverlayEntry _createOverlayEntry() {
     final rb = context.findRenderObject() as RenderBox;
     final btnSize = rb.size;
-    final btnPos = rb.localToGlobal(Offset.zero);
-    final screenH = MediaQuery.of(context).size.height;
 
     // Желаемая ширина = максимум из ширины кнопки и минимальной
     final dropdownW = btnSize.width < _minDropdownWidth
@@ -1040,14 +1036,9 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
 
     final dropdownH = _filterOptions.length * _itemHeight + _dropdownVPadding * 2;
 
-    // Сколько места под кнопкой до верхней границы нижнего меню
-    final navTop = screenH - _bottomNavReserved;
-    final spaceBelow = navTop - (btnPos.dy + btnSize.height);
-    final showAbove = spaceBelow < dropdownH + _gap;
-
-    final double dy = showAbove
-        ? -(dropdownH + _gap)
-        : btnSize.height + _gap;
+    // Всегда открываем вниз — CompositedTransformFollower сам позиционирует
+    // относительно кнопки, даже внутри ListView/ScrollView.
+    final dy = btnSize.height + _gap;
 
     return OverlayEntry(
       builder: (context) => GestureDetector(
