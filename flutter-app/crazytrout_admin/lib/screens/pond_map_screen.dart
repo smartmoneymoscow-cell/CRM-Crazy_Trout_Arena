@@ -1001,6 +1001,14 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
   OverlayEntry? _overlayEntry;
   bool _isOpen = false;
 
+  // Минимальная ширина dropdown — шире кнопки, чтобы текст влезал
+  static const double _minDropdownWidth = 160;
+  static const double _itemHeight = 44.0;
+  static const double _dropdownVPadding = 8.0;
+  static const double _gap = 4.0;
+  // Высота нижнего меню (nav-bar + safe area)
+  static const double _bottomNavReserved = 80;
+
   void _toggleDropdown() {
     if (_isOpen) {
       _closeDropdown();
@@ -1022,34 +1030,41 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
   }
 
   OverlayEntry _createOverlayEntry() {
-    final renderBox = context.findRenderObject() as RenderBox;
-    final size = renderBox.size;
-    final offset = renderBox.localToGlobal(Offset.zero);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final bottomNavHeight = 80; // примерная высота нижнего меню
-    final dropdownHeight = _filterOptions.length * 44.0 + 16; // пункты + padding
+    final rb = context.findRenderObject() as RenderBox;
+    final btnSize = rb.size;
+    final btnPos = rb.localToGlobal(Offset.zero);
+    final screenH = MediaQuery.of(context).size.height;
 
-    // Проверяем, поместится ли dropdown снизу без перекрытия меню
-    final spaceBelow = screenHeight - offset.dy - size.height - bottomNavHeight;
-    final showAbove = spaceBelow < dropdownHeight && offset.dy > dropdownHeight;
+    // Желаемая ширина = максимум из ширины кнопки и минимальной
+    final dropdownW = btnSize.width < _minDropdownWidth
+        ? _minDropdownWidth
+        : btnSize.width;
+
+    final dropdownH = _filterOptions.length * _itemHeight + _dropdownVPadding * 2;
+
+    // Сколько места под кнопкой до верхней границы нижнего меню
+    final navTop = screenH - _bottomNavReserved;
+    final spaceBelow = navTop - (btnPos.dy + btnSize.height);
+    final showAbove = spaceBelow < _dropdownH + _gap;
+
+    final double dy = showAbove
+        ? -(dropdownH + _gap)
+        : btnSize.height + _gap;
 
     return OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _closeDropdown,
         child: Stack(children: [
-          // Полупрозрачный барьер для закрытия
           Positioned.fill(
             child: Container(color: Colors.transparent),
           ),
           Positioned(
-            width: size.width,
+            width: dropdownW,
             child: CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
-              offset: showAbove
-                  ? Offset(0, -dropdownHeight - 4)
-                  : Offset(0, size.height + 4),
+              offset: Offset(0, dy),
               child: Material(
                 elevation: 8,
                 borderRadius: BorderRadius.circular(14),
@@ -1063,25 +1078,28 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      ..._filterOptions.entries.map((e) {
-                        final isSelected = widget.value == e.key;
-                        return InkWell(
-                          onTap: () {
-                            widget.onChange(e.key);
-                            _closeDropdown();
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            color: isSelected ? const Color(0xFFF3EEE4) : Colors.transparent,
-                            child: Text(e.value,
-                              style: TextStyle(fontSize: 13, color: _ink,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
-                          ),
-                        );
-                      }),
-                    ]),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: _dropdownVPadding),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        ..._filterOptions.entries.map((e) {
+                          final isSelected = widget.value == e.key;
+                          return InkWell(
+                            onTap: () {
+                              widget.onChange(e.key);
+                              _closeDropdown();
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              color: isSelected ? const Color(0xFFF3EEE4) : Colors.transparent,
+                              child: Text(e.value,
+                                style: TextStyle(fontSize: 13, color: _ink,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
+                            ),
+                          );
+                        }),
+                      ]),
+                    ),
                   ),
                 ),
               ),
