@@ -255,11 +255,25 @@ int Function() _seededRandom(int seed) {
 List<Slot> _scheduleFor(DateTime date, int sectorNumber) {
   final seed = date.year * 10000 + (date.month) * 100 + date.day + sectorNumber * 7;
   final gen = _seededRandom(seed);
+
+  // Клиенты, привязанные к этому сектору — они тут гарантированно
+  final assigned = _clients.where((c) => c.currentSector == sectorNumber).toList();
+
   return _blocks.map((b) {
     final r1 = (gen() - 1) / 2147483646.0;
     final r2 = (gen() - 1) / 2147483646.0;
     final occupied = r1 < 0.5;
-    final client = occupied ? _clients[(r2 * _clients.length).floor().clamp(0, _clients.length - 1)] : null;
+
+    // Если есть привязанный клиент и слот занят — используем его
+    if (assigned.isNotEmpty && occupied) {
+      final idx = (r2 * assigned.length).floor().clamp(0, assigned.length - 1);
+      return Slot(b[0], b[1], assigned[idx]);
+    }
+
+    // Иначе — рандомный клиент (исторические посещения)
+    final client = occupied
+        ? _clients[(r2 * _clients.length).floor().clamp(0, _clients.length - 1)]
+        : null;
     return Slot(b[0], b[1], client);
   }).toList();
 }
