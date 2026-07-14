@@ -41,9 +41,10 @@ class PrintService {
     }
     final theme = pw.ThemeData.withFont(base: regular, bold: bold);
 
-    // Заменяем символ ₽ на «руб.» — не все PDF-viewer'ы и принтеры
-    // корректно отображают символ рубля, даже с кастомным шрифтом.
-    String safeMoney(num n) => '${n.round()} руб.';
+    // Заменяем символы, которых нет в PTSans/Helvetica: ₽ → руб., № → #
+    String sanitize(String s) => s.replaceAll('\u20BD', 'руб.').replaceAll('\u2116', '#');
+    String safeMoney(num n) => sanitize('${n.round()} \u20BD');
+    String safeText(String s) => sanitize(s);
 
     final doc = pw.Document();
     doc.addPage(
@@ -60,7 +61,7 @@ class PrintService {
               ),
             ),
             pw.Center(
-              child: pw.Text('Чек № ${r.number} · ${_fmtDate(r.date)}', style: pw.TextStyle(font: regular, fontSize: 9)),
+              child: pw.Text(safeText('Чек № ${r.number} · ${_fmtDate(r.date)}'), style: pw.TextStyle(font: regular, fontSize: 9)),
             ),
             pw.Divider(),
             pw.Text('Клиент: ${r.clientLine}', style: pw.TextStyle(font: regular, fontSize: 10)),
@@ -79,7 +80,7 @@ class PrintService {
             ),
             pw.Text('Оплата: ${r.payment.label}', style: pw.TextStyle(font: regular, fontSize: 10)),
             pw.Text(
-              r.fiscal ? 'Фискальный чек ${r.fiscalDoc ?? ""}' : 'Без ФН',
+              r.fiscal ? safeText('Фискальный чек ${r.fiscalDoc ?? ""}') : 'Без ФН',
               style: pw.TextStyle(font: regular, fontSize: 10),
             ),
           ],
@@ -89,7 +90,7 @@ class PrintService {
 
     await Printing.layoutPdf(
       onLayout: (format) async => doc.save(),
-      name: 'Чек №${r.number}',
+      name: 'Чек #${r.number}',
     );
   }
 
