@@ -1,16 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-/// Анимированный поплавок на волнах — прелоадер поиска Bluetooth-принтеров.
-/// Поплавок качается на волнах, под ним — прогресс-бар (заполняется слева направо).
-///
-/// Использование:
-/// ```dart
-/// FloatPreloader(
-///   progress: 0.6,        // 0.0 → 1.0, null = indeterminate
-///   label: 'Ищем прUreтеры…',
-/// )
-/// ```
+/// Анимированный поплавок-бобber — прелоадер поиска Bluetooth-принтеров.
 class FloatPreloader extends StatefulWidget {
   final String label;
   final double? progress;
@@ -63,7 +54,7 @@ class _FloatPreloaderState extends State<FloatPreloader>
   @override
   Widget build(BuildContext context) {
     const double width = 220;
-    const double height = 170;
+    const double height = 180;
 
     return SizedBox(
       width: width,
@@ -73,12 +64,12 @@ class _FloatPreloaderState extends State<FloatPreloader>
         children: [
           SizedBox(
             width: width,
-            height: 110,
+            height: 120,
             child: AnimatedBuilder(
               animation: Listenable.merge([_bobController, _waveController]),
               builder: (context, _) {
                 return CustomPaint(
-                  size: const Size(width, 110),
+                  size: const Size(width, 120),
                   painter: _FloatPainter(
                     bobPhase: _bobController.value,
                     wavePhase: _waveController.value,
@@ -130,14 +121,11 @@ class _FloatPreloaderState extends State<FloatPreloader>
       );
     }
 
-    // Indeterminate — заполняется слева направо, потом сбрасывается
+    // Indeterminate — заполняется слева направо, сброс
     return AnimatedBuilder(
       animation: _progressController,
       builder: (context, _) {
         final t = _progressController.value;
-        // Плавное заполнение 0→1, затем быстрый сброс
-        final fill = t < 0.85 ? (t / 0.85) : 1.0;
-        final opacity = t < 0.85 ? 1.0 : 1.0 - ((t - 0.85) / 0.15);
         return Container(
           width: barWidth,
           height: barHeight,
@@ -147,17 +135,14 @@ class _FloatPreloaderState extends State<FloatPreloader>
           ),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Opacity(
-              opacity: opacity.clamp(0.0, 1.0),
-              child: Container(
-                width: barWidth * fill,
-                height: barHeight,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFD4A85A), Color(0xFFE89829)],
-                  ),
-                  borderRadius: BorderRadius.circular(3),
+            child: Container(
+              width: barWidth * t,
+              height: barHeight,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFD4A85A), Color(0xFFE89829)],
                 ),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
           ),
@@ -167,7 +152,7 @@ class _FloatPreloaderState extends State<FloatPreloader>
   }
 }
 
-/// Painter: реалистичный поплавок + одна линия воды.
+/// Painter: классический поплавок-бобber (красный верх, белый низ, антенна, киль).
 class _FloatPainter extends CustomPainter {
   final double bobPhase;
   final double wavePhase;
@@ -177,7 +162,7 @@ class _FloatPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    final waterY = size.height * 0.62;
+    final waterY = size.height * 0.6;
     final bob = sin(bobPhase * pi) * 8.0;
 
     // === Water surface — single line ===
@@ -185,7 +170,7 @@ class _FloatPainter extends CustomPainter {
     for (double x = 0; x <= size.width; x += 1) {
       final y = waterY +
           sin((x / size.width) * 3 * pi + wavePhase * 2 * pi) * 3.0 +
-          sin((x / size.width) * 5 * pi - wavePhase * 1.4 * pi) * 1.5;
+          sin((x / size.width) * 5.5 * pi - wavePhase * 1.2 * pi) * 1.5;
       if (x == 0) {
         wavePath.moveTo(x, y);
       } else {
@@ -195,12 +180,12 @@ class _FloatPainter extends CustomPainter {
     canvas.drawPath(
       wavePath,
       Paint()
-        ..color = const Color(0xFF2A6A7E).withValues(alpha: 0.35)
+        ..color = const Color(0xFF2A6A7E).withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0,
     );
 
-    // Water fill below surface
+    // Water fill
     final fillPath = Path.from(wavePath);
     fillPath.lineTo(size.width, size.height);
     fillPath.lineTo(0, size.height);
@@ -212,89 +197,91 @@ class _FloatPainter extends CustomPainter {
 
     // === Float ===
     final fx = cx;
-    final fy = waterY - 8 + bob;
+    final fy = waterY - 5 + bob;
 
-    // --- Stem (rod) ---
-    final stemTop = fy - 50;
-    final stemBottom = fy - 12;
+    // --- Antenna (thin rod) ---
+    final antTop = fy - 48;
+    final antBot = fy - 16;
     canvas.drawLine(
-      Offset(fx, stemTop),
-      Offset(fx, stemBottom),
+      Offset(fx, antTop),
+      Offset(fx, antBot),
       Paint()
-        ..color = const Color(0xFF6B5B3A)
+        ..color = const Color(0xFF5C4D2F)
         ..strokeWidth = 2.5
         ..strokeCap = StrokeCap.round,
     );
 
-    // --- Flag ---
-    final flagPath = Path()
-      ..moveTo(fx + 1, stemTop)
-      ..lineTo(fx + 16, stemTop + 8)
-      ..lineTo(fx + 1, stemTop + 16)
-      ..close();
-    canvas.drawPath(flagPath, Paint()..color = const Color(0xFFC9302C));
+    // Antenna tip ball
+    canvas.drawCircle(
+      Offset(fx, antTop - 3),
+      3,
+      Paint()..color = const Color(0xFFE89829),
+    );
 
-    // --- Upper body (red, tapered) ---
-    final bodyTop = fy - 15;
-    final bodyBottom = fy + 4;
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(fx, (bodyTop + bodyBottom) / 2),
-        width: 18,
-        height: bodyBottom - bodyTop,
-      ),
+    // --- Body: classic pear shape ---
+    final bodyCY = fy - 4;
+    const rx = 16.0;
+    const ry = 20.0;
+
+    // Red top half
+    canvas.drawArc(
+      Rect.fromCenter(center: Offset(fx, bodyCY), width: rx * 2, height: ry * 2),
+      pi, // start angle (top)
+      -pi, // sweep (half circle, left to right)
+      false,
       Paint()..color = const Color(0xFFC9302C),
     );
-    // Highlight
+
+    // Glossy highlight
     canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(fx - 3, (bodyTop + bodyBottom) / 2 - 2),
-        width: 6,
-        height: 12,
-      ),
+      Rect.fromCenter(center: Offset(fx - 5, bodyCY - 8), width: 10, height: 18),
       Paint()..color = Colors.white.withValues(alpha: 0.28),
     );
 
-    // --- Lower body (orange, tapered) ---
-    final lowerTop = fy + 2;
-    final lowerBottom = fy + 20;
-    final lowerPath = Path()
-      ..moveTo(fx - 7, lowerTop)
-      ..quadraticCurveTo(fx - 5, (lowerTop + lowerBottom) / 2, fx - 2.5, lowerBottom)
-      ..quadraticCurveTo(fx, lowerBottom + 1.5, fx + 2.5, lowerBottom)
-      ..quadraticCurveTo(fx + 5, (lowerTop + lowerBottom) / 2, fx + 7, lowerTop)
-      ..close();
-    canvas.drawPath(lowerPath, Paint()..color = const Color(0xFFE89829));
-
-    // --- Keel ---
-    final keelY = lowerBottom + 2;
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(fx, keelY), width: 9, height: 7),
-      Paint()..color = const Color(0xFF8C8576),
+    // White/cream bottom half
+    canvas.drawArc(
+      Rect.fromCenter(center: Offset(fx, bodyCY), width: rx * 2, height: ry * 1.2),
+      0,
+      pi,
+      false,
+      Paint()..color = const Color(0xFFF5F0E3),
     );
-    canvas.drawCircle(
-      Offset(fx, keelY),
-      3,
+
+    // Dividing line
+    canvas.drawLine(
+      Offset(fx - rx, bodyCY),
+      Offset(fx + rx, bodyCY),
       Paint()
-        ..color = const Color(0xFF6B5B3A)
-        ..style = PaintingStyle.stroke
+        ..color = const Color(0xFF8C8576)
         ..strokeWidth = 1.2,
     );
 
-    // --- Fishing line into water ---
-    final linePaint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.25)
-      ..strokeWidth = 0.8
-      ..style = PaintingStyle.stroke;
-    final linePath = Path();
-    final dashCount = 8;
-    for (int i = 0; i < dashCount; i++) {
-      final y1 = keelY + 3 + i * 3.0;
-      final y2 = y1 + 1.5;
-      linePath.moveTo(fx, y1);
-      linePath.lineTo(fx, y2);
-    }
-    canvas.drawPath(linePath, linePaint);
+    // --- Lower stem ---
+    final stemBot = bodyCY + ry * 0.6;
+    final keelTop = stemBot + 5;
+    canvas.drawLine(
+      Offset(fx, stemBot),
+      Offset(fx, keelTop),
+      Paint()
+        ..color = const Color(0xFF5C4D2F)
+        ..strokeWidth = 2,
+    );
+
+    // --- Keel wire ---
+    final keelBot = fy + 24;
+    canvas.drawLine(
+      Offset(fx, keelTop),
+      Offset(fx, keelBot),
+      Paint()
+        ..color = const Color(0xFF8C8576)
+        ..strokeWidth = 1.5,
+    );
+
+    // Keel weight
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(fx, keelBot), width: 8, height: 6),
+      Paint()..color = const Color(0xFF6B5B3A),
+    );
   }
 
   @override

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Float Preloader — Preview v2</title>
+<title>Float Preloader — v3</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -30,8 +30,6 @@ h2 { color: #8C8576; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
   width: 320px;
 }
 canvas { display: block; }
-
-/* Progress bar */
 .progress-track {
   width: 200px;
   height: 6px;
@@ -45,7 +43,7 @@ canvas { display: block; }
   width: 0%;
   background: linear-gradient(90deg, #D4A85A, #E89829);
   border-radius: 3px;
-  transition: width 0.3s ease;
+  transition: width 0.15s linear;
 }
 .label {
   text-align: center;
@@ -71,41 +69,33 @@ canvas { display: block; }
   font-weight: 600;
 }
 .controls button:hover { background: #F3EEE4; }
-.controls button.active {
-  background: #E89829;
-  color: #fff;
-  border-color: #E89829;
-}
 </style>
 </head>
 <body>
 
-<h1>🐟 Float Preloader — v2</h1>
+<h1>🐟 Float Preloader — v3</h1>
 
 <div class="card">
-  <h2>Indeterminate (поиск принтеров)</h2>
-  <canvas id="c1" width="600" height="240"></canvas>
+  <h2>Indeterminate (поиск)</h2>
+  <canvas id="c1" width="600" height="260"></canvas>
   <div class="progress-track"><div id="fill1" class="progress-fill"></div></div>
   <div class="label" id="label1">Ищем принтеры…</div>
 </div>
 
 <div class="card">
   <h2>Determinate (печать)</h2>
-  <canvas id="c2" width="600" height="240"></canvas>
+  <canvas id="c2" width="600" height="260"></canvas>
   <div class="progress-track"><div id="fill2" class="progress-fill"></div></div>
   <div class="label" id="label2">Подключение…</div>
   <div class="controls">
     <button onclick="setDet(0)">0%</button>
-    <button onclick="setDet(0.25)">25%</button>
     <button onclick="setDet(0.5)">50%</button>
-    <button onclick="setDet(0.75)">75%</button>
     <button onclick="setDet(1)">100%</button>
     <button onclick="animateDet()">▶ Анимация</button>
   </div>
 </div>
 
 <script>
-// === Float Renderer ===
 class FloatRenderer {
   constructor(canvas, opts = {}) {
     this.canvas = canvas;
@@ -115,7 +105,7 @@ class FloatRenderer {
     this.bobTime = 0;
     this.waveTime = 0;
     this.bobSpeed = opts.bobSpeed || 0.018;
-    this.waveSpeed = opts.waveSpeed || 0.008;
+    this.waveSpeed = opts.waveSpeed || 0.006;
     this.running = true;
     this.loop();
   }
@@ -135,119 +125,118 @@ class FloatRenderer {
     const cx = w / 2;
     ctx.clearRect(0, 0, w, h);
 
-    // Water surface — single elegant line
-    const waterY = h * 0.62;
-    const bob = Math.sin(this.bobTime * Math.PI) * 14;
-    const waveOffset = this.waveTime * 2 * Math.PI;
+    const waterY = h * 0.6;
+    const bob = Math.sin(this.bobTime * Math.PI) * 12;
+    const waveOff = this.waveTime * 2 * Math.PI;
 
-    // Water fill (semi-transparent below surface)
+    // Water fill
     ctx.beginPath();
     ctx.moveTo(0, waterY);
     for (let x = 0; x <= w; x += 2) {
-      const y = waterY + Math.sin((x / w) * 3 * Math.PI + waveOffset) * 4
-                    + Math.sin((x / w) * 5 * Math.PI - waveOffset * 0.7) * 2;
+      const y = waterY + Math.sin((x / w) * 3 * Math.PI + waveOff) * 3.5
+                    + Math.sin((x / w) * 5.5 * Math.PI - waveOff * 0.6) * 1.5;
       ctx.lineTo(x, y);
     }
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(42, 106, 126, 0.12)';
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    ctx.fillStyle = 'rgba(42, 106, 126, 0.1)';
     ctx.fill();
 
-    // Water surface line
+    // Water line
     ctx.beginPath();
     for (let x = 0; x <= w; x += 2) {
-      const y = waterY + Math.sin((x / w) * 3 * Math.PI + waveOffset) * 4
-                    + Math.sin((x / w) * 5 * Math.PI - waveOffset * 0.7) * 2;
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      const y = waterY + Math.sin((x / w) * 3 * Math.PI + waveOff) * 3.5
+                    + Math.sin((x / w) * 5.5 * Math.PI - waveOff * 0.6) * 1.5;
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = 'rgba(42, 106, 126, 0.35)';
+    ctx.strokeStyle = 'rgba(42, 106, 126, 0.3)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // === Float body ===
-    const floatX = cx;
-    const floatBaseY = waterY - 10 + bob;
+    // === FLOAT ===
+    const fx = cx;
+    const fy = waterY - 5 + bob;
 
-    // --- Stem (thin rod above water) ---
-    const stemTop = floatBaseY - 70;
-    const stemBottom = floatBaseY - 15;
+    // --- Antenna (thin rod) ---
+    const antTop = fy - 65;
+    const antBot = fy - 22;
     ctx.beginPath();
-    ctx.moveTo(floatX, stemTop);
-    ctx.lineTo(floatX, stemBottom);
-    ctx.strokeStyle = '#6B5B3A';
-    ctx.lineWidth = 3;
+    ctx.moveTo(fx, antTop);
+    ctx.lineTo(fx, antBot);
+    ctx.strokeStyle = '#5C4D2F';
+    ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.stroke();
 
-    // --- Flag (pennant) ---
+    // Antenna tip (small ball)
     ctx.beginPath();
-    ctx.moveTo(floatX + 2, stemTop);
-    ctx.lineTo(floatX + 22, stemTop + 10);
-    ctx.lineTo(floatX + 2, stemTop + 20);
-    ctx.closePath();
-    ctx.fillStyle = '#C9302C';
-    ctx.fill();
-    // Flag highlight
-    ctx.beginPath();
-    ctx.moveTo(floatX + 2, stemTop + 2);
-    ctx.lineTo(floatX + 16, stemTop + 10);
-    ctx.lineTo(floatX + 2, stemTop + 14);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.arc(fx, antTop - 3, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#E89829';
     ctx.fill();
 
-    // --- Upper body (red/orange) — tapered oval ---
-    const bodyTop = floatBaseY - 18;
-    const bodyMid = floatBaseY + 5;
+    // --- Body: classic pear/egg shape ---
+    // Upper body (RED) — wide rounded top
+    const bodyCenterY = fy - 6;
+    const bodyRx = 16; // horizontal radius
+    const bodyRy = 20; // vertical radius (upper half)
+
+    // Red top half
     ctx.beginPath();
-    ctx.ellipse(floatX, (bodyTop + bodyMid) / 2, 10, (bodyMid - bodyTop) / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(fx, bodyCenterY, bodyRx, bodyRy, 0, Math.PI, 0);
     ctx.fillStyle = '#C9302C';
     ctx.fill();
-    // Glossy highlight
+
+    // Glossy highlight on red
     ctx.beginPath();
-    ctx.ellipse(floatX - 3, (bodyTop + bodyMid) / 2 - 3, 4, 8, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(fx - 5, bodyCenterY - 8, 5, 10, -0.15, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.fill();
 
-    // --- Lower body (orange/amber) — tapered ---
-    const lowerTop = bodyMid - 2;
-    const lowerBottom = floatBaseY + 25;
+    // White/cream bottom half
     ctx.beginPath();
-    ctx.moveTo(floatX - 8, lowerTop);
-    ctx.quadraticCurveTo(floatX - 6, (lowerTop + lowerBottom) / 2, floatX - 3, lowerBottom);
-    ctx.quadraticCurveTo(floatX, lowerBottom + 2, floatX + 3, lowerBottom);
-    ctx.quadraticCurveTo(floatX + 6, (lowerTop + lowerBottom) / 2, floatX + 8, lowerTop);
-    ctx.closePath();
-    ctx.fillStyle = '#E89829';
-    ctx.fill();
-    // Highlight
-    ctx.beginPath();
-    ctx.ellipse(floatX - 2, lowerTop + 6, 3, 6, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.ellipse(fx, bodyCenterY, bodyRx, bodyRy * 0.6, 0, 0, Math.PI);
+    ctx.fillStyle = '#F5F0E3';
     ctx.fill();
 
-    // --- Keel (small weighted bottom) ---
-    const keelY = lowerBottom + 2;
+    // Thin dividing line
     ctx.beginPath();
-    ctx.ellipse(floatX, keelY, 5, 4, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#8C8576';
-    ctx.fill();
-    // Keel ring
+    ctx.moveTo(fx - bodyRx, bodyCenterY);
+    ctx.lineTo(fx + bodyRx, bodyCenterY);
+    ctx.strokeStyle = '#8C8576';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // --- Lower stem (below body, connects to keel) ---
+    const stemBot = bodyCenterY + bodyRy * 0.6;
+    const keelTop = stemBot + 6;
     ctx.beginPath();
-    ctx.arc(floatX, keelY, 3, 0, Math.PI * 2);
-    ctx.strokeStyle = '#6B5B3A';
+    ctx.moveTo(fx, stemBot);
+    ctx.lineTo(fx, keelTop);
+    ctx.strokeStyle = '#5C4D2F';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // --- Keel (wire going down) ---
+    const keelBot = fy + 30;
+    ctx.beginPath();
+    ctx.moveTo(fx, keelTop);
+    ctx.lineTo(fx, keelBot);
+    ctx.strokeStyle = '#8C8576';
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // --- Line (fishing line going down into water) ---
+    // Keel weight (small oval)
     ctx.beginPath();
-    ctx.moveTo(floatX, keelY + 4);
-    ctx.lineTo(floatX, waterY + 30);
-    ctx.strokeStyle = 'rgba(100,100,100,0.3)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
+    ctx.ellipse(fx, keelBot, 4, 3, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#6B5B3A';
+    ctx.fill();
+
+    // --- Fishing line (dashed into water) ---
+    ctx.beginPath();
+    ctx.setLineDash([3, 4]);
+    ctx.moveTo(fx, keelBot + 3);
+    ctx.lineTo(fx, waterY + 35);
+    ctx.strokeStyle = 'rgba(100,100,100,0.2)';
+    ctx.lineWidth = 0.8;
     ctx.stroke();
     ctx.setLineDash([]);
   }
@@ -255,46 +244,40 @@ class FloatRenderer {
   destroy() { this.running = false; }
 }
 
-// === Indeterminate progress (smooth left-to-right) ===
-const f1 = new FloatRenderer(document.getElementById('c1'), { bobSpeed: 0.022, waveSpeed: 0.007 });
+// === Indeterminate ===
+const f1 = new FloatRenderer(document.getElementById('c1'), { bobSpeed: 0.022, waveSpeed: 0.005 });
 const fill1 = document.getElementById('fill1');
-const label1 = document.getElementById('label1');
 let p1 = 0;
-let dir1 = 1;
 function tick1() {
-  p1 += 0.008 * dir1;
-  if (p1 >= 1) { p1 = 1; dir1 = -1; }
-  if (p1 <= 0) { p1 = 0; dir1 = 1; }
+  p1 += 0.005;
+  if (p1 >= 1) p1 = 0;
   fill1.style.width = (p1 * 100) + '%';
   requestAnimationFrame(tick1);
 }
 tick1();
 
 // === Determinate ===
-const f2 = new FloatRenderer(document.getElementById('c2'), { bobSpeed: 0.015, waveSpeed: 0.005 });
+const f2 = new FloatRenderer(document.getElementById('c2'), { bobSpeed: 0.014, waveSpeed: 0.004 });
 const fill2 = document.getElementById('fill2');
 const label2 = document.getElementById('label2');
-let detP = 0;
 
 function setDet(v) {
-  detP = v;
   fill2.style.width = (v * 100) + '%';
-  if (v === 0) label2.textContent = 'Подключение…';
-  else if (v < 0.3) label2.textContent = 'Подключение…';
+  if (v < 0.3) label2.textContent = 'Подключение…';
   else if (v < 0.7) label2.textContent = 'Печать…';
   else if (v < 1) label2.textContent = 'Отправка данных…';
   else label2.textContent = 'Чек отправлен ✓';
 }
 
 function animateDet() {
-  detP = 0;
+  let p = 0;
   fill2.style.width = '0%';
   label2.textContent = 'Подключение…';
   const iv = setInterval(() => {
-    detP += 0.015;
-    if (detP >= 1) { detP = 1; clearInterval(iv); }
-    setDet(detP);
-  }, 60);
+    p += 0.012;
+    if (p >= 1) { p = 1; clearInterval(iv); }
+    setDet(p);
+  }, 50);
 }
 </script>
 
