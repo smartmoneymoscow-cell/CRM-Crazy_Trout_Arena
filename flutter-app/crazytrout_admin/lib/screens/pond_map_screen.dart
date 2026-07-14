@@ -507,35 +507,28 @@ class _PondPainter extends CustomPainter {
       final isSelected = selected == n;
       final r = isSelected ? _markerR * 1.15 : _markerR;
 
+      // Тень
+      canvas.drawCircle(p.translate(1, 2), r, Paint()..color = Colors.black.withOpacity(0.12));
+
+      // Мягкое свечение (заливка, не рамка)
       if (isSelected) {
-        canvas.save();
-        canvas.translate(p.dx, p.dy);
-        canvas.scale(1.15);
-        canvas.translate(-p.dx, -p.dy);
+        canvas.drawCircle(p, r + 5, Paint()..color = Colors.white.withOpacity(0.18));
       }
 
-      canvas.drawCircle(p.translate(1, 2), r, Paint()..color = Colors.black.withOpacity(0.12));
+      // Заливка маркера
       canvas.drawCircle(p, r, Paint()..color = color);
+
+      // Единая белая рамка
       canvas.drawCircle(p, r,
-        Paint()..style = PaintingStyle.stroke..strokeWidth = isSelected ? 3.0 : 2.5
+        Paint()..style = PaintingStyle.stroke..strokeWidth = isSelected ? 3.5 : 2.5
           ..color = Colors.white);
 
-      if (isSelected) {
-        // Мягкое свечение вокруг выделенного сектора
-        canvas.drawCircle(p, r + 4,
-          Paint()..style = PaintingStyle.stroke..strokeWidth = 2.0
-            ..color = Colors.white.withOpacity(0.4));
-      }
-
+      // Номер сектора
       tp.text = TextSpan(text: '$n',
         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800,
           fontSize: isSelected ? 20 : 19));
       tp.layout();
       tp.paint(canvas, Offset(p.dx - tp.width / 2, p.dy - tp.height / 2));
-
-      if (isSelected) {
-        canvas.restore();
-      }
     }
 
     canvas.restore();
