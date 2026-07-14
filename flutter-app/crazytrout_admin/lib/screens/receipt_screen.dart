@@ -539,7 +539,7 @@ class _GuestCard extends StatelessWidget {
               width: 40,
               height: 40,
               child: Transform.translate(
-                offset: const Offset(-3, 0),
+                offset: const Offset(2, 0),
                 child: Image.asset(
                   'assets/avatars/incognito.png',
                   fit: BoxFit.cover,
