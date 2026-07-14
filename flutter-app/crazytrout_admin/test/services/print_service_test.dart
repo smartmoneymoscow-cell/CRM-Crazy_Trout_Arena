@@ -141,7 +141,7 @@ void main() {
   });
 
   group('ESC/POS данные (Bluetooth-принтер)', () {
-    test('ESC/POS для фискального чека: ESC @ + CP866 текст + отрез', () {
+    test('ESC/POS для фискального чека: ESC @ + UTF-8 текст + отрез', () {
       final r = _makeReceipt(fiscal: true);
       final data = buildEscPos(r);
 
@@ -149,10 +149,10 @@ void main() {
       expect(data[0], 0x1B);
       expect(data[1], 0x40);
 
-      // ESC t 17 (CP866)
+      // ESC t 82 (UTF-8)
       expect(data[2], 0x1B);
       expect(data[3], 0x74);
-      expect(data[4], 0x11);
+      expect(data[4], 0x52);
 
       // Отрез бумаги в конце: GS V 1
       expect(data[data.length - 3], 0x1D);
