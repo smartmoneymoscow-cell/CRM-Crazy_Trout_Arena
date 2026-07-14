@@ -204,26 +204,8 @@ class PrintService {
         return;
       }
 
-      // Сначала проверяем текущее состояние BT
-      var adapterState = await FlutterBluePlus.adapterState.first;
-
-      // Если BT выключен — пробуем включить (на поддерживаемых устройствах)
-      if (adapterState != BluetoothAdapterState.on) {
-        try {
-          await FlutterBluePlus.turnOn();
-        } catch (_) {
-          // turnOn() не поддерживается на всех устройствах — игнорируем
-        }
-        // Ждём систему
-        await Future.delayed(const Duration(milliseconds: 1500));
-        adapterState = await FlutterBluePlus.adapterState.first;
-        if (adapterState != BluetoothAdapterState.on) {
-          if (context.mounted) _toast(context, 'Bluetooth выключен — включите его в настройках');
-          return;
-        }
-      }
-
-      // Разрешения BLUETOOTH_SCAN / BLUETOOTH_CONNECT / геолокация
+      // 1. Сначала запрашиваем разрешения (до проверки BT — на Android 12+
+      //    turnOn() требует BLUETOOTH_CONNECT)
       final statuses = await [
         Permission.bluetoothScan,
         Permission.bluetoothConnect,
@@ -236,6 +218,22 @@ class PrintService {
           _toast(context, 'Нет разрешения на Bluetooth — разрешите доступ в настройках приложения');
         }
         return;
+      }
+
+      // 2. Проверяем Bluetooth — пробуем включить если выключен
+      var adapterState = await FlutterBluePlus.adapterState.first;
+      if (adapterState != BluetoothAdapterState.on) {
+        try {
+          await FlutterBluePlus.turnOn();
+        } catch (_) {
+          // turnOn() не поддерживается на всех устройствах
+        }
+        await Future.delayed(const Duration(milliseconds: 1500));
+        adapterState = await FlutterBluePlus.adapterState.first;
+        if (adapterState != BluetoothAdapterState.on) {
+          if (context.mounted) _toast(context, 'Bluetooth выключен — включите его в настройках');
+          return;
+        }
       }
 
       // Показываем прелоадер с поплавком
