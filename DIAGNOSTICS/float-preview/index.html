@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Float Preloader — Preview</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 40px;
+}
+h1 { color: #fff; font-size: 18px; font-weight: 600; }
+h2 { color: #8C8576; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+/* === Float Preloader === */
+.float-container {
+  width: 200px;
+  height: 160px;
+  position: relative;
+}
+.float-canvas {
+  width: 200px;
+  height: 100px;
+}
+
+/* Progress bar */
+.progress-track {
+  width: 160px;
+  height: 6px;
+  background: #F3EEE4;
+  border-radius: 3px;
+  margin: 10px auto 8px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill-indet {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, #D4A85A, #E89829);
+  border-radius: 3px;
+  animation: slideBar 4s ease-in-out infinite;
+}
+@keyframes slideBar {
+  0% { left: -40%; }
+  50% { left: 100%; }
+  100% { left: -40%; }
+}
+.progress-fill-det {
+  height: 100%;
+  background: linear-gradient(90deg, #D4A85A, #E89829);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.float-label {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8C8576;
+}
+
+/* Demo controls */
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.controls button {
+  padding: 8px 16px;
+  border: 1px solid #E7E0D1;
+  border-radius: 8px;
+  background: #FAF6EE;
+  font-size: 12px;
+  cursor: pointer;
+  color: #14130F;
+  font-weight: 600;
+}
+.controls button:hover { background: #F3EEE4; }
+.controls button.active {
+  background: #E89829;
+  color: #fff;
+  border-color: #E89829;
+}
+</style>
+</head>
+<body>
+
+<h1>🐟 Float Preloader — Preview</h1>
+
+<div class="card">
+  <h2>Indeterminate (поиск принтеров)</h2>
+  <canvas id="floatCanvas" class="float-canvas" width="400" height="200"></canvas>
+  <div class="progress-track">
+    <div class="progress-fill-indet"></div>
+  </div>
+  <div class="float-label">Ищем принтеры…</div>
+</div>
+
+<div class="card">
+  <h2>Determinate (с прогрессом)</h2>
+  <canvas id="floatCanvasDet" class="float-canvas" width="400" height="200"></canvas>
+  <div class="progress-track">
+    <div id="detFill" class="progress-fill-det" style="width: 0%"></div>
+  </div>
+  <div class="float-label" id="detLabel">Подключение…</div>
+  <div class="controls">
+    <button onclick="setProgress(0)">0%</button>
+    <button onclick="setProgress(0.25)">25%</button>
+    <button onclick="setProgress(0.5)">50%</button>
+    <button onclick="setProgress(0.75)">75%</button>
+    <button onclick="setProgress(1)">100%</button>
+    <button onclick="animateProgress()">Анимация</button>
+  </div>
+</div>
+
+<script>
+// === Float Animation (Canvas) ===
+class FloatAnimator {
+  constructor(canvas, opts = {}) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.w = canvas.width;
+    this.h = canvas.height;
+    this.bobPhase = 0;
+    this.wavePhase = 0;
+    this.bobSpeed = opts.bobSpeed || 0.025;
+    this.waveSpeed = opts.waveSpeed || 0.012;
+    this.running = true;
+    this.animate();
+  }
+
+  animate() {
+    if (!this.running) return;
+    this.bobPhase += this.bobSpeed;
+    this.wavePhase += this.waveSpeed;
+    this.draw();
+    requestAnimationFrame(() => this.animate());
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    const cx = this.w / 2;
+    const waterY = this.h * 0.58;
+    ctx.clearRect(0, 0, this.w, this.h);
+
+    // Waves
+    for (let row = 0; row < 3; row++) {
+      const y = waterY + row * 24;
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(184, 212, 227, ${0.5 - row * 0.12})`;
+      ctx.lineWidth = 3 - row * 0.5;
+      for (let x = 0; x <= this.w; x += 2) {
+        const wave = Math.sin((x / this.w * 2 * Math.PI) + this.wavePhase * 2 * Math.PI + row * 0.8) * 8;
+        if (x === 0) ctx.moveTo(x, y + wave);
+        else ctx.lineTo(x, y + wave);
+      }
+      ctx.stroke();
+    }
+
+    // Float bob
+    const bob = Math.sin(this.bobPhase * Math.PI) * 12;
+    const floatTop = waterY - 64 + bob;
+    const floatBottom = waterY + 8 + bob;
+
+    // Stem
+    ctx.beginPath();
+    ctx.strokeStyle = '#E89829';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.moveTo(cx, floatTop - 36);
+    ctx.lineTo(cx, floatTop + 8);
+    ctx.stroke();
+
+    // Flag
+    ctx.beginPath();
+    ctx.fillStyle = '#C9302C';
+    ctx.moveTo(cx, floatTop - 36);
+    ctx.lineTo(cx + 24, floatTop - 24);
+    ctx.lineTo(cx, floatTop - 12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Top (red)
+    this.roundRect(ctx, cx - 14, floatTop, cx + 14, floatTop + 32, 14, '#C9302C');
+
+    // Bottom (orange)
+    this.roundRect(ctx, cx - 10, floatTop + 28, cx + 10, floatBottom, 10, '#E89829');
+
+    // Keel
+    ctx.beginPath();
+    ctx.fillStyle = '#D4A85A';
+    ctx.arc(cx, floatBottom + 6, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Highlight
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.ellipse(cx - 4, floatTop + 14, 4, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  roundRect(ctx, x1, y1, x2, y2, r, color) {
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.moveTo(x1 + r, y1);
+    ctx.arcTo(x2, y1, x2, y2, r);
+    ctx.arcTo(x2, y2, x1, y2, r);
+    ctx.arcTo(x1, y2, x1, y1, r);
+    ctx.arcTo(x1, y1, x2, y1, r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  destroy() { this.running = false; }
+}
+
+// Init
+const float1 = new FloatAnimator(document.getElementById('floatCanvas'));
+const float2 = new FloatAnimator(document.getElementById('floatCanvasDet'), { bobSpeed: 0.018, waveSpeed: 0.009 });
+
+// Determinate progress demo
+function setProgress(p) {
+  const fill = document.getElementById('detFill');
+  const label = document.getElementById('detLabel');
+  fill.style.width = (p * 100) + '%';
+  if (p < 0.3) label.textContent = 'Подключение…';
+  else if (p < 0.8) label.textContent = 'Печать…';
+  else if (p < 1) label.textContent = 'Отправка данных…';
+  else label.textContent = 'Чек отправлен ✓';
+}
+
+function animateProgress() {
+  let p = 0;
+  const interval = setInterval(() => {
+    p += 0.02;
+    if (p > 1) { p = 1; clearInterval(interval); }
+    setProgress(p);
+  }, 80);
+}
+</script>
+
+</body>
+</html>

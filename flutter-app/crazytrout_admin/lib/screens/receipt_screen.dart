@@ -534,10 +534,21 @@ class _GuestCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: const Color(0xFFE0DDD5),
-            backgroundImage: const AssetImage('assets/avatars/incognito.png'),
+          ClipOval(
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Transform.translate(
+                offset: const Offset(-3, 0),
+                child: Image.asset(
+                  'assets/avatars/incognito.png',
+                  fit: BoxFit.cover,
+                  width: 40,
+                  height: 40,
+                  color: null,
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(

@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
 
 import '../models/receipt.dart';
+import '../widgets/float_preloader.dart';
 import 'escpos_builder.dart';
 
 /// Известные UUID сервисов печати для ESC/POS Bluetooth-принтеров.
@@ -80,24 +81,117 @@ class PrintService {
     );
   }
 
+  /// Показывает прелоадер с поплавком в bottom sheet.
+  /// Возвращает функцию для закрытия sheet.
+  static void _showFloatPreloaderSheet(
+    BuildContext context, {
+    required String label,
+    double? progress,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => WillPopScope(
+        onWillPop: () async => false,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFFBF6EC),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatPreloader(label: label, progress: progress),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Отмена'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Обновляет текст/прогресс в preloader sheet через StatefulBuilder.
+  /// Показывает sheet с поплавком, возвращает контроллер для обновления.
+  static Future<_PreloaderController> _showPreloader(
+    BuildContext context, {
+    String initialLabel = 'Ищем принтеры…',
+  }) async {
+    final controller = _PreloaderController(label: initialLabel);
+    controller._sheetFuture = showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        controller._setState = (fn) {
+          // ignore: invalid_use_of_protected_member
+          (ctx as Element).markNeedsBuild();
+        };
+        controller._sheetContext = ctx;
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFFBF6EC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            child: StatefulBuilder(
+              builder: (ctx, setState) {
+                controller._setState = setState;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FloatPreloader(
+                      label: controller.label,
+                      progress: controller.progress,
+                    ),
+                    const SizedBox(height: 20),
+                    TextButton(
+                      onPressed: () {
+                        controller._cancelled = true;
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text('Отмена'),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+    // Ждём открытия
+    await Future.delayed(const Duration(milliseconds: 100));
+    return controller;
+  }
+
   /// Аналог кнопки «Найти принтер и распечатать»: сканирует ближайшие
   /// Bluetooth-устройства, даёт пользователю выбрать принтер из списка
-  /// (диалог строим сами — Flutter не показывает системный пикер, как это
-  /// делает Web Bluetooth в Chrome) и отправляет байты чека через ESC/POS.
+  /// и отправляет байты чека через ESC/POS.
+  ///
+  /// UX-поток:
+  ///   1. Запрос разрешений
+  ///   2. Показать прелоадер с поплавком «Ищем принтеры…»
+  ///   3. Сканирование 4 сек
+  ///   4. Найдены → список для выбора / Не найдены → сообщение + «Повторить»
+  ///   5. Выбор → «Подключение…» → «Печать…» → «Чек отправлен ✓»
   static Future<void> printViaBluetooth(BuildContext context, Receipt r) async {
-    // ВАЖНО: раньше сканирование не было обёрнуто в try/catch, а разрешения
-    // на Bluetooth вообще не запрашивались — на Android 12+ это приводило к
-    // тому, что startScan() падал с исключением молча, и кнопка выглядела
-    // так, будто "ничего не происходит". Теперь любая ошибка на любом шаге
-    // показывает тост, а не проглатывается.
     try {
       if (await FlutterBluePlus.isSupported == false) {
         if (context.mounted) _toast(context, 'Bluetooth не поддерживается на этом устройстве');
         return;
       }
 
-      // Разрешения BLUETOOTH_SCAN / BLUETOOTH_CONNECT / геолокация — без них
-      // сканирование на Android 12+ падает без единого сообщения пользователю.
+      // Разрешения BLUETOOTH_SCAN / BLUETOOTH_CONNECT / геолокация
       final statuses = await [
         Permission.bluetoothScan,
         Permission.bluetoothConnect,
@@ -112,10 +206,11 @@ class PrintService {
         return;
       }
 
-      // Не проверяем состояние адаптера отдельно — startScan() сам вернёт
-      // ошибку если Bluetooth выключен. Проверка adapterState/adapterStateNow
-      // ненадёжна: после выдачи разрешений адаптер может быть ещё не инициализирован
-      // (adapterStateNow → unknown) и timeout 5 сек приводит к тихому выходу.
+      // Показываем прелоадер с поплавком
+      _PreloaderController? preloader;
+      if (context.mounted) {
+        preloader = await _showPreloader(context, initialLabel: 'Ищем принтеры…');
+      }
 
       final found = <ScanResult>[];
       final sub = FlutterBluePlus.scanResults.listen((results) {
@@ -128,52 +223,42 @@ class PrintService {
         await FlutterBluePlus.startScan(timeout: const Duration(seconds: 4));
       } catch (e) {
         await sub.cancel();
+        preloader?.close();
         if (context.mounted) _toast(context, 'Включите Bluetooth на устройстве');
         return;
       }
 
-      if (!context.mounted) {
+      if (preloader?._cancelled == true) {
+        await FlutterBluePlus.stopScan();
         await sub.cancel();
         return;
       }
 
-      final chosen = await showModalBottomSheet<ScanResult>(
-        context: context,
-        builder: (ctx) {
-          return StreamBuilder<List<ScanResult>>(
-            stream: FlutterBluePlus.scanResults,
-            initialData: found,
-            builder: (ctx, snapshot) {
-              final devices = (snapshot.data ?? []).where((d) => d.device.platformName.isNotEmpty).toList();
-              return SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('Выберите принтер', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    ),
-                    if (devices.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Text('Поиск устройств рядом…'),
-                      ),
-                    ...devices.map(
-                      (d) => ListTile(
-                        title: Text(d.device.platformName),
-                        subtitle: Text(d.device.remoteId.toString()),
-                        onTap: () => Navigator.of(ctx).pop(d),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      );
+      // Закрываем прелоадер, показываем список устройств
+      preloader?.close();
+      await Future.delayed(const Duration(milliseconds: 200));
 
+      if (!context.mounted) {
+        await FlutterBluePlus.stopScan();
+        await sub.cancel();
+        return;
+      }
+
+      // Bottom sheet со списком найденных устройств
+      ScanResult? chosen;
+      if (found.isEmpty) {
+        // Ничего не найдено — показываем сообщение с кнопкой «Повторить»
+        final retry = await _showNotFoundSheet(context);
+        await FlutterBluePlus.stopScan();
+        await sub.cancel();
+        if (retry == true && context.mounted) {
+          // Рекурсивный вызов — повторить поиск
+          return printViaBluetooth(context, r);
+        }
+        return;
+      }
+
+      chosen = await _showDevicePickerSheet(context, found);
       await FlutterBluePlus.stopScan();
       await sub.cancel();
 
@@ -182,13 +267,29 @@ class PrintService {
         return;
       }
 
-      if (context.mounted) _toast(context, 'Подключение к «${chosen.device.platformName}»…');
+      // Показываем прогресс подключения
+      _PreloaderController? connectPreloader;
+      if (context.mounted) {
+        connectPreloader = await _showPreloader(
+          context,
+          initialLabel: 'Подключение к «${chosen.device.platformName}»…',
+        );
+      }
 
       final device = chosen.device;
       await device.connect(timeout: const Duration(seconds: 8));
 
+      if (connectPreloader?._cancelled == true) {
+        await device.disconnect();
+        return;
+      }
+
       BluetoothCharacteristic? printChar;
       try {
+        if (connectPreloader != null) {
+          connectPreloader.updateLabel('Печать на «${chosen.device.platformName}»…');
+        }
+
         final services = await device.discoverServices();
 
         // Ищем характеристику для записи: сначала по известным UUID сервисов,
@@ -222,31 +323,33 @@ class PrintService {
         }
 
         if (printChar == null) {
+          connectPreloader?.close();
           if (context.mounted) _toast(context, 'Принтер не поддерживает запись данных. Попробуйте другой принтер.');
           await device.disconnect();
           return;
         }
 
-        if (context.mounted) _toast(context, 'Печать на «${chosen.device.platformName}»…');
-
         final data = buildEscPos(r);
+
         // BLE-устройства: chunk ≤ MTU-3 (обычно ~20 байт).
         // Classic SPP: можно отправлять булками по 512 байт.
-        // Определяем MTU, если доступен, иначе используем 20.
         int chunkSize = 20;
         try {
           final mtu = await device.mtu.first;
-          if (mtu > 23) chunkSize = mtu - 3; // BLE MTU минус ATT overhead
+          if (mtu > 23) chunkSize = mtu - 3;
         } catch (_) {
-          // MTU не доступен (Classic BT или старая версия) — используем 512
           chunkSize = 512;
         }
 
         for (var i = 0; i < data.length; i += chunkSize) {
+          if (connectPreloader?._cancelled == true) break;
           final end = i + chunkSize > data.length ? data.length : i + chunkSize;
           final chunk = data.sublist(i, end);
           await printChar.write(chunk, withoutResponse: printChar.properties.writeWithoutResponse);
-          // Небольшая задержка для надёжности — принтер должен успеть обработать
+          // Обновляем прогресс
+          if (connectPreloader != null && data.length > 0) {
+            connectPreloader.progress = i / data.length;
+          }
           if (chunkSize <= 20) {
             await Future.delayed(const Duration(milliseconds: 20));
           } else {
@@ -254,16 +357,114 @@ class PrintService {
           }
         }
 
+        connectPreloader?.close();
         if (context.mounted) _toast(context, 'Чек отправлен на принтер ✓');
       } finally {
-        // Всегда отключаемся, даже при ошибке записи
         try {
           await device.disconnect();
-        } catch (_) {} // disconnect может упасть, если уже отключились
+        } catch (_) {}
       }
     } catch (e) {
       if (context.mounted) _toast(context, 'Ошибка печати: $e');
     }
+  }
+
+  /// Sheet «Принтеры не найдены» с кнопкой «Повторить поиск».
+  static Future<bool?> _showNotFoundSheet(BuildContext context) {
+    return showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFFBF6EC),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.bluetooth_disabled, size: 48, color: Color(0xFF8C8576)),
+            const SizedBox(height: 16),
+            const Text(
+              'Принтеры не найдены',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Проверьте что принтер включён и находится рядом',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFF8C8576), fontSize: 13),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Отмена'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Повторить'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE8912B),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Sheet с выбором найденного устройства.
+  static Future<ScanResult?> _showDevicePickerSheet(
+    BuildContext context,
+    List<ScanResult> devices,
+  ) {
+    return showModalBottomSheet<ScanResult>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFFBF6EC),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Выберите принтер', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+              ...devices.map(
+                (d) => ListTile(
+                  leading: const Icon(Icons.print, color: Color(0xFF8C8576)),
+                  title: Text(d.device.platformName),
+                  subtitle: Text(d.device.remoteId.toString()),
+                  onTap: () => Navigator.of(ctx).pop(d),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   static void _toast(BuildContext context, String msg) {
@@ -273,5 +474,35 @@ class PrintService {
   static String _fmtDate(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(d.day)}.${two(d.month)}.${d.year} ${two(d.hour)}:${two(d.minute)}';
+  }
+}
+
+/// Контроллер для управления прелоадером извне.
+class _PreloaderController {
+  String label;
+  double? progress;
+  bool _cancelled = false;
+  Future<void>? _sheetFuture;
+  BuildContext? _sheetContext;
+  void Function(void Function())? _setState;
+
+  _PreloaderController({required this.label, this.progress});
+
+  void close() {
+    if (_sheetContext != null && _sheetContext!.mounted) {
+      Navigator.of(_sheetContext!).pop();
+    }
+  }
+
+  /// Обновляет label и вызывает перерисовку sheet.
+  void updateLabel(String newLabel) {
+    label = newLabel;
+    _setState?.call(() {});
+  }
+
+  /// Обновляет progress и вызывает перерисовку sheet.
+  void updateProgress(double? newProgress) {
+    progress = newProgress;
+    _setState?.call(() {});
   }
 }
