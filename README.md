@@ -32,6 +32,27 @@
 
 ---
 
+## 🖥️ Эмулятор в браузере (Appetize.io)
+
+Приложение можно запустить прямо в браузере через облачный эмулятор [Appetize.io](https://appetize.io/):
+
+1. Зайди на https://appetize.io/demo
+2. Нажми **Upload** и загрузи [app-release.apk](https://github.com/smartmoneymoscow-cell/CRM-/releases/latest/download/app-release.apk)
+3. Выбери устройство и версию ОС
+4. Эмулятор запустится в браузере
+
+**Через API:**
+```bash
+curl -X POST "https://api.appetize.io/v1/app/upload" \
+  -H "Authorization: Bearer YOUR_APPETIZE_API_TOKEN" \
+  -F "file=@app-release.apk" \
+  -F "platform=android"
+```
+
+> 📖 Подробная инструкция: [docs/APPETIZE.md](docs/APPETIZE.md)
+
+---
+
 ## ✅ Что умеет
 
 ### Выставление чеков

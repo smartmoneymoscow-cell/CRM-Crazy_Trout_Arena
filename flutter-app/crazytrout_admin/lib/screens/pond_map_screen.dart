@@ -1030,7 +1030,8 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
 
     final dy = btnSize.height + _gap;
 
-    // Ограничиваем высоту dropdown, чтобы не перекрывать нижнее меню.
+    // MediaQuery берём ЗДЕСЬ (в контексте виджета, не overlay) —
+    // иначе значения могут быть неверными.
     final screenH = MediaQuery.of(context).size.height;
     final bottomSafe = MediaQuery.of(context).padding.bottom;
     final maxDropdownH = calcMaxDropdownHeight(
@@ -1040,7 +1041,7 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
     );
 
     return OverlayEntry(
-      builder: (context) => GestureDetector(
+      builder: (overlayContext) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _closeDropdown,
         child: Stack(children: [
@@ -1056,18 +1057,26 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: maxDropdownH > 100 ? maxDropdownH : 100),
                 child: Material(
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(14),
+                  elevation: 0, // ← без тени, чтобы не было визуального зазора
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(14),
+                    bottomRight: Radius.circular(14),
+                  ),
                   color: Colors.white,
-                  shadowColor: Colors.black.withOpacity(0.15),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(14),
+                        bottomRight: Radius.circular(14),
+                      ),
                       border: Border.all(color: const Color(0xFFEFE8D8)),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(14),
+                        bottomRight: Radius.circular(14),
+                      ),
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(vertical: _dropdownVPadding),
                         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -1121,7 +1130,9 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
             borderRadius: _isOpen
                 ? const BorderRadius.only(topLeft: Radius.circular(999), topRight: Radius.circular(999))
                 : BorderRadius.circular(999),
-            border: Border.all(color: _hairline),
+            border: _isOpen
+                ? Border(top: BorderSide(color: _hairline), left: BorderSide(color: _hairline), right: BorderSide(color: _hairline))
+                : Border.all(color: _hairline),
           ),
           child: Row(children: [
             const Icon(Icons.filter_list, size: 13, color: _ember),
