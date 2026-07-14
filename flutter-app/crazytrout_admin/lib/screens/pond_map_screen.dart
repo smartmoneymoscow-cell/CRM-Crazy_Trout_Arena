@@ -159,7 +159,7 @@ const Map<int, _PondStats> _pondStatsById = {
     bestCatch: BestCatch(species: 'Осётр', weight: '6.2 кг', sector: 7, date: '02.07.2026')),
   2: _PondStats(color: Color(0xFF3FA66B), level: LevelKey.standard,
     points: 640, pointsNext: 1000, visits: 18, ltvK: 54, fish: 31, totalWeight: 78,
-    firstVisit: '02.08.2024', email: 'koshkin@mail.ru',
+    firstVisit: '02.08.2024', email: 'koshkin@mail.ru', currentSector: 4,
     bestCatch: BestCatch(species: 'Карп', weight: '3.4 кг', sector: 4, date: '28.06.2026')),
   3: _PondStats(color: Color(0xFF2A6A7E), level: LevelKey.premium,
     points: 1410, pointsNext: 1500, visits: 55, ltvK: 1200, fish: 122, totalWeight: 289,
@@ -171,7 +171,7 @@ const Map<int, _PondStats> _pondStatsById = {
     bestCatch: BestCatch(species: 'Амур', weight: '4.9 кг', sector: 5, date: '30.06.2026')),
   6: _PondStats(color: Color(0xFFB8862E), level: LevelKey.premium,
     points: 1500, pointsNext: 1500, visits: 68, ltvK: 2400, fish: 150, totalWeight: 365,
-    firstVisit: '03.06.2021', email: 'orlov@mail.ru',
+    firstVisit: '03.06.2021', email: 'orlov@mail.ru', currentSector: 1,
     bestCatch: BestCatch(species: 'Осётр', weight: '8.4 кг', sector: 1, date: '24.06.2026')),
   7: _PondStats(color: Color(0xFF6B7280), level: LevelKey.basic,
     points: 260, pointsNext: 500, visits: 7, ltvK: 15, fish: 12, totalWeight: 22,
@@ -181,11 +181,11 @@ const Map<int, _PondStats> _pondStatsById = {
   // правдоподобные значения по аналогии с остальными.
   8: _PondStats(color: Color(0xFF9C5A3C), level: LevelKey.standard,
     points: 520, pointsNext: 1000, visits: 14, ltvK: 46, fish: 27, totalWeight: 61,
-    firstVisit: '18.01.2025', email: 'shchukin@mail.ru',
+    firstVisit: '18.01.2025', email: 'shchukin@mail.ru', currentSector: 8,
     bestCatch: BestCatch(species: 'Щука', weight: '4.1 кг', sector: 8, date: '15.06.2026')),
   100: _PondStats(color: Color(0xFF8C5C34), level: LevelKey.basic,
     points: 40, pointsNext: 500, visits: 1, ltvK: 1, fish: 2, totalWeight: 3,
-    firstVisit: '10.07.2026', email: 'guest@crazytroutarena.ru',
+    firstVisit: '10.07.2026', email: 'guest@crazytroutarena.ru', currentSector: 3,
     bestCatch: BestCatch(species: 'Карп', weight: '0.9 кг', sector: 3, date: '10.07.2026')),
 };
 
