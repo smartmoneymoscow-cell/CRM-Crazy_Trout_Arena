@@ -1049,8 +1049,34 @@ class _PondMapScreenState extends State<PondMapScreen> {
             Expanded(child: _chip(Icons.calendar_today_outlined, 'ДАТА',
               '${date.day} ${_monthsShort[date.month - 1]}',
               onTap: () async {
-                final picked = await showDatePicker(context: context, initialDate: date,
-                  firstDate: DateTime(2020), lastDate: DateTime(2030));
+                final picked = await showDatePicker(
+                  context: context, initialDate: date,
+                  firstDate: DateTime(2020), lastDate: DateTime(2030),
+                  builder: (ctx, child) {
+                    final base = Theme.of(ctx);
+                    return Theme(
+                      data: base.copyWith(
+                        colorScheme: base.colorScheme.copyWith(
+                          primary: _orange,       // выбранный день, акценты
+                          onPrimary: Colors.white,
+                          surface: _paper,        // фон диалога — кремовый, как в остальном приложении
+                          onSurface: _ink,
+                        ),
+                        datePickerTheme: base.datePickerTheme.copyWith(
+                          backgroundColor: _paper,
+                          headerBackgroundColor: _orange,
+                          headerForegroundColor: Colors.white,
+                          todayForegroundColor: MaterialStateProperty.all(_orange),
+                          todayBorder: const BorderSide(color: _orange),
+                        ),
+                        textButtonTheme: TextButtonThemeData(
+                          style: TextButton.styleFrom(foregroundColor: _orange),
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
                 if (picked != null) setState(() { date = picked; selected = null; });
               })),
             const SizedBox(width: 8),
@@ -1088,7 +1114,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
           const SizedBox(height: 8),
           _buildFeed(scheds),
         ])),
-        _bottomNav(),
       ])),
     );
   }
@@ -1243,24 +1268,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
     Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
     const SizedBox(width: 6),
     Text(text, style: const TextStyle(fontSize: 13, color: _ink)),
-  ]);
-
-  Widget _bottomNav() => Container(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    decoration: const BoxDecoration(color: Colors.white,
-      border: Border(top: BorderSide(color: _hairline))),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-      _navItem(Icons.map_outlined, 'Карта', true),
-      _navItem(Icons.receipt_long_outlined, 'Чек', false),
-      _navItem(Icons.list_alt, 'Чеки', false),
-      _navItem(Icons.bar_chart, 'P&L', false),
-      _navItem(Icons.person_outline, 'Профиль', false),
-    ]),
-  );
-  Widget _navItem(IconData icon, String label, bool active) => Column(mainAxisSize: MainAxisSize.min, children: [
-    Icon(icon, size: 22, color: active ? _orange : const Color(0xFF9B9284)),
-    Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600,
-      color: active ? _orange : const Color(0xFF9B9284))),
   ]);
 }
 
