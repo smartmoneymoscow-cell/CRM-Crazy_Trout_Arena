@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Float Preloader — v3</title>
+<title>Float Preloader — v4</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -27,11 +27,11 @@ h2 { color: #8C8576; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
   flex-direction: column;
   align-items: center;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  width: 320px;
+  width: 340px;
 }
 canvas { display: block; }
 .progress-track {
-  width: 200px;
+  width: 220px;
   height: 6px;
   background: #F3EEE4;
   border-radius: 3px;
@@ -69,34 +69,41 @@ canvas { display: block; }
   font-weight: 600;
 }
 .controls button:hover { background: #F3EEE4; }
+.controls button.accent {
+  background: #E89829;
+  color: #fff;
+  border-color: #E89829;
+}
 </style>
 </head>
 <body>
 
-<h1>🐟 Float Preloader — v3</h1>
+<h1>🐟 Float Preloader — v4</h1>
 
 <div class="card">
-  <h2>Indeterminate (поиск)</h2>
-  <canvas id="c1" width="600" height="260"></canvas>
+  <h2>Покой + Поклёвка</h2>
+  <canvas id="c1" width="600" height="280"></canvas>
   <div class="progress-track"><div id="fill1" class="progress-fill"></div></div>
   <div class="label" id="label1">Ищем принтеры…</div>
+  <div class="controls">
+    <button class="accent" onclick="triggerBite()">🎣 Поклёвка</button>
+    <button onclick="togglePause()">⏸ Пауза</button>
+  </div>
 </div>
 
 <div class="card">
-  <h2>Determinate (печать)</h2>
-  <canvas id="c2" width="600" height="260"></canvas>
+  <h2>Печать (determinate)</h2>
+  <canvas id="c2" width="600" height="280"></canvas>
   <div class="progress-track"><div id="fill2" class="progress-fill"></div></div>
   <div class="label" id="label2">Подключение…</div>
   <div class="controls">
-    <button onclick="setDet(0)">0%</button>
-    <button onclick="setDet(0.5)">50%</button>
-    <button onclick="setDet(1)">100%</button>
-    <button onclick="animateDet()">▶ Анимация</button>
+    <button onclick="animateDet()">▶ Печать</button>
   </div>
 </div>
 
 <script>
-class FloatRenderer {
+// === Float Animation Engine ===
+class FloatAnimator {
   constructor(canvas, opts = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
@@ -104,18 +111,74 @@ class FloatRenderer {
     this.h = canvas.height;
     this.bobTime = 0;
     this.waveTime = 0;
-    this.bobSpeed = opts.bobSpeed || 0.018;
-    this.waveSpeed = opts.waveSpeed || 0.006;
+    this.bobSpeed = opts.bobSpeed || 0.02;
+    this.waveSpeed = opts.waveSpeed || 0.005;
+    this.paused = false;
+
+    // Bite animation state
+    this.bitePhase = 0; // 0=idle, 1=dip, 2=submerge, 3=rise, 4=wobble
+    this.biteTime = 0;
+    this.biteDipOffset = 0; // extra vertical offset during bite
+    this.biteTilt = 0; // rotation during bite
+
     this.running = true;
     this.loop();
   }
 
   loop() {
     if (!this.running) return;
-    this.bobTime += this.bobSpeed;
-    this.waveTime += this.waveSpeed;
+    if (!this.paused) {
+      this.bobTime += this.bobSpeed;
+      this.waveTime += this.waveSpeed;
+      this.updateBite();
+    }
     this.draw();
     requestAnimationFrame(() => this.loop());
+  }
+
+  triggerBite() {
+    if (this.bitePhase !== 0) return;
+    this.bitePhase = 1;
+    this.biteTime = 0;
+  }
+
+  updateBite() {
+    if (this.bitePhase === 0) return;
+    this.biteTime += 0.025;
+
+    switch (this.bitePhase) {
+      case 1: // Quick dip down
+        this.biteDipOffset = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 35;
+        this.biteTilt = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 0.15;
+        if (this.biteTime >= 0.3) { this.bitePhase = 2; this.biteTime = 0; }
+        break;
+      case 2: // Submerge (deep)
+        this.biteDipOffset = 35 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 30;
+        this.biteTilt = 0.15 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 0.1;
+        if (this.biteTime >= 0.5) { this.bitePhase = 3; this.biteTime = 0; }
+        break;
+      case 3: // Rise back
+        const riseT = this.easeOutBounce(Math.min(this.biteTime / 0.8, 1));
+        this.biteDipOffset = 65 * (1 - riseT);
+        this.biteTilt = 0.25 * (1 - riseT);
+        if (this.biteTime >= 0.8) { this.bitePhase = 4; this.biteTime = 0; }
+        break;
+      case 4: // Wobble settle
+        const wobbleT = Math.min(this.biteTime / 1.2, 1);
+        this.biteDipOffset = Math.sin(this.biteTime * 12) * 4 * (1 - wobbleT);
+        this.biteTilt = Math.sin(this.biteTime * 10) * 0.03 * (1 - wobbleT);
+        if (this.biteTime >= 1.2) { this.bitePhase = 0; this.biteDipOffset = 0; this.biteTilt = 0; }
+        break;
+    }
+  }
+
+  easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+  easeOutBounce(t) {
+    if (t < 1/2.75) return 7.5625*t*t;
+    if (t < 2/2.75) { t -= 1.5/2.75; return 7.5625*t*t+0.75; }
+    if (t < 2.5/2.75) { t -= 2.25/2.75; return 7.5625*t*t+0.9375; }
+    t -= 2.625/2.75; return 7.5625*t*t+0.984375;
   }
 
   draw() {
@@ -125,16 +188,16 @@ class FloatRenderer {
     const cx = w / 2;
     ctx.clearRect(0, 0, w, h);
 
-    const waterY = h * 0.6;
-    const bob = Math.sin(this.bobTime * Math.PI) * 12;
+    const waterY = h * 0.58;
+    const bob = Math.sin(this.bobTime * Math.PI) * 8;
+    const extraDip = this.biteDipOffset;
     const waveOff = this.waveTime * 2 * Math.PI;
 
     // Water fill
     ctx.beginPath();
     ctx.moveTo(0, waterY);
     for (let x = 0; x <= w; x += 2) {
-      const y = waterY + Math.sin((x / w) * 3 * Math.PI + waveOff) * 3.5
-                    + Math.sin((x / w) * 5.5 * Math.PI - waveOff * 0.6) * 1.5;
+      const y = waterY + Math.sin((x/w)*3*Math.PI + waveOff)*3 + Math.sin((x/w)*5.5*Math.PI - waveOff*0.6)*1.5;
       ctx.lineTo(x, y);
     }
     ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
@@ -144,139 +207,166 @@ class FloatRenderer {
     // Water line
     ctx.beginPath();
     for (let x = 0; x <= w; x += 2) {
-      const y = waterY + Math.sin((x / w) * 3 * Math.PI + waveOff) * 3.5
-                    + Math.sin((x / w) * 5.5 * Math.PI - waveOff * 0.6) * 1.5;
+      const y = waterY + Math.sin((x/w)*3*Math.PI + waveOff)*3 + Math.sin((x/w)*5.5*Math.PI - waveOff*0.6)*1.5;
       if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.strokeStyle = 'rgba(42, 106, 126, 0.3)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
+    // Ripple during bite
+    if (this.bitePhase === 1 || this.bitePhase === 2) {
+      const rippleR = 20 + this.biteTime * 60;
+      const rippleA = Math.max(0, 0.3 - this.biteTime * 0.2);
+      ctx.beginPath();
+      ctx.ellipse(cx, waterY, rippleR, rippleR * 0.25, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(42, 106, 126, ${rippleA})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
     // === FLOAT ===
-    const fx = cx;
-    const fy = waterY - 5 + bob;
+    ctx.save();
+    ctx.translate(cx, waterY - 2 + bob + extraDip);
+    ctx.rotate(this.biteTilt);
 
-    // --- Antenna (thin rod) ---
-    const antTop = fy - 65;
-    const antBot = fy - 22;
-    ctx.beginPath();
-    ctx.moveTo(fx, antTop);
-    ctx.lineTo(fx, antBot);
-    ctx.strokeStyle = '#5C4D2F';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+    const fy = 0; // local origin at waterline
 
-    // Antenna tip (small ball)
+    // --- Antenna ---
+    // Red pointed tip
+    const antTop = fy - 68;
+    const redEnd = fy - 40;
+    const whiteEnd = fy - 22;
+
+    // Red tip (tapered)
     ctx.beginPath();
-    ctx.arc(fx, antTop - 3, 3, 0, Math.PI * 2);
+    ctx.moveTo(0, antTop);
+    ctx.lineTo(-3, antTop + 14);
+    ctx.lineTo(3, antTop + 14);
+    ctx.closePath();
     ctx.fillStyle = '#E89829';
     ctx.fill();
 
-    // --- Body: classic pear/egg shape ---
-    // Upper body (RED) — wide rounded top
-    const bodyCenterY = fy - 6;
-    const bodyRx = 16; // horizontal radius
-    const bodyRy = 20; // vertical radius (upper half)
-
-    // Red top half
+    // Red cylinder
     ctx.beginPath();
-    ctx.ellipse(fx, bodyCenterY, bodyRx, bodyRy, 0, Math.PI, 0);
+    ctx.rect(-3, antTop + 14, 6, redEnd - antTop - 14);
+    ctx.fillStyle = '#E89829';
+    ctx.fill();
+
+    // White cylinder
+    ctx.beginPath();
+    ctx.rect(-3, redEnd, 6, whiteEnd - redEnd);
+    ctx.fillStyle = '#F5F0E3';
+    ctx.fill();
+
+    // Black ring at body junction
+    ctx.beginPath();
+    ctx.rect(-3, whiteEnd, 6, 3);
+    ctx.fillStyle = '#14130F';
+    ctx.fill();
+
+    // --- Body: classic bobber (red sphere top + white sphere bottom) ---
+    const bodyTop = fy - 20;
+    const bodyMid = fy + 2;
+    const bodyBot = fy + 20;
+
+    // White bottom sphere (wider)
+    ctx.beginPath();
+    ctx.ellipse(0, bodyMid + 4, 20, 18, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#F5F0E3';
+    ctx.fill();
+    // Subtle shadow
+    ctx.beginPath();
+    ctx.ellipse(0, bodyMid + 4, 20, 18, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Red top sphere (smaller, sits on top)
+    ctx.beginPath();
+    ctx.ellipse(0, bodyTop + 2, 14, 14, 0, 0, Math.PI * 2);
     ctx.fillStyle = '#C9302C';
     ctx.fill();
 
     // Glossy highlight on red
     ctx.beginPath();
-    ctx.ellipse(fx - 5, bodyCenterY - 8, 5, 10, -0.15, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.ellipse(-4, bodyTop - 2, 4, 7, -0.2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fill();
 
-    // White/cream bottom half
+    // Dividing line (waterline)
     ctx.beginPath();
-    ctx.ellipse(fx, bodyCenterY, bodyRx, bodyRy * 0.6, 0, 0, Math.PI);
-    ctx.fillStyle = '#F5F0E3';
-    ctx.fill();
-
-    // Thin dividing line
-    ctx.beginPath();
-    ctx.moveTo(fx - bodyRx, bodyCenterY);
-    ctx.lineTo(fx + bodyRx, bodyCenterY);
-    ctx.strokeStyle = '#8C8576';
-    ctx.lineWidth = 1.2;
+    ctx.moveTo(-20, bodyMid);
+    ctx.lineTo(20, bodyMid);
+    ctx.strokeStyle = 'rgba(140,133,118,0.4)';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    // --- Lower stem (below body, connects to keel) ---
-    const stemBot = bodyCenterY + bodyRy * 0.6;
-    const keelTop = stemBot + 6;
+    // --- Keel ---
+    const keelStart = bodyBot + 2;
+    const keelEnd = fy + 42;
+
+    // Keel wire
     ctx.beginPath();
-    ctx.moveTo(fx, stemBot);
-    ctx.lineTo(fx, keelTop);
+    ctx.moveTo(0, keelStart);
+    ctx.lineTo(0, keelEnd);
     ctx.strokeStyle = '#5C4D2F';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.8;
+    ctx.lineCap = 'round';
     ctx.stroke();
 
-    // --- Keel (wire going down) ---
-    const keelBot = fy + 30;
+    // Keel weight (small dark oval)
     ctx.beginPath();
-    ctx.moveTo(fx, keelTop);
-    ctx.lineTo(fx, keelBot);
-    ctx.strokeStyle = '#8C8576';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Keel weight (small oval)
-    ctx.beginPath();
-    ctx.ellipse(fx, keelBot, 4, 3, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#6B5B3A';
+    ctx.ellipse(0, keelEnd + 2, 3.5, 2.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#3A3225';
     ctx.fill();
 
-    // --- Fishing line (dashed into water) ---
+    // --- Fishing line (dashed) ---
     ctx.beginPath();
     ctx.setLineDash([3, 4]);
-    ctx.moveTo(fx, keelBot + 3);
-    ctx.lineTo(fx, waterY + 35);
+    ctx.moveTo(0, keelEnd + 4);
+    ctx.lineTo(0, keelEnd + 30);
     ctx.strokeStyle = 'rgba(100,100,100,0.2)';
     ctx.lineWidth = 0.8;
     ctx.stroke();
     ctx.setLineDash([]);
+
+    ctx.restore();
   }
 
   destroy() { this.running = false; }
 }
 
-// === Indeterminate ===
-const f1 = new FloatRenderer(document.getElementById('c1'), { bobSpeed: 0.022, waveSpeed: 0.005 });
+// === Canvas 1: Bite demo ===
+const f1 = new FloatAnimator(document.getElementById('c1'));
 const fill1 = document.getElementById('fill1');
 let p1 = 0;
 function tick1() {
-  p1 += 0.005;
+  p1 += 0.004;
   if (p1 >= 1) p1 = 0;
   fill1.style.width = (p1 * 100) + '%';
   requestAnimationFrame(tick1);
 }
 tick1();
 
-// === Determinate ===
-const f2 = new FloatRenderer(document.getElementById('c2'), { bobSpeed: 0.014, waveSpeed: 0.004 });
+function triggerBite() { f1.triggerBite(); }
+function togglePause() { f1.paused = !f1.paused; }
+
+// === Canvas 2: Determinate ===
+const f2 = new FloatAnimator(document.getElementById('c2'), { bobSpeed: 0.014, waveSpeed: 0.004 });
 const fill2 = document.getElementById('fill2');
 const label2 = document.getElementById('label2');
-
-function setDet(v) {
-  fill2.style.width = (v * 100) + '%';
-  if (v < 0.3) label2.textContent = 'Подключение…';
-  else if (v < 0.7) label2.textContent = 'Печать…';
-  else if (v < 1) label2.textContent = 'Отправка данных…';
-  else label2.textContent = 'Чек отправлен ✓';
-}
 
 function animateDet() {
   let p = 0;
   fill2.style.width = '0%';
   label2.textContent = 'Подключение…';
   const iv = setInterval(() => {
-    p += 0.012;
-    if (p >= 1) { p = 1; clearInterval(iv); }
-    setDet(p);
+    p += 0.01;
+    if (p >= 0.3 && p < 0.32) { label2.textContent = 'Печать…'; f2.triggerBite(); }
+    if (p >= 0.7 && p < 0.72) { label2.textContent = 'Отправка данных…'; }
+    if (p >= 1) { p = 1; clearInterval(iv); label2.textContent = 'Чек отправлен ✓'; }
+    fill2.style.width = (p * 100) + '%';
   }, 50);
 }
 </script>
