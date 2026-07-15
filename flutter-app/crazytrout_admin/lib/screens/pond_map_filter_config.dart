@@ -29,6 +29,11 @@ const Map<FilterValue, String> filterButtonLabels = {
 /// Зазор между кнопкой и дропдауном. Должен быть 0 (вплотную).
 const double kDropdownGap = 0.0;
 
+/// Нахлёст dropdown на кнопку (px). При открытии border кнопки убирается,
+/// dropdown сдвигается вверх на 1px, чтобы полностью перекрыть контур
+/// и не оставлять видимого зазора.
+const double kDropdownOverlap = 1.0;
+
 /// Высота одного пункта меню дропдауна.
 const double kDropdownItemHeight = 44.0;
 

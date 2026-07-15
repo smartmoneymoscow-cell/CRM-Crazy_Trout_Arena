@@ -35,6 +35,14 @@ void main() {
         reason: 'bottomNavHeight должен быть задан — без него дропдаун '
                 'перекрывает нижнее меню. См. коммит 6c597f7 (регрессия).');
     });
+
+    test('overlap = 1 (dropdown перекрывает border кнопки)', () {
+      // Баг: dropdown начинался ниже кнопки → видимый зазор в 1px.
+      // Фикс: dropdown сдвигается вверх на 1px, перекрывая контур кнопки.
+      expect(kDropdownOverlap, 1.0,
+        reason: 'overlap должен быть 1 — dropdown перекрывает border кнопки. '
+                'Без этого виден зазор между кнопкой и dropdown.');
+    });
   });
 
   group('calcMaxDropdownHeight()', () {

@@ -1028,7 +1028,9 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
 
     final dropdownW = btnSize.width;
 
-    final dy = btnSize.height + _gap;
+    // При открытии убираем border кнопки → сдвигаем dropdown вверх,
+    // чтобы перекрыть остаток контура и убрать зазор.
+    final dy = btnSize.height - kDropdownOverlap;
 
     // MediaQuery берём ЗДЕСЬ (в контексте виджета, не overlay) —
     // иначе значения могут быть неверными.
@@ -1130,9 +1132,9 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
             borderRadius: _isOpen
                 ? const BorderRadius.only(topLeft: Radius.circular(999), topRight: Radius.circular(999))
                 : BorderRadius.circular(999),
-            border: _isOpen
-                ? Border(top: BorderSide(color: _hairline), left: BorderSide(color: _hairline), right: BorderSide(color: _hairline))
-                : Border.all(color: _hairline),
+            // При открытии убираем ВЕСЬ border — иначе border рисуется
+            // поверх borderRadius и создаёт визуальное скругление снизу.
+            border: _isOpen ? null : Border.all(color: _hairline),
           ),
           child: Row(children: [
             const Icon(Icons.filter_list, size: 13, color: _ember),
