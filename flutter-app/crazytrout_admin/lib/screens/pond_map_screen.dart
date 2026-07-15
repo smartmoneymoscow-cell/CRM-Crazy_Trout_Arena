@@ -1117,12 +1117,10 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: radius,
-        clipBehavior: Clip.antiAlias,
-        child: GestureDetector(
-          onTap: _toggle,
+      child: GestureDetector(
+        onTap: _toggle,
+        child: ClipRRect(
+          borderRadius: radius,
           child: Container(
             width: 120,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
