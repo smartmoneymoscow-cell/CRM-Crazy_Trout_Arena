@@ -1,109 +1,40 @@
-# 📱 Appetize.io — Эмулятор приложения в браузере
+# Appetize.io — эмулятор в браузере
 
-> Облачный эмулятор iOS/Android, который запускает `.apk` и `.ipa` прямо в браузере без установки.
+Приложение запускается в облачном Android-эмуляторе прямо в браузере.
 
-## 🔗 Ссылка
+## Ссылка
 
-**https://appetize.io/**
+🔗 **https://appetize.io/app/zx7sngap3it3xkf35jw7bvofza**
 
-## 🔑 API-ключ
+## API-ключ
 
 ```
-YOUR_APPETIZE_API_TOKEN
+tok_mmcyms2cp2sd43fgi53ypx6wsi
 ```
 
-> Замени на свой токен из настроек Appetize.io → Account → API Keys.
+> ⚠️ Не публикуй ключ в открытом доступе. Используй только для автоматизации сборок.
 
-## 🚀 Как использовать
+## Обновление APK
 
-### Через веб-интерфейс
-
-1. Зайди на https://appetize.io/demo
-2. Нажми **Upload**
-3. Загрузи APK: https://github.com/smartmoneymoscow-cell/CRM-/releases/latest/download/app-release.apk
-4. Выбери устройство (iPhone / Android) и версию OS
-5. Эмулятор запустится в браузере
-
-### Через API (автоматизация)
-
-#### Загрузка APK
+После сборки новой версии загрузи APK через API:
 
 ```bash
-curl -X POST "https://api.appetize.io/v1/app/upload" \
-  -H "Authorization: Bearer YOUR_APPETIZE_API_TOKEN" \
+curl -X POST "https://api.appetize.io/v1/apps" \
+  -u "tok_mmcyms2cp2sd43fgi53ypx6wsi:" \
   -F "file=@app-release.apk" \
   -F "platform=android" \
-  -F "osVersion=15.0"
+  -F "note=Crazy Trout Arena CRM vX.Y.Z"
 ```
 
-Ответ:
-```json
-{
-  "publicKey": "abc123...",
-  "appURL": "https://appetize.io/embed/abc123..."
-}
-```
+Ответ вернёт `publicURL` — это и есть ссылка на эмулятор.
 
-#### Загрузка IPA (iOS)
+## Лимиты
 
-```bash
-curl -X POST "https://api.appetize.io/v1/app/upload" \
-  -H "Authorization: Bearer YOUR_APPETIZE_API_TOKEN" \
-  -F "file=@app-release.ipa" \
-  -F platform=ios" \
-  -F "osVersion=18.0"
-```
+- Бесплатный тариф: **100 минут/месяц**
+- Сессия: ~15 минут бездействия → автозакрытие
+- Платформа: Android (по умолчанию)
 
-#### Получение embed-ссылки
+## Управление
 
-После загрузки получаешь `publicKey`. Embed-ссылка:
-
-```
-https://appetize.io/embed/<publicKey>
-```
-
-Можно вставить в `<iframe>` на любой странице:
-
-```html
-<iframe
-  src="https://appetize.io/embed/<publicKey>?device=iphone15pro&osVersion=18.0"
-  width="400"
-  height="800"
-  frameborder="0"
-></iframe>
-```
-
-### Параметры embed
-
-| Параметр | Пример | Описание |
-|----------|--------|----------|
-| `device` | `iphone15pro`, `pixel8` | Модель устройства |
-| `osVersion` | `18.0`, `15.0` | Версия ОС |
-| `scale` | `75` | Масштаб (по умолчанию 100) |
-| `orientation` | `portrait`, `landscape` | Ориентация |
-| `language` | `ru`, `en` | Язык системы |
-| `launchUrl` | `myapp://deep-link` | Deep link при запуске |
-
-## 📋 Тарифы
-
-| Тариф | Минуты/месяц | Цена |
-|-------|-------------|------|
-| Free | 30 мин | $0 |
-| Starter | 500 мин | $40/мес |
-| Team | 2000 мин | $150/мес |
-| Enterprise | ∞ | По запросу |
-
-> Бесплатного таринга хватает на ~30 минут эмуляции — достаточно для быстрого тестирования.
-
-## ⚠️ Ограничения
-
-- iOS-сборка без кодирования (`no-codesign`) — Appetize может потребовать provisioning profile
-- Bluetooth-принтер не работает в эмуляторе (нет реального Bluetooth)
-- Камера/QR-сканер — только через заглушку (нет реальной камеры)
-- Push-уведомления не поддерживаются
-
-## 🔗 Полезные ссылки
-
-- Документация API: https://docs.appetize.io
-- Список устройств: https://docs.appetize.io/devices
-- Тарифы: https://appetize.io/pricing
+- Панель: https://appetize.io/manage/zx7sngap3it3xkf35jw7bvofza
+- Настройки API-ключей: https://appetize.io/account/api-keys
