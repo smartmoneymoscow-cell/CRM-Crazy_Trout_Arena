@@ -57,6 +57,7 @@ class Receipt {
   final double total;
   final PaymentMethod payment;
   final bool fiscal;
+  final String? fiscalDoc;
 
   // ─── Фискальные реквизиты (54-ФЗ) ───
   final String sellerName;
@@ -70,8 +71,8 @@ class Receipt {
   final String fnNumber;
   final int fdNumber;
   final String fpd;
-  final double ndsRate;    // ставка НДС в % (0, 10, 20)
-  final double ndsSum;     // сумма НДС в рублях
+  final double ndsRate;
+  final double ndsSum;
   final String? buyerEmail;
 
   const Receipt({
@@ -85,6 +86,7 @@ class Receipt {
     required this.total,
     required this.payment,
     required this.fiscal,
+    this.fiscalDoc,
     this.sellerName = 'ИП Сидоров А.В.',
     this.sellerINN = '770123456789',
     this.sellerAddress = 'г. Москва, ул. Рыбацкая, д. 12',
@@ -99,14 +101,9 @@ class Receipt {
     this.ndsRate = 0,
     this.ndsSum = 0,
     this.buyerEmail,
-    @Deprecated('Используйте fdNumber — fiscalDoc вычисляется автоматически')
-    String? fiscalDoc,
   });
 
   String get clientLine => isGuest
       ? 'Гость (без анкеты)'
       : (client != null ? '${client!.name} · ${client!.phone}' : '—');
-
-  /// Обратная совместимость со старым кодом.
-  String? get fiscalDoc => fiscal ? '№ФД-$fdNumber' : null;
 }
