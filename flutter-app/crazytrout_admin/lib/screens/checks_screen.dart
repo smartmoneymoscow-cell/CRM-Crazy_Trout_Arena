@@ -532,12 +532,6 @@ class _ChecksScreenState extends State<ChecksScreen> {
                         value: _type,
                         label: 'Тип',
                         items: [
-                          if (_type != null)
-                            const _FilterDropdownItem<_TypeFilter>(
-                              value: null,
-                              label: 'Сбросить',
-                              isReset: true,
-                            ),
                           for (final t in _TypeFilter.values)
                             _FilterDropdownItem<_TypeFilter>(
                               value: t,
