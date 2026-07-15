@@ -511,12 +511,12 @@ class _ChecksScreenState extends State<ChecksScreen> {
                         value: _period,
                         label: 'Период',
                         items: [
-                          if (_period != null)
-                            const _FilterDropdownItem<_PeriodFilter>(
-                              value: null,
-                              label: 'Нет',
-                              isReset: true,
-                            ),
+                          _FilterDropdownItem<_PeriodFilter>(
+                            value: null,
+                            label: 'Нет',
+                            isReset: true,
+                            enabled: _period != null,
+                          ),
                           for (final p in _PeriodFilter.values)
                             _FilterDropdownItem<_PeriodFilter>(
                               value: p,
@@ -984,18 +984,22 @@ class _ReceiptRow extends StatelessWidget {
                   color: _ink),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: item.fiscal ? _orange : _hairline,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                item.fiscal ? 'С ФН' : 'Без ФН',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: item.fiscal ? Colors.white : _muted2,
+            SizedBox(
+              width: 56,
+              height: 22,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: item.fiscal ? const Color(0xFFE8D5B5) : _hairline,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  item.fiscal ? 'С ФН' : 'Без ФН',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: item.fiscal ? _ink : _muted2,
+                  ),
                 ),
               ),
             ),
