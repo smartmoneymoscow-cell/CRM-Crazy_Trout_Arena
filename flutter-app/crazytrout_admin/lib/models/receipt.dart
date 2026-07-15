@@ -104,4 +104,7 @@ class Receipt {
   String get clientLine => isGuest
       ? 'Гость (без анкеты)'
       : (client != null ? '${client!.name} · ${client!.phone}' : '—');
+
+  /// Обратная совместимость со старым кодом.
+  String? get fiscalDoc => fiscal ? '№ФД-$fdNumber' : null;
 }
