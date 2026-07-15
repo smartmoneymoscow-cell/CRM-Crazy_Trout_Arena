@@ -102,7 +102,7 @@ class _PondStats {
   final Color color;
   final LevelKey level;
   final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final String firstVisit, email;
+  final String firstVisit, lastVisit, email;
   final BestCatch bestCatch;
   final int? currentSector;
   const _PondStats({
@@ -115,6 +115,7 @@ class _PondStats {
     required this.fish,
     required this.totalWeight,
     required this.firstVisit,
+    required this.lastVisit,
     required this.email,
     required this.bestCatch,
     this.currentSector,
@@ -132,6 +133,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 96,
     totalWeight: 215,
     firstVisit: '14.03.2023',
+    lastVisit: '15.07.2026',
     email: 'ivanov@mail.ru',
     currentSector: 7,
     bestCatch:
@@ -147,6 +149,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 31,
     totalWeight: 78,
     firstVisit: '02.08.2024',
+    lastVisit: '15.07.2026',
     email: 'koshkin@mail.ru',
     currentSector: 4,
     bestCatch:
@@ -162,6 +165,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 122,
     totalWeight: 289,
     firstVisit: '27.01.2022',
+    lastVisit: '14.07.2026',
     email: 'petrov@mail.ru',
     currentSector: 2,
     bestCatch:
@@ -177,6 +181,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 40,
     totalWeight: 103,
     firstVisit: '11.11.2023',
+    lastVisit: '13.07.2026',
     email: 'laguta@mail.ru',
     currentSector: 5,
     bestCatch:
@@ -192,6 +197,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 150,
     totalWeight: 365,
     firstVisit: '03.06.2021',
+    lastVisit: '15.07.2026',
     email: 'orlov@mail.ru',
     currentSector: 1,
     bestCatch:
@@ -207,6 +213,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 12,
     totalWeight: 22,
     firstVisit: '09.02.2026',
+    lastVisit: '10.07.2026',
     email: 'sidorov@mail.ru',
     currentSector: 10,
     bestCatch:
@@ -222,6 +229,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 27,
     totalWeight: 61,
     firstVisit: '18.01.2025',
+    lastVisit: '12.07.2026',
     email: 'shchukin@mail.ru',
     currentSector: 8,
     bestCatch:
@@ -237,6 +245,7 @@ const Map<int, _PondStats> _pondStatsById = {
     fish: 2,
     totalWeight: 3,
     firstVisit: '10.07.2026',
+    lastVisit: '10.07.2026',
     email: 'guest@crazytroutarena.ru',
     currentSector: 3,
     bestCatch:
@@ -248,7 +257,7 @@ const Map<int, _PondStats> _pondStatsById = {
 /// и статистику из карты пруда).
 class _FullClient {
   final int id;
-  final String name, phone, email, tariff, firstVisit;
+  final String name, phone, email, tariff, firstVisit, lastVisit;
   final Color color;
   final LevelKey level;
   final int points, pointsNext, visits, ltvK, fish, totalWeight;
@@ -270,6 +279,7 @@ class _FullClient {
     required this.fish,
     required this.totalWeight,
     required this.firstVisit,
+    required this.lastVisit,
     required this.bestCatch,
     this.currentSector,
     this.avatarAsset,
@@ -308,6 +318,7 @@ final List<_FullClient> _fullClients = app_data.kDemoClients.map((c) {
     fish: s.fish,
     totalWeight: s.totalWeight,
     firstVisit: s.firstVisit,
+    lastVisit: s.lastVisit,
     bestCatch: s.bestCatch,
     currentSector: s.currentSector,
   );
@@ -1493,27 +1504,26 @@ class _ClientCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (client.currentSector != null)
-                            Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.center,
-                              children: [
-                                const Text('СЕЙЧАС НА СЕКТОРЕ',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black45,
-                                        letterSpacing: 0.3)),
-                                const SizedBox(height: 2),
-                                Text('№ ${client.currentSector}',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        color: _orange)),
-                              ],
-                            ),
+                          Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.center,
+                            children: [
+                              const Text('ПОСЛЕДНЕЕ ПОСЕЩЕНИЕ',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black45,
+                                      letterSpacing: 0.3)),
+                              const SizedBox(height: 2),
+                              Text(client.lastVisit,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: _ink)),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
