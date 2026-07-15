@@ -36,7 +36,7 @@
 
 Приложение можно запустить прямо в браузере:
 
-🔗 **[https://appetize.io/app/zx7sngap3it3xkf35jw7bvofza](https://appetize.io/app/zx7sngap3it3xkf35jw7bvofza)**
+🔗 **[https://appetize.io/app/3pyz3i55q35iixrkebtthhiqiq](https://appetize.io/app/3pyz3i55q35iixrkebtthhiqiq)**
 
 > 📖 Инструкция по загрузке новых сборок: [docs/APPETIZE.md](docs/APPETIZE.md)
 
