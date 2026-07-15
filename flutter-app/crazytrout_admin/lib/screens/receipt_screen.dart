@@ -197,7 +197,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             child: Center(child: Text('Выставление чека',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
           ),
-          const SizedBox(height: 14),
         _card(
           title: 'Клиент',
           child: Column(
@@ -260,7 +259,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _card(
           title: 'Тип клиента',
           child: Row(
@@ -289,7 +288,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _card(
           title: 'Улов',
           trailing: Text('${_rows.length} поз.', style: const TextStyle(color: Colors.grey)),
@@ -317,7 +316,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _card(
           title: 'Способ оплаты и тип чека',
           child: Row(
@@ -357,7 +356,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(16)),
@@ -370,7 +369,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         ElevatedButton(
           onPressed: _submit,
           style: ElevatedButton.styleFrom(
@@ -420,7 +419,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
   Widget _card({required String title, Widget? trailing, required Widget child}) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
