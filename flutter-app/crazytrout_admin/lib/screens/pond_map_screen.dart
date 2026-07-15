@@ -1035,11 +1035,14 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
     // иначе значения могут быть неверными.
     final screenH = MediaQuery.of(context).size.height;
     final bottomSafe = MediaQuery.of(context).padding.bottom;
+    // dropdown nachinaetsya na _overlap vyshe btnBottomY
+    // rawH rasschitan ot btnBottomY -> dobavlyaem _overlap chtoby dropdown byl vyshe
+    // no nizhniy kraj ostaetsya na meste (ne zalezayet na bottomNav)
     final maxDropdownH = calcMaxDropdownHeight(
       btnBottomY: btnPos.dy + btnSize.height,
       screenH: screenH,
       bottomPadding: bottomSafe,
-    ) - _overlap; // kompensiruem sdvig vverh
+    ) + _overlap;
 
     return OverlayEntry(
       builder: (overlayContext) => GestureDetector(
