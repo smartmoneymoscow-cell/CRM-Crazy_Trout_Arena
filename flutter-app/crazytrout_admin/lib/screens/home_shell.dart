@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'checks_screen.dart';
 import 'pond_map_screen.dart';
 import 'receipt_screen.dart';
 import 'stub_screen.dart';
@@ -17,7 +18,7 @@ class _HomeShellState extends State<HomeShell> {
   static const _screens = [
     PondMapScreen(),
     ReceiptScreen(),
-    StubScreen(title: 'Чеки', icon: Icons.receipt_long_outlined, note: 'История выставленных чеков — раздел в разработке.'),
+    ChecksScreen(),
     StubScreen(title: 'P&L', icon: Icons.show_chart, note: 'Отчёт по прибыли и убыткам — раздел в разработке.'),
     StubScreen(title: 'Профиль', icon: Icons.person_outline, note: 'Профиль администратора — раздел в разработке.'),
   ];
