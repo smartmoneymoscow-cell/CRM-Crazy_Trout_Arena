@@ -712,7 +712,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                                         : FontWeight.w400,
                                 color: enabled
                                     ? (item.isReset ? _muted2 : _ink)
-                                    : _hairline,
+                                    : _muted,
                               ),
                             ),
                           ),
