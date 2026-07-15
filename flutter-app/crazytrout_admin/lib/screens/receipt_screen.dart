@@ -318,19 +318,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            children: [
-              _summaryRow('Тариф клиента', money(_tariff.price), color: Colors.white70),
-              _summaryRow('Улов · ${_rows.length} поз.', money(_catchTotal), color: Colors.white70),
-              const Divider(color: Colors.white24, height: 24),
-              _summaryRow('ИТОГО', money(_total), color: Colors.white, big: true),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
         _card(
           title: 'Способ оплаты и тип чека',
           child: Row(
@@ -343,7 +330,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     items: const [
                       AppDropdownItem(value: PaymentMethod.cash, child: Text('Наличными')),
                       AppDropdownItem(value: PaymentMethod.card, child: Text('Картой')),
-                      AppDropdownItem(value: PaymentMethod.houseAccount, child: Text('Счет зав.')),
+                      AppDropdownItem(value: PaymentMethod.houseAccount, child: Text('Счет заведения')),
                     ],
                     onChanged: (v) => setState(() => _payment = v),
                     fillColor: const Color(0xFFF3EEE4),
@@ -367,6 +354,19 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(16)),
+          child: Column(
+            children: [
+              _summaryRow('Тариф клиента', money(_tariff.price), color: Colors.white70),
+              _summaryRow('Улов · ${_rows.length} поз.', money(_catchTotal), color: Colors.white70),
+              const Divider(color: Colors.white24, height: 24),
+              _summaryRow('ИТОГО', money(_total), color: Colors.white, big: true),
             ],
           ),
         ),

@@ -10,7 +10,7 @@ extension PaymentMethodLabel on PaymentMethod {
       case PaymentMethod.card:
         return 'Картой';
       case PaymentMethod.houseAccount:
-        return 'Счет зав.';
+        return 'Счет заведения';
     }
   }
 }
