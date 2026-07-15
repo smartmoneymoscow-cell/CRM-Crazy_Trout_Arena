@@ -1026,7 +1026,7 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
     final btnSize = rb.size;
     final btnPos = rb.localToGlobal(Offset.zero);
 
-    const double _overlap = 12.0; // перекрываем нижние скруглённые углы кнопки
+    const double _overlap = 9.0; // сдвинуто вниз на 3px — текст «Фильтры» больше не перекрывается dropdown-ом
     final dropdownW = btnSize.width;
 
     final dy = btnSize.height - _overlap;
