@@ -992,138 +992,73 @@ class FiltersDropdown extends StatefulWidget {
 }
 
 class _FiltersDropdownState extends State<FiltersDropdown> {
-  final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
   bool _isOpen = false;
 
-  // Ширина dropdown = ширина кнопки фильтров; зазор = 0 (без отрыва)
-  static const double _itemHeight = kDropdownItemHeight;
   static const double _dropdownVPadding = kDropdownVPadding;
-  static const double _gap = kDropdownGap;
 
   void _toggleDropdown() {
-    if (_isOpen) {
-      _closeDropdown();
-    } else {
-      _openDropdown();
-    }
-  }
-
-  void _openDropdown() {
-    setState(() => _isOpen = true);
-    _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
+    setState(() => _isOpen = !_isOpen);
   }
 
   void _closeDropdown() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
     if (mounted) setState(() => _isOpen = false);
   }
 
-  OverlayEntry _createOverlayEntry() {
-    final rb = context.findRenderObject() as RenderBox;
-    final btnSize = rb.size;
-    final btnPos = rb.localToGlobal(Offset.zero);
-
-    const double _overlap = 9.0; // сдвинуто вниз на 3px — текст «Фильтры» больше не перекрывается dropdown-ом
-    final dropdownW = btnSize.width;
-
-    final dy = btnSize.height - _overlap;
-
-    // MediaQuery берём ЗДЕСЬ (в контексте виджета, не overlay) —
-    // иначе значения могут быть неверными.
-    final screenH = MediaQuery.of(context).size.height;
-    final bottomSafe = MediaQuery.of(context).padding.bottom;
-    final maxDropdownH = calcMaxDropdownHeight(
-      btnBottomY: btnPos.dy + btnSize.height,
-      screenH: screenH,
-      bottomPadding: bottomSafe,
-    );
-
-    return OverlayEntry(
-      builder: (overlayContext) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _closeDropdown,
-        child: Stack(children: [
-          Positioned.fill(
-            child: Container(color: Colors.transparent),
-          ),
-          Positioned(
-            width: dropdownW,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: Offset(0, dy),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxDropdownH > 100 ? maxDropdownH : 100),
-                child: Material(
-                  elevation: 0,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(14),
-                    bottomRight: Radius.circular(14),
-                  ),
-                  color: Colors.white,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                        bottomRight: Radius.circular(14),
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                        bottomRight: Radius.circular(14),
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: _dropdownVPadding),
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        ...filterOptions.entries.map((e) {
-                          final isSelected = widget.value == e.key;
-                          return InkWell(
-                            onTap: () {
-                              widget.onChange(e.key);
-                              _closeDropdown();
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
-                              child: Text(e.value,
-                                style: TextStyle(fontSize: 13, color: _ink,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
-                            ),
-                          );
-                        }),
-                      ]),
-                    ),
-                  ),
-                ),
-              ),
+  Widget _buildDropdown() {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 200),
+      child: Material(
+        elevation: 0,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(14),
+          bottomRight: Radius.circular(14),
+        ),
+        color: Colors.white,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(14),
+              bottomRight: Radius.circular(14),
             ),
           ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(14),
+              bottomRight: Radius.circular(14),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: _dropdownVPadding),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                ...filterOptions.entries.map((e) {
+                  final isSelected = widget.value == e.key;
+                  return InkWell(
+                    onTap: () {
+                      widget.onChange(e.key);
+                      _closeDropdown();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
+                      child: Text(e.value,
+                        style: TextStyle(fontSize: 13, color: _ink,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
+                    ),
+                  );
+                }),
+              ]),
+            ),
           ),
-        ]),
+        ),
       ),
     );
   }
 
   @override
-  void dispose() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    const pill = BorderRadius.all(Radius.circular(999));
-
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: GestureDetector(
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      GestureDetector(
         onTap: _toggleDropdown,
         child: Container(
           width: 120,
@@ -1143,7 +1078,8 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
           ]),
         ),
       ),
-    );
+      if (_isOpen) _buildDropdown(),
+    ]);
   }
 }
 
