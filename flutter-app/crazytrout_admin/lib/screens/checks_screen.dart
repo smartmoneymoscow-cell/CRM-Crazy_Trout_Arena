@@ -450,7 +450,12 @@ class _ChecksScreenState extends State<ChecksScreen> {
   Future<void> _openCalendar() async {
     final res = await _showRangeCalendarPicker(context, _dateRange);
     if (!mounted || res == null) return;
-    setState(() => _dateRange = res);
+    // DateTimeRange(2000,2000) — маркер «Сбросить»
+    if (res.start.year == 2000 && res.end.year == 2000) {
+      setState(() => _dateRange = null);
+    } else {
+      setState(() => _dateRange = res);
+    }
   }
 
   void _openDetail(ReceiptHistoryItem r) {
@@ -657,12 +662,15 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                     children: widget.items.map((item) {
                       final selected = item.value == widget.value &&
                           item.value != null;
+                      final enabled = item.enabled;
                       return GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          widget.onChanged(item.value);
-                          _close();
-                        },
+                        onTap: enabled
+                            ? () {
+                                widget.onChanged(item.value);
+                                _close();
+                              }
+                            : null,
                         child: Container(
                           width: double.infinity,
                           height: _itemHeight,
@@ -682,8 +690,9 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                                     : selected
                                         ? FontWeight.w700
                                         : FontWeight.w400,
-                                color:
-                                    item.isReset ? _muted2 : _ink,
+                                color: enabled
+                                    ? (item.isReset ? _muted2 : _ink)
+                                    : _hairline,
                               ),
                             ),
                           ),
@@ -1944,6 +1953,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
       1);
   DateTime? start;
   DateTime? end;
+  bool _wasReset = false;
 
   @override
   void initState() {
@@ -2110,10 +2120,15 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
             Row(children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => setState(() {
-                    start = null;
-                    end = null;
-                  }),
+                  onPressed: () {
+                    setState(() {
+                      start = null;
+                      end = null;
+                      _wasReset = true;
+                    });
+                    Navigator.pop(context, DateTimeRange(
+                        start: DateTime(2000), end: DateTime(2000)));
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _muted,
                     side: const BorderSide(color: _outline),
