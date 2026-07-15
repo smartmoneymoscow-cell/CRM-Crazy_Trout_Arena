@@ -1018,7 +1018,7 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
   void _closeDropdown() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    _isOpen = false;
+    setState(() => _isOpen = false);
   }
 
   OverlayEntry _createOverlayEntry() {
