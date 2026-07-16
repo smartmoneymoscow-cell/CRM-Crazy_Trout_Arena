@@ -8,16 +8,6 @@ import '../utils/format.dart';
 // PaymentTariffCard — две диаграммы на одной строке:
 //   Слева: столбчатая — выручка по способам оплаты
 //   Справа: кольцевая — выручка по тарифам
-//
-//   ┌─────────────────────┬────────────────────┐
-//   │ По способам оплаты  │  По тарифам        │
-//   │                     │                    │
-//   │  Картой    ████████ │    ╭───────╮       │
-//   │  Наличными ████     │   ╱ Станд. ╲      │
-//   │  Счёт      ██       │  │  Гостев.  │     │
-//   │                     │   ╲ Пенсион.╱      │
-//   │                     │    ╰───────╯       │
-//   └─────────────────────┴────────────────────┘
 // ============================================================================
 
 // ── Цвета приложения ──
@@ -36,7 +26,6 @@ const _barColors = <Color>[
   Color(0xFF8B6F47), // золотой — Счёт заведения
 ];
 
-// Градиенты для столбцов
 const _barGradients = <List<Color>>[
   [Color(0xFFE8912B), Color(0xFFF2A84D)],
   [Color(0xFF4A7C59), Color(0xFF5FA87A)],
@@ -48,13 +37,6 @@ const _tarColors = <Color>[
   Color(0xFFE8912B), // оранжевый — Стандарт
   Color(0xFFD4C4A8), // бежевый — Гостевой
   Color(0xFFB8B0A2), // серый — Пенсионер
-];
-
-// Градиенты для сегментов тарифов
-const _tarGradients = <List<Color>>[
-  [Color(0xFFE8912B), Color(0xFFF2A84D)],
-  [Color(0xFFD4C4A8), Color(0xFFE0D4BA)],
-  [Color(0xFFB8B0A2), Color(0xFFC8C0B4)],
 ];
 
 class PaymentTariffCard extends StatelessWidget {
@@ -70,16 +52,22 @@ class PaymentTariffCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: _hairline2, width: 0.5),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Слева: столбцы (оплата) ──
           Expanded(
-            child: _PaymentBars(payments: stats.payments),
+            child: _PaymentBars(payments: stats.payments, total: stats.totalRevenue),
           ),
 
-          const SizedBox(width: 14),
+          // ── Разделитель ──
+          Container(
+            width: 1,
+            height: 160,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            color: _hairline2,
+          ),
 
           // ── Справа: кольцо (тарифы) ──
           Expanded(
@@ -94,7 +82,8 @@ class PaymentTariffCard extends StatelessWidget {
 // ─── Столбчатая диаграмма способов оплаты ───────────────────────────────────
 class _PaymentBars extends StatelessWidget {
   final List<PaymentBreakdown> payments;
-  const _PaymentBars({required this.payments});
+  final double total;
+  const _PaymentBars({required this.payments, required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -113,16 +102,16 @@ class _PaymentBars extends StatelessWidget {
             color: _ink,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         for (int i = 0; i < payments.length; i++) ...[
           _BarRow(
             label: payments[i].label,
             amount: payments[i].amount,
             fraction: maxAmount > 0 ? payments[i].amount / maxAmount : 0,
-            color: _barColors[i % _barColors.length],
+            pct: total > 0 ? payments[i].amount / total * 100 : 0,
             gradient: _barGradients[i % _barGradients.length],
           ),
-          if (i < payments.length - 1) const SizedBox(height: 10),
+          if (i < payments.length - 1) const SizedBox(height: 14),
         ],
       ],
     );
@@ -133,14 +122,14 @@ class _BarRow extends StatelessWidget {
   final String label;
   final double amount;
   final double fraction; // 0..1
-  final Color color;
+  final double pct;
   final List<Color> gradient;
 
   const _BarRow({
     required this.label,
     required this.amount,
     required this.fraction,
-    required this.color,
+    required this.pct,
     required this.gradient,
   });
 
@@ -149,18 +138,30 @@ class _BarRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Название + сумма
+        // Название + сумма + процент
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w500,
-                color: _ink,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: _ink,
+                ),
               ),
             ),
+            Text(
+              '${pct.toStringAsFixed(0)}%',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: _muted,
+              ),
+            ),
+            const SizedBox(width: 8),
             Text(
               money(amount),
               style: const TextStyle(
@@ -171,7 +172,7 @@ class _BarRow extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         // Столбец
         ClipRRect(
           borderRadius: BorderRadius.circular(5),
@@ -218,7 +219,7 @@ class _TariffDonut extends StatelessWidget {
             color: _ink,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Center(
           child: SizedBox(
             width: 110,
@@ -240,11 +241,12 @@ class _TariffDonut extends StatelessWidget {
                     Text(
                       money(total),
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: _ink,
                       ),
                     ),
+                    const SizedBox(height: 1),
                     const Text(
                       'всего',
                       style: TextStyle(
@@ -258,18 +260,18 @@ class _TariffDonut extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         // Легенда
         for (int i = 0; i < tariffs.length; i++) ...[
           _LegendDot(
             color: _tarColors[i % _tarColors.length],
             label: tariffs[i].label,
             pct: total > 0
-                ? '${(tariffs[i].amount / total * 100).toStringAsFixed(0).replaceAll('.', ',')}%'
+                ? '${(tariffs[i].amount / total * 100).toStringAsFixed(0)}%'
                 : '0%',
             count: tariffs[i].count,
           ),
-          if (i < tariffs.length - 1) const SizedBox(height: 6),
+          if (i < tariffs.length - 1) const SizedBox(height: 8),
         ],
       ],
     );
@@ -380,12 +382,14 @@ class _LegendDot extends StatelessWidget {
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: _ink,
             ),
@@ -394,7 +398,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           pct,
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: _muted,
           ),
@@ -404,7 +408,6 @@ class _LegendDot extends StatelessWidget {
           '($count)',
           style: const TextStyle(
             fontSize: 10,
-            fontWeight: FontWeight.w400,
             color: _muted2,
           ),
         ),
