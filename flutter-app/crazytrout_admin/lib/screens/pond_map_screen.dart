@@ -988,7 +988,8 @@ class _ClientCard extends StatelessWidget {
 class FiltersDropdown extends StatefulWidget {
   final FilterValue value;
   final ValueChanged<FilterValue> onChange;
-  const FiltersDropdown({super.key, required this.value, required this.onChange});
+  final ValueNotifier<bool>? isOpenNotifier;
+  const FiltersDropdown({super.key, required this.value, required this.onChange, this.isOpenNotifier});
 
   @override
   State<FiltersDropdown> createState() => _FiltersDropdownState();
@@ -997,12 +998,46 @@ class FiltersDropdown extends StatefulWidget {
 class _FiltersDropdownState extends State<FiltersDropdown> {
   bool _isOpen = false;
 
-  void _toggleDropdown() {
-    setState(() => _isOpen = !_isOpen);
+  @override
+  void initState() {
+    super.initState();
+    widget.isOpenNotifier?.addListener(_onNotifierChanged);
   }
 
-  void closeDropdown() {
-    if (mounted) setState(() => _isOpen = false);
+  @override
+  void didUpdateWidget(covariant FiltersDropdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isOpenNotifier != widget.isOpenNotifier) {
+      oldWidget.isOpenNotifier?.removeListener(_onNotifierChanged);
+      widget.isOpenNotifier?.addListener(_onNotifierChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.isOpenNotifier?.removeListener(_onNotifierChanged);
+    super.dispose();
+  }
+
+  void _onNotifierChanged() {
+    final val = widget.isOpenNotifier?.value ?? false;
+    if (!val && _isOpen && mounted) {
+      setState(() => _isOpen = false);
+    }
+  }
+
+  void _toggleDropdown() {
+    setState(() {
+      _isOpen = !_isOpen;
+      widget.isOpenNotifier?.value = _isOpen;
+    });
+  }
+
+  void _closeDropdown() {
+    if (mounted) setState(() {
+      _isOpen = false;
+      widget.isOpenNotifier?.value = false;
+    });
   }
 
   @override
@@ -1067,7 +1102,7 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
                         return InkWell(
                           onTap: () {
                             widget.onChange(e.key);
-                            closeDropdown();
+                            _closeDropdown();
                           },
                           child: Container(
                             width: double.infinity,
@@ -1110,20 +1145,21 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int hour = 6;
   int? selected;
   FilterValue filter = FilterValue.none;
-  final _filterDropdownKey = GlobalKey<_FiltersDropdownState>();
   final _scrollController = ScrollController();
+  final _dropdownOpen = ValueNotifier<bool>(false);
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(() {
-      _filterDropdownKey.currentState?.closeDropdown();
+      if (_dropdownOpen.value) _dropdownOpen.value = false;
     });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _dropdownOpen.dispose();
     super.dispose();
   }
 
@@ -1179,7 +1215,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
             onTap: (n) => setState(() => selected = selected == n ? null : n)),
           const SizedBox(height: 16),
           Row(children: [
-            FiltersDropdown(key: _filterDropdownKey, value: filter, onChange: (v) => setState(() => filter = v)),
+            FiltersDropdown(value: filter, onChange: (v) => setState(() => filter = v), isOpenNotifier: _dropdownOpen),
             const Spacer(),
             _legend(_green, 'Свободно $free'),
             const SizedBox(width: 12),
