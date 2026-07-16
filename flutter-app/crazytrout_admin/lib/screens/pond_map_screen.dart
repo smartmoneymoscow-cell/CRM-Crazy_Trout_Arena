@@ -996,7 +996,6 @@ class FiltersDropdown extends StatefulWidget {
 
 class _FiltersDropdownState extends State<FiltersDropdown> {
   final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
   bool _isOpen = false;
 
   // Ширина dropdown = ширина кнопки фильтров; зазор = 0 (без отрыва)
@@ -1014,100 +1013,65 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
 
   void _openDropdown() {
     setState(() => _isOpen = true);
-    _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
   }
 
   void _closeDropdown() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
     if (mounted) setState(() => _isOpen = false);
   }
 
-  OverlayEntry _createOverlayEntry() {
-    final rb = context.findRenderObject() as RenderBox;
-    final btnSize = rb.size;
-    final btnPos = rb.localToGlobal(Offset.zero);
-
-    const double _overlap = 12.0; // перекрываем нижние скруглённые углы кнопки
-    final dropdownW = btnSize.width;
-
-    final dy = btnSize.height - _overlap;
-
-    // MediaQuery берём ЗДЕСЬ (в контексте виджета, не overlay) —
-    // иначе значения могут быть неверными.
-    final screenH = MediaQuery.of(context).size.height;
-    final bottomSafe = MediaQuery.of(context).padding.bottom;
-    // dropdown nachinaetsya na _overlap vyshe btnBottomY
-    // rawH rasschitan ot btnBottomY -> dobavlyaem _overlap chtoby dropdown byl vyshe
-    // no nizhniy kraj ostaetsya na meste (ne zalezayet na bottomNav)
-    final maxDropdownH = calcMaxDropdownHeight(
-      btnBottomY: btnPos.dy + btnSize.height,
-      screenH: screenH,
-      bottomPadding: bottomSafe,
-    );
-
-    return OverlayEntry(
-      builder: (overlayContext) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _closeDropdown,
-        child: Stack(children: [
-          Positioned(
-            width: dropdownW,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: Offset(0, dy),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxDropdownH > 100 ? maxDropdownH : 100),
-                child: Material(
-                  elevation: 0,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(14),
-                    bottomRight: Radius.circular(14),
-                  ),
-                  color: Colors.white,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                        bottomRight: Radius.circular(14),
+  /// Строит выпадающий список фильтров как обычный виджет.
+  /// Рендерится внутри Stack, а не в Overlay — не блокирует скролл.
+  Widget _buildDropdown() {
+    return CompositedTransformFollower(
+      link: _layerLink,
+      showWhenUnlinked: false,
+      offset: const Offset(0, 0),
+      child: SizedBox(
+        width: 120,
+        child: Material(
+          elevation: 0,
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(14),
+            bottomRight: Radius.circular(14),
+          ),
+          color: Colors.white,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(14),
+                bottomRight: Radius.circular(14),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(14),
+                bottomRight: Radius.circular(14),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: _dropdownVPadding),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  ...filterOptions.entries.map((e) {
+                    final isSelected = widget.value == e.key;
+                    return InkWell(
+                      onTap: () {
+                        widget.onChange(e.key);
+                        _closeDropdown();
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
+                        child: Text(e.value,
+                          style: TextStyle(fontSize: 13, color: _ink,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
                       ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                        bottomRight: Radius.circular(14),
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: _dropdownVPadding),
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        ...filterOptions.entries.map((e) {
-                          final isSelected = widget.value == e.key;
-                          return InkWell(
-                            onTap: () {
-                              widget.onChange(e.key);
-                              _closeDropdown();
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
-                              child: Text(e.value,
-                                style: TextStyle(fontSize: 13, color: _ink,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
-                            ),
-                          );
-                        }),
-                      ]),
-                    ),
-                  ),
-                ),
+                    );
+                  }),
+                ]),
               ),
             ),
           ),
-        ],
         ),
       ),
     );
@@ -1115,8 +1079,6 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
 
   @override
   void dispose() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
     super.dispose();
   }
 
@@ -1124,9 +1086,25 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
   Widget build(BuildContext context) {
     const pill = BorderRadius.all(Radius.circular(999));
 
-    return CompositedTransformTarget(
+    // Если dropdown открыт, оборачиваем в Stack с overlay-контентом
+    Widget result = CompositedTransformTarget(
       link: _layerLink,
-      child: GestureDetector(
+      child: _buildButton(pill),
+    );
+
+    if (_isOpen) {
+      result = Stack(clipBehavior: Clip.none, children: [
+        result,
+        _buildDropdown(),
+      ]);
+    }
+
+    return result;
+  }
+
+  Widget _buildButton(BorderRadius pill) {
+
+    return GestureDetector(
         onTap: _toggleDropdown,
         child: Container(
           width: 120,
@@ -1145,8 +1123,7 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
             ),
           ]),
         ),
-      ),
-    );
+      );
   }
 }
 
