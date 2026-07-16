@@ -130,14 +130,14 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
                 const SizedBox(width: 8),
                 _IconSlot(
-                  assetPath: 'assets/icons/clients.png',
+                  assetPath: 'assets/icons/fish.png',
                   active: _selectedIcon == 1,
                   onTap: () => setState(() =>
                       _selectedIcon = _selectedIcon == 1 ? -1 : 1),
                 ),
                 const SizedBox(width: 8),
                 _IconSlot(
-                  assetPath: 'assets/icons/fish.png',
+                  assetPath: "assets/icons/clients.png",
                   active: _selectedIcon == 2,
                   onTap: () => setState(() =>
                       _selectedIcon = _selectedIcon == 2 ? -1 : 2),
@@ -461,27 +461,33 @@ class _PercentCell extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$pct%',
+        Text('\$pct%',
             textAlign: TextAlign.center,
             style: const TextStyle(
                 fontSize: 13, color: Color(0xFF14130F))),
         const SizedBox(height: 4),
-        Container(
-          height: 6,
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFE8D8),
-            borderRadius: BorderRadius.circular(3),
-          ),
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: pct / 100.0,
-            child: Container(
+        Stack(
+          children: [
+            // Full-width background bar (100%)
+            Container(
+              height: 6,
               decoration: BoxDecoration(
-                color: barColor,
+                color: const Color(0xFFEFE8D8),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-          ),
+            // Colored fill representing the actual percentage
+            FractionallySizedBox(
+              widthFactor: pct / 100.0,
+              child: Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: barColor,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
