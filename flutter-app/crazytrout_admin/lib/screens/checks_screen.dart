@@ -299,7 +299,6 @@ final List<_FullClient> _fullClients = app_data.kDemoClients.map((c) {
         fish: 0,
         totalWeight: 0,
         firstVisit: '—',
-        lastVisit: '—',
         email: '—',
         bestCatch: BestCatch(species: '—', weight: '—', sector: 0, date: '—'),
       );
@@ -346,7 +345,7 @@ String formatLtv(int k) {
 }
 
 // ─── Фильтры ────────────────────────────────────────────────────────────────
-enum _PeriodFilter { today, week, month, quarter, all }
+enum _PeriodFilter { today, week, month, quarter }
 enum _TypeFilter { fiscal, nonfiscal }
 
 extension on _PeriodFilter {
@@ -355,7 +354,6 @@ extension on _PeriodFilter {
         _PeriodFilter.week => 'За неделю',
         _PeriodFilter.month => 'За месяц',
         _PeriodFilter.quarter => 'За квартал',
-        _PeriodFilter.all => 'За все время',
       };
 }
 
@@ -408,14 +406,13 @@ class _ChecksScreenState extends State<ChecksScreen> {
   }
 
   bool _matchesPeriod(ReceiptHistoryItem r) {
-    if (_period == null || _period == _PeriodFilter.all) return true;
+    if (_period == null) return true;
     final now = DateTime.now();
     final start = switch (_period!) {
       _PeriodFilter.today => DateTime(now.year, now.month, now.day),
       _PeriodFilter.week => now.subtract(const Duration(days: 7)),
       _PeriodFilter.month => now.subtract(const Duration(days: 30)),
       _PeriodFilter.quarter => now.subtract(const Duration(days: 90)),
-      _PeriodFilter.all => DateTime(0), // unreachable — обработано выше
     };
     return r.date.isAfter(start) || r.date.isAtSameMomentAs(start);
   }
@@ -648,9 +645,9 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
       builder: (ctx) => Stack(
         children: [
           Positioned.fill(
-            child: Listener(
+            child: GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onPointerDown: (_) => _close(),
+              onTap: _close,
             ),
           ),
           CompositedTransformFollower(
@@ -714,7 +711,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                                         : FontWeight.w400,
                                 color: enabled
                                     ? (item.isReset ? _muted2 : _ink)
-                                    : _muted,
+                                    : _hairline,
                               ),
                             ),
                           ),
