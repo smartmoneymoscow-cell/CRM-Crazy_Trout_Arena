@@ -651,8 +651,10 @@ class _ClientPaymentRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           // Сумма оплаты (зелёная, с "+")
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
                 '+${_money(entry.amount)} ₽',
@@ -661,7 +663,7 @@ class _ClientPaymentRow extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF3FA66B)),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(width: 8),
               // LT/LTV
               Text(
                 '${entry.visits} / ${formatLtv(entry.ltvK)}',
