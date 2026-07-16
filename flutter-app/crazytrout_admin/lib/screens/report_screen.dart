@@ -436,8 +436,8 @@ class _ReportScreenState extends State<ReportScreen> {
             child: Center(
               child: Text(
                 switch (_selectedIcon) {
-                  1 => 'Статистика улова рыбы',
-                  2 => 'Статистика клиентов',
+                  1 => 'Статистика клиентов',
+                  2 => 'Статистика улова рыбы',
                   _ => 'Финансы и метрики',
                 },
                 style: const TextStyle(
@@ -487,14 +487,14 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
                 const SizedBox(width: 8),
                 _IconSlot(
-                  assetPath: 'assets/icons/fish.png',
+                  assetPath: 'assets/icons/clients.png',
                   active: _selectedIcon == 1,
                   onTap: () => setState(() =>
                       _selectedIcon = _selectedIcon == 1 ? -1 : 1),
                 ),
                 const SizedBox(width: 8),
                 _IconSlot(
-                  assetPath: 'assets/icons/clients.png',
+                  assetPath: 'assets/icons/fish.png',
                   active: _selectedIcon == 2,
                   onTap: () => setState(() =>
                       _selectedIcon = _selectedIcon == 2 ? -1 : 2),
@@ -506,11 +506,11 @@ class _ReportScreenState extends State<ReportScreen> {
           // ── Контент ──
           Expanded(
             child: switch (_selectedIcon) {
-              1 => const _FishStatsContent(),
-              2 => _ClientStatsContent(
+              1 => _ClientStatsContent(
                     period: _period,
                     dateRange: _dateRange,
                   ),
+              2 => const _FishStatsContent(),
               _ => const Center(
                     child: Text('Раздел в разработке',
                         style: TextStyle(
