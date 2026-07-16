@@ -388,7 +388,6 @@ class _FishStatsContent extends StatelessWidget {
                             child: _PercentCell(
                               pct: (s.revenue / totalRev * 100).round(),
                               barColor: const Color(0xFFE8912B),
-                              bgColor: const Color(0xFFF3EEE4),
                             ),
                           ),
                           // 3. Маржинальность + мини-шкала
@@ -397,7 +396,6 @@ class _FishStatsContent extends StatelessWidget {
                             child: _PercentCell(
                               pct: s.marginPct.round(),
                               barColor: const Color(0xFF3FA66B),
-                              bgColor: const Color(0xFFC9302C),
                             ),
                           ),
                         ],
@@ -452,12 +450,10 @@ class _FishStatsContent extends StatelessWidget {
 class _PercentCell extends StatelessWidget {
   final int pct;
   final Color barColor;
-  final Color bgColor;
 
   const _PercentCell({
     required this.pct,
     required this.barColor,
-    required this.bgColor,
   });
 
   @override
@@ -473,7 +469,7 @@ class _PercentCell extends StatelessWidget {
         Container(
           height: 6,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: const Color(0xFFEFE8D8),
             borderRadius: BorderRadius.circular(3),
           ),
           child: FractionallySizedBox(
