@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/demo_fish_stats.dart';
+import '../widgets/finance_dashboard_card.dart';
 import '../data/demo_receipts.dart';
 import '../data/demo_data.dart' as app_data show kDemoClients;
 import '../models/client.dart';
@@ -503,6 +504,7 @@ class _ReportScreenState extends State<ReportScreen> {
           // ── Контент ──
           Expanded(
             child: switch (_selectedIcon) {
+              0 => const _FinanceContent(),
               1 => _ClientStatsContent(
                     period: _period,
                     dateRange: _dateRange,
@@ -517,6 +519,24 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ============================================================================
+// _FinanceContent — контент вкладки «Финансы и метрики».
+//
+// Дашборд «Выручка / Маржинальная прибыль / Переменные расходы» со
+// спарклайном, портированный из dashboard_2.html (см. FinanceDashboardCard).
+// ============================================================================
+class _FinanceContent extends StatelessWidget {
+  const _FinanceContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
+      child: const FinanceDashboardCard(),
     );
   }
 }
