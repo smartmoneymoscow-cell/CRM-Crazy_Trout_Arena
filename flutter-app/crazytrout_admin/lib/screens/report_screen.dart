@@ -511,11 +511,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     dateRange: _dateRange,
                   ),
               2 => const _FishStatsContent(),
-              _ => const Center(
-                    child: Text('Раздел в разработке',
-                        style: TextStyle(
-                            fontSize: 14, color: Color(0xFF9C9484))),
-                  ),
+              _ => const _FinanceContent(),
             },
           ),
         ],
