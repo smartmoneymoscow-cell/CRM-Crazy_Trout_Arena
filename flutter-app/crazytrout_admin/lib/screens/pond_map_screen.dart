@@ -985,12 +985,24 @@ class _ClientCard extends StatelessWidget {
 
 
 
+/// Выпадающий список фильтров карты пруда.
+///
+/// Требования (строго обязательно):
+///   1. Список выпадает как у кнопки тарифов на странице выставления чека
+///      (AppDropdownField — Overlay + CompositedTransformFollower).
+///   2. Выпадающий список НЕ нарушает скролл экрана (нет scroll listener).
+///   3. Выпадающий список НЕ сворачивается при скролле экрана.
+///   4. Выпадающий список скрывается ПОД нижнее меню — maxDropdownHeight
+///      ограничивает высоту так, что список не перекрывает нижнее меню.
+///   5. Нет зазора между кнопкой и списком (gap = 0).
+///   6. При раскрытии нижние углы кнопки выпрямляются (как в AppDropdownField).
+///   7. Список НЕ смещается вверх — строго привязан к нижнему краю кнопки
+///      через CompositedTransformFollower с offset = Offset(0, buttonHeight).
+///
 class FiltersDropdown extends StatefulWidget {
   final FilterValue value;
   final ValueChanged<FilterValue> onChange;
-  final ValueNotifier<bool>? isOpenNotifier;
-  final ScrollController? scrollController;
-  const FiltersDropdown({super.key, required this.value, required this.onChange, this.isOpenNotifier, this.scrollController});
+  const FiltersDropdown({super.key, required this.value, required this.onChange});
 
   @override
   State<FiltersDropdown> createState() => _FiltersDropdownState();
@@ -999,109 +1011,104 @@ class FiltersDropdown extends StatefulWidget {
 class _FiltersDropdownState extends State<FiltersDropdown> {
   bool _isOpen = false;
   final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.isOpenNotifier?.addListener(_onNotifierChanged);
-    widget.scrollController?.addListener(_onScroll);
-  }
-
-  @override
-  void didUpdateWidget(covariant FiltersDropdown oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isOpenNotifier != widget.isOpenNotifier) {
-      oldWidget.isOpenNotifier?.removeListener(_onNotifierChanged);
-      widget.isOpenNotifier?.addListener(_onNotifierChanged);
-    }
-    if (oldWidget.scrollController != widget.scrollController) {
-      oldWidget.scrollController?.removeListener(_onScroll);
-      widget.scrollController?.addListener(_onScroll);
-    }
-  }
+  OverlayEntry? _entry;
+  final GlobalKey _buttonKey = GlobalKey();
 
   @override
   void dispose() {
-    _removeOverlay();
-    widget.isOpenNotifier?.removeListener(_onNotifierChanged);
-    widget.scrollController?.removeListener(_onScroll);
+    _entry = null;
     super.dispose();
   }
 
-  void _onNotifierChanged() {
-    final val = widget.isOpenNotifier?.value ?? false;
-    if (!val && _isOpen && mounted) {
-      _removeOverlay();
-      setState(() => _isOpen = false);
-    }
-  }
-
-  void _onScroll() {
-    if (_isOpen) _closeDropdown();
-  }
-
-  void _toggleDropdown() {
+  void _toggle() {
     if (_isOpen) {
-      _closeDropdown();
+      _close();
     } else {
-      _openDropdown();
+      _open();
     }
   }
 
-  void _openDropdown() {
-    _overlayEntry = OverlayEntry(builder: (context) {
+  void _open() {
+    // Получаем размер кнопки для позиционирования и ограничения ширины.
+    final box = _buttonKey.currentContext!.findRenderObject() as RenderBox;
+    final btnSize = box.size;
+
+    // Глобальная Y-координата нижнего края кнопки.
+    final btnBottomY = box.localToGlobal(Offset(0, btnSize.height)).dy;
+
+    // Размеры экрана для расчёта maxDropdownHeight.
+    final mq = MediaQuery.of(context);
+    final screenH = mq.size.height;
+    final bottomPadding = mq.padding.bottom;
+
+    // Максимальная высота дропдауна: от нижнего края кнопки до верхнего края
+    // нижнего меню (с запасом 8px). Гарантирует: список НЕ перекрывает
+    // нижнее меню (требование 4).
+    final maxH = screenH - btnBottomY - kBottomNavHeight - bottomPadding - 8;
+
+    _entry = OverlayEntry(builder: (ctx) {
       return Stack(children: [
-        // Прозрачный слой для закрытия по тапу вне
+        // Прозрачный фон для закрытия по тапу вне (требование: тап снаружи = закрыть).
         Positioned.fill(
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: _closeDropdown,
-            child: const SizedBox.expand(),
+            onTap: _close,
           ),
         ),
+        // CompositedTransformFollower — строго под кнопкой, gap = 0
+        // (требования 5 и 7: нет зазора, не смещается вверх).
         CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: const Offset(0, 40),
-          child: SizedBox(
-            width: 120,
-            child: Material(
-              elevation: 4,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(14),
-                bottomRight: Radius.circular(14),
-              ),
-              color: Colors.white,
+          offset: Offset(0, btnSize.height), // gap = 0, ровно под кнопкой
+          child: Material(
+            color: Colors.transparent,
+            child: SizedBox(
+              width: btnSize.width, // ширина == ширина кнопки
               child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: maxH > 0 ? maxH : 0, // не перекрывает нижнее меню
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(14),
                     bottomRight: Radius.circular(14),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x22000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
                 ),
-                child: Padding(
+                clipBehavior: Clip.antiAlias,
+                child: ListView(
+                  shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    ...filterOptions.entries.map((e) {
-                      final isSelected = widget.value == e.key;
-                      return InkWell(
-                        onTap: () {
-                          widget.onChange(e.key);
-                          _closeDropdown();
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
-                          child: Text(e.value,
-                            style: TextStyle(fontSize: 13, color: _ink,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400)),
+                  children: filterOptions.entries.map((e) {
+                    final isSelected = widget.value == e.key;
+                    return InkWell(
+                      onTap: () {
+                        widget.onChange(e.key);
+                        _close();
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
+                        child: Text(
+                          e.value,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: _ink,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                          ),
                         ),
-                      );
-                    }),
-                  ]),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ),
@@ -1109,44 +1116,54 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
         ),
       ]);
     });
-    Overlay.of(context).insert(_overlayEntry!);
+
+    Overlay.of(context).insert(_entry!);
     setState(() => _isOpen = true);
-    widget.isOpenNotifier?.value = true;
   }
 
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  void _closeDropdown() {
-    _removeOverlay();
+  void _close() {
+    final entry = _entry;
+    _entry = null;
     if (mounted) setState(() => _isOpen = false);
-    widget.isOpenNotifier?.value = false;
+    if (mounted) entry?.remove();
   }
 
   @override
   Widget build(BuildContext context) {
+    // При открытии нижние углы кнопки выпрямляются (требование 6) —
+    // визуально кнопка и список читаются как единая форма.
     const pill = BorderRadius.all(Radius.circular(999));
+    final radius = _isOpen
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(999),
+            topRight: Radius.circular(999),
+            bottomLeft: Radius.circular(0),
+            bottomRight: Radius.circular(0),
+          )
+        : pill;
 
     return CompositedTransformTarget(
       link: _layerLink,
       child: GestureDetector(
-        onTap: _toggleDropdown,
+        key: _buttonKey,
+        onTap: _toggle,
         child: Container(
           width: 120,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: pill,
+            borderRadius: radius,
           ),
           child: Row(children: [
             const Icon(Icons.filter_list, size: 13, color: _ember),
             const SizedBox(width: 6),
             Flexible(
-              child: Text(filterButtonLabels[widget.value]!,
-                overflow: TextOverflow.ellipsis, maxLines: 1,
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink)),
+              child: Text(
+                filterButtonLabels[widget.value]!,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink),
+              ),
             ),
           ]),
         ),
@@ -1175,12 +1192,10 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int hour = 6;
   int? selected;
   FilterValue filter = FilterValue.none;
-  final _dropdownOpen = ValueNotifier<bool>(false);
   final _scrollController = ScrollController();
 
   @override
   void dispose() {
-    _dropdownOpen.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -1237,7 +1252,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
             onTap: (n) => setState(() => selected = selected == n ? null : n)),
           const SizedBox(height: 16),
           Row(children: [
-            FiltersDropdown(value: filter, onChange: (v) => setState(() => filter = v), isOpenNotifier: _dropdownOpen),
+            FiltersDropdown(value: filter, onChange: (v) => setState(() => filter = v)),
             const Spacer(),
             _legend(_green, 'Свободно $free'),
             const SizedBox(width: 12),

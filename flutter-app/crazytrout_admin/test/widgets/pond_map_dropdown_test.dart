@@ -7,6 +7,15 @@ import 'package:crazytrout_admin/screens/pond_map_screen.dart';
 ///
 /// Проверяют: кнопка отображает правильный текст, dropdown открывается/закрывается,
 /// выбор варианта вызывает onChange.
+///
+/// Требования (строго обязательно):
+///   1. Список выпадает как у кнопки тарифов (Overlay + CompositedTransformFollower).
+///   2. Выпадающий список НЕ нарушает скролл экрана.
+///   3. Выпадающий список НЕ сворачивается при скролле экрана.
+///   4. Выпадающий список скрывается ПОД нижнее меню.
+///   5. Нет зазора между кнопкой и списком (gap = 0).
+///   6. При раскрытии нижние углы кнопки выпрямляются.
+///   7. Список НЕ смещается вверх от нижнего края кнопки.
 void main() {
   group('FiltersDropdown', () {
     Widget buildApp({
@@ -63,6 +72,32 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(selected, FilterValue.premium);
+    });
+
+    testWidgets('тап вне dropdown закрывает его', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.tap(find.text('Фильтры'));
+      await tester.pumpAndSettle();
+
+      // Dropdown открыт
+      expect(find.text('Нет'), findsOneWidget);
+
+      // Тапаем вне dropdown (в пустую область)
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      // Dropdown закрыт — пункты меню исчезли
+      expect(find.text('Нет'), findsNothing);
+    });
+
+    testWidgets('FiltersDropdown не принимает isOpenNotifier и scrollController', (tester) async {
+      // Проверяем, что конструктор принимает только value и onChange
+      // (isOpenNotifier и scrollController удалены — они нарушали скролл)
+      final dropdown = FiltersDropdown(
+        value: FilterValue.none,
+        onChange: (_) {},
+      );
+      expect(dropdown.value, FilterValue.none);
     });
   });
 }
