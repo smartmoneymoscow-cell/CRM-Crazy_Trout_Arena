@@ -1591,7 +1591,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
           Positioned.fill(
             child: Listener(
               behavior: HitTestBehavior.translucent,
-              onTap: _close,
+              onPointerDown: (_) => _close(),
             ),
           ),
           CompositedTransformFollower(
