@@ -26,7 +26,7 @@ void main() {
       expect(find.text('Карта'), findsOneWidget);
       expect(find.text('Чек'), findsOneWidget);
       expect(find.text('Чеки'), findsOneWidget);
-      expect(find.text('P&L'), findsOneWidget);
+      expect(find.text('Отчёт'), findsOneWidget);
       expect(find.text('Профиль'), findsOneWidget);
     });
 
