@@ -694,7 +694,7 @@ class _ClientPaymentRow extends StatelessWidget {
               const SizedBox(width: 8),
               // LT/LTV
               Text(
-                '${entry.visits} / ${formatLtv(entry.ltvK)}',
+                'LT ${entry.visits} / LTV ${formatLtv(entry.ltvK)}',
                 style:
                     const TextStyle(fontSize: 11.5, color: _muted2),
               ),
@@ -1208,13 +1208,7 @@ class _MedalPainter extends CustomPainter {
 class _FishStatsContent extends StatelessWidget {
   const _FishStatsContent();
 
-  static const _speciesImageHeight = <String, double>{
-    'Осётр': 23,
-    'Амур': 21,
-    'Форель': 19,
-    'Карп': 19,
-  };
-  static const _defaultImageHeight = 17.0;
+  static const double _imageSize = 28;
 
   static const _revenueMin = Color(0xFFFBE8D0);
   static const _revenueMax = Color(0xFFD4EDDA);
@@ -1281,11 +1275,13 @@ class _FishStatsContent extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(
-                          s.imageAsset,
-                          height: _speciesImageHeight[s.species]
-                              ?? _defaultImageHeight,
-                          fit: BoxFit.contain,
+                        SizedBox(
+                          width: _imageSize,
+                          height: _imageSize,
+                          child: Image.asset(
+                            s.imageAsset,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(s.species,
@@ -1398,11 +1394,13 @@ class _FishStatsContent extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Image.asset(
-                                  s.imageAsset,
-                                  height: _speciesImageHeight[s.species]
-                                      ?? _defaultImageHeight,
-                                  fit: BoxFit.contain,
+                                SizedBox(
+                                  width: _imageSize,
+                                  height: _imageSize,
+                                  child: Image.asset(
+                                    s.imageAsset,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(s.species,
@@ -1418,7 +1416,7 @@ class _FishStatsContent extends StatelessWidget {
                             flex: 3,
                             child: _PercentCell(
                               pct: (s.revenue / totalRev * 100).round(),
-                              maxPct: stats.map((e) => (e.revenue / totalRev * 100).round()).reduce((a, b) => a > b ? a : b),
+
                               barColor: const Color(0xFFE8912B),
                             ),
                           ),
@@ -1426,7 +1424,7 @@ class _FishStatsContent extends StatelessWidget {
                             flex: 3,
                             child: _PercentCell(
                               pct: s.marginPct.round(),
-                              maxPct: stats.map((e) => e.marginPct.round()).reduce((a, b) => a > b ? a : b),
+
                               barColor: const Color(0xFF3FA66B),
                             ),
                           ),
@@ -1481,12 +1479,10 @@ class _FishStatsContent extends StatelessWidget {
 // ============================================================================
 class _PercentCell extends StatelessWidget {
   final int pct;
-  final int maxPct;
   final Color barColor;
 
   const _PercentCell({
     required this.pct,
-      required this.maxPct,
     required this.barColor,
   });
 
@@ -1508,7 +1504,7 @@ class _PercentCell extends StatelessWidget {
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
-            widthFactor: maxPct > 0 ? (pct / maxPct).clamp(0.0, 1.0) : 0,
+            widthFactor: (pct / 100).clamp(0.0, 1.0),
             child: Container(
               decoration: BoxDecoration(
                 color: barColor,
