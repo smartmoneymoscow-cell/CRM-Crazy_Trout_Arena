@@ -299,6 +299,7 @@ final List<_FullClient> _fullClients = app_data.kDemoClients.map((c) {
         fish: 0,
         totalWeight: 0,
         firstVisit: '—',
+        lastVisit: '—',
         email: '—',
         bestCatch: BestCatch(species: '—', weight: '—', sector: 0, date: '—'),
       );
