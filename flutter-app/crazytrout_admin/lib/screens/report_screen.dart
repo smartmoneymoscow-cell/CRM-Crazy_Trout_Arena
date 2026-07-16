@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/demo_fish_stats.dart';
+import '../data/demo_receipts.dart';
+import '../data/demo_data.dart' as app_data show kDemoClients;
+import '../models/client.dart';
 
 // ============================================================================
 // Экран «Отчёт» — отчёт по прибыли и убыткам.
@@ -7,8 +10,7 @@ import '../data/demo_fish_stats.dart';
 // Верхнее меню фильтров: Период (dropdown) + Календарь (date range picker)
 // + 3 слота под иконки.
 //
-// Виджеты _FilterDropdown, _CalendarChip, _RangeCalendarPicker перенесены
-// из checks_screen.dart без изменений.
+// Вкладки: Финансы (заглушка), Клиенты (лента оплат), Рыба (таблица).
 // ============================================================================
 
 // ─── Цветовые константы ─────────────────────────────────────────────────────
@@ -16,7 +18,9 @@ const _ink = Color(0xFF14130F);
 const _paper = Color(0xFFFBF6EC);
 const _fill = Color(0xFFF3EEE4);
 const _orange = Color(0xFFE8912B);
+const _ember = Color(0xFF886F11);
 const _hairline = Color(0xFFEFE8D8);
+const _hairline2 = Color(0xFFE7E0D1);
 const _outline = Color(0xFFDDD3BC);
 const _muted = Color(0xFF8C8576);
 const _muted2 = Color(0xFF9C9484);
@@ -35,6 +39,363 @@ extension on _PeriodFilter {
       };
 }
 
+// ─── Уровни клиентов ────────────────────────────────────────────────────────
+enum LevelKey { premium, standard, basic }
+
+class LevelStyle {
+  final String label, letter;
+  final Color color, medalTop, medalMid, medalBottom, letterColor, ring;
+  const LevelStyle({
+    required this.label,
+    required this.letter,
+    required this.color,
+    required this.medalTop,
+    required this.medalMid,
+    required this.medalBottom,
+    required this.letterColor,
+    required this.ring,
+  });
+}
+
+const _levels = <LevelKey, LevelStyle>{
+  LevelKey.premium: LevelStyle(
+    label: 'Премиум',
+    letter: 'П',
+    color: Color(0xFFB8862E),
+    medalTop: Color(0xFFFFE18A),
+    medalMid: Color(0xFFE0A62E),
+    medalBottom: Color(0xFFAD7A16),
+    letterColor: Color(0xFF4A3300),
+    ring: Color(0xFFB8862E),
+  ),
+  LevelKey.standard: LevelStyle(
+    label: 'Стандарт',
+    letter: 'С',
+    color: Color(0xFF8B94A0),
+    medalTop: Color(0xFFF2F5F8),
+    medalMid: Color(0xFFC9D1D9),
+    medalBottom: Color(0xFF98A2AD),
+    letterColor: Color(0xFF2E3438),
+    ring: Color(0xFF8B94A0),
+  ),
+  LevelKey.basic: LevelStyle(
+    label: 'Базовый',
+    letter: 'Б',
+    color: Color(0xFF8C5C34),
+    medalTop: Color(0xFFE3B98B),
+    medalMid: Color(0xFFC08A54),
+    medalBottom: Color(0xFF8C5C34),
+    letterColor: Color(0xFFFFFFFF),
+    ring: Color(0xFF8C5C34),
+  ),
+};
+
+// ─── Модели данных для карточки клиента ──────────────────────────────────────
+class BestCatch {
+  final String species, weight, date;
+  final int sector;
+  const BestCatch({
+    required this.species,
+    required this.weight,
+    required this.sector,
+    required this.date,
+  });
+}
+
+class _PondStats {
+  final Color color;
+  final LevelKey level;
+  final int points, pointsNext, visits, ltvK, fish, totalWeight;
+  final String firstVisit, lastVisit, email;
+  final BestCatch bestCatch;
+  final int? currentSector;
+  const _PondStats({
+    required this.color,
+    required this.level,
+    required this.points,
+    required this.pointsNext,
+    required this.visits,
+    required this.ltvK,
+    required this.fish,
+    required this.totalWeight,
+    required this.firstVisit,
+    required this.lastVisit,
+    required this.email,
+    required this.bestCatch,
+    this.currentSector,
+  });
+}
+
+const Map<int, _PondStats> _pondStatsById = {
+  1: _PondStats(
+    color: Color(0xFFE89829),
+    level: LevelKey.premium,
+    points: 1280,
+    pointsNext: 1500,
+    visits: 42,
+    ltvK: 120,
+    fish: 96,
+    totalWeight: 215,
+    firstVisit: '14.03.2023',
+    lastVisit: '15.07.2026',
+    email: 'ivanov@mail.ru',
+    currentSector: 7,
+    bestCatch:
+        BestCatch(species: 'Осётр', weight: '6.2 кг', sector: 7, date: '02.07.2026'),
+  ),
+  2: _PondStats(
+    color: Color(0xFF3FA66B),
+    level: LevelKey.standard,
+    points: 640,
+    pointsNext: 1000,
+    visits: 18,
+    ltvK: 54,
+    fish: 31,
+    totalWeight: 78,
+    firstVisit: '02.08.2024',
+    lastVisit: '15.07.2026',
+    email: 'koshkin@mail.ru',
+    currentSector: 4,
+    bestCatch:
+        BestCatch(species: 'Карп', weight: '3.4 кг', sector: 4, date: '28.06.2026'),
+  ),
+  3: _PondStats(
+    color: Color(0xFF2A6A7E),
+    level: LevelKey.premium,
+    points: 1410,
+    pointsNext: 1500,
+    visits: 55,
+    ltvK: 1200,
+    fish: 122,
+    totalWeight: 289,
+    firstVisit: '27.01.2022',
+    lastVisit: '14.07.2026',
+    email: 'petrov@mail.ru',
+    currentSector: 2,
+    bestCatch:
+        BestCatch(species: 'Осётр', weight: '7.8 кг', sector: 2, date: '19.06.2026'),
+  ),
+  5: _PondStats(
+    color: Color(0xFF886F11),
+    level: LevelKey.standard,
+    points: 780,
+    pointsNext: 1000,
+    visits: 21,
+    ltvK: 68,
+    fish: 40,
+    totalWeight: 103,
+    firstVisit: '11.11.2023',
+    lastVisit: '13.07.2026',
+    email: 'laguta@mail.ru',
+    currentSector: 5,
+    bestCatch:
+        BestCatch(species: 'Амур', weight: '4.9 кг', sector: 5, date: '30.06.2026'),
+  ),
+  6: _PondStats(
+    color: Color(0xFFB8862E),
+    level: LevelKey.premium,
+    points: 1500,
+    pointsNext: 1500,
+    visits: 68,
+    ltvK: 2400,
+    fish: 150,
+    totalWeight: 365,
+    firstVisit: '03.06.2021',
+    lastVisit: '15.07.2026',
+    email: 'orlov@mail.ru',
+    currentSector: 1,
+    bestCatch:
+        BestCatch(species: 'Осётр', weight: '8.4 кг', sector: 1, date: '24.06.2026'),
+  ),
+  7: _PondStats(
+    color: Color(0xFF6B7280),
+    level: LevelKey.basic,
+    points: 260,
+    pointsNext: 500,
+    visits: 7,
+    ltvK: 15,
+    fish: 12,
+    totalWeight: 22,
+    firstVisit: '09.02.2026',
+    lastVisit: '10.07.2026',
+    email: 'sidorov@mail.ru',
+    currentSector: 10,
+    bestCatch:
+        BestCatch(species: 'Линь', weight: '1.6 кг', sector: 10, date: '11.06.2026'),
+  ),
+  8: _PondStats(
+    color: Color(0xFF9C5A3C),
+    level: LevelKey.standard,
+    points: 520,
+    pointsNext: 1000,
+    visits: 14,
+    ltvK: 46,
+    fish: 27,
+    totalWeight: 61,
+    firstVisit: '18.01.2025',
+    lastVisit: '12.07.2026',
+    email: 'shchukin@mail.ru',
+    currentSector: 8,
+    bestCatch:
+        BestCatch(species: 'Щука', weight: '4.1 кг', sector: 8, date: '15.06.2026'),
+  ),
+  100: _PondStats(
+    color: Color(0xFF8C5C34),
+    level: LevelKey.basic,
+    points: 40,
+    pointsNext: 500,
+    visits: 1,
+    ltvK: 1,
+    fish: 2,
+    totalWeight: 3,
+    firstVisit: '10.07.2026',
+    lastVisit: '10.07.2026',
+    email: 'guest@crazytroutarena.ru',
+    currentSector: 3,
+    bestCatch:
+        BestCatch(species: 'Карп', weight: '0.9 кг', sector: 3, date: '10.07.2026'),
+  ),
+};
+
+class _FullClient {
+  final int id;
+  final String name, phone, email, tariff, firstVisit, lastVisit;
+  final Color color;
+  final LevelKey level;
+  final int points, pointsNext, visits, ltvK, fish, totalWeight;
+  final BestCatch bestCatch;
+  final int? currentSector;
+  final String? avatarAsset;
+  const _FullClient({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.email,
+    required this.color,
+    required this.level,
+    required this.tariff,
+    required this.points,
+    required this.pointsNext,
+    required this.visits,
+    required this.ltvK,
+    required this.fish,
+    required this.totalWeight,
+    required this.firstVisit,
+    required this.lastVisit,
+    required this.bestCatch,
+    this.currentSector,
+    this.avatarAsset,
+  });
+}
+
+final List<_FullClient> _fullClients = app_data.kDemoClients.map((c) {
+  final s = _pondStatsById[c.id] ??
+      const _PondStats(
+        color: Color(0xFF8B94A0),
+        level: LevelKey.basic,
+        points: 0,
+        pointsNext: 500,
+        visits: 0,
+        ltvK: 0,
+        fish: 0,
+        totalWeight: 0,
+        firstVisit: '—',
+        lastVisit: '—',
+        email: '—',
+        bestCatch: BestCatch(species: '—', weight: '—', sector: 0, date: '—'),
+      );
+  return _FullClient(
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    email: s.email,
+    tariff: c.tariffLabel,
+    avatarAsset: c.avatarAsset,
+    color: s.color,
+    level: s.level,
+    points: s.points,
+    pointsNext: s.pointsNext,
+    visits: s.visits,
+    ltvK: s.ltvK,
+    fish: s.fish,
+    totalWeight: s.totalWeight,
+    firstVisit: s.firstVisit,
+    lastVisit: s.lastVisit,
+    bestCatch: s.bestCatch,
+    currentSector: s.currentSector,
+  );
+}).toList();
+
+_FullClient? _findFullClient(int id) {
+  for (final c in _fullClients) {
+    if (c.id == id) return c;
+  }
+  return null;
+}
+
+String formatLtv(int k) {
+  if (k >= 1000) {
+    final v = k / 1000.0;
+    final rounded = (v * 10).round() / 10.0;
+    final str = rounded == rounded.roundToDouble()
+        ? rounded.toStringAsFixed(0)
+        : rounded.toStringAsFixed(1);
+    return '${str.replaceAll('.', ',')} млн';
+  }
+  return '$k тыс.';
+}
+
+// ─── Демо-данные ленты оплат ─────────────────────────────────────────────────
+class _ClientPaymentEntry {
+  final Client client;
+  final DateTime date;
+  final double amount;
+  final int visits;
+  final int ltvK;
+  const _ClientPaymentEntry({
+    required this.client,
+    required this.date,
+    required this.amount,
+    required this.visits,
+    required this.ltvK,
+  });
+}
+
+List<_ClientPaymentEntry> _buildPaymentFeed() {
+  final entries = <_ClientPaymentEntry>[];
+  for (final r in kDemoReceipts) {
+    if (r.isGuest || r.client == null) continue;
+    final stats = _pondStatsById[r.client!.id];
+    entries.add(_ClientPaymentEntry(
+      client: r.client!,
+      date: r.date,
+      amount: r.total,
+      visits: stats?.visits ?? 0,
+      ltvK: stats?.ltvK ?? 0,
+    ));
+  }
+  entries.sort((a, b) => b.date.compareTo(a.date));
+  return entries;
+}
+
+final List<_ClientPaymentEntry> _paymentFeed = _buildPaymentFeed();
+
+// ─── Утилиты ─────────────────────────────────────────────────────────────────
+String _fmtDate(DateTime d) {
+  two(int n) => n.toString().padLeft(2, '0');
+  return '${two(d.day)}.${two(d.month)}.${d.year}';
+}
+
+String _money(double v) {
+  final s = v.round().toString();
+  final buf = StringBuffer();
+  for (int i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
+    buf.write(s[i]);
+  }
+  return buf.toString();
+}
+
 // ============================================================================
 // ReportScreen
 // ============================================================================
@@ -48,9 +409,8 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen> {
   _PeriodFilter? _period;
   DateTimeRange? _dateRange;
-  int _selectedIcon = 0; // 0 = ruble (финансы), 1 = clients, 2 = fish
+  int _selectedIcon = 0; // 0 = ruble, 1 = clients, 2 = fish
 
-  // ---------- календарь ----------
   Future<void> _openCalendar() async {
     final res = await _showRangeCalendarPicker(context, _dateRange);
     if (!mounted || res == null) return;
@@ -61,14 +421,13 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
-  // ---------- UI ----------
   @override
   Widget build(BuildContext context) {
     return Container(
       color: _paper,
       child: Column(
         children: [
-          // ── Заголовок (меняется по вкладке) ──
+          // ── Заголовок ──
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
             child: Center(
@@ -86,12 +445,11 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ),
 
-          // ── Фильтры (пропорции как в чеках: padding 18, gap 8) ──
+          // ── Фильтры ──
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
             child: Row(
               children: [
-                // Период (dropdown) — Expanded, как в чеках
                 Expanded(
                   child: _FilterDropdown<_PeriodFilter>(
                     value: _period,
@@ -113,14 +471,10 @@ class _ReportScreenState extends State<ReportScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-
-                // Календарь — 44×44, как в чеках
                 _CalendarChip(
                   active: _dateRange != null,
                   onTap: _openCalendar,
                 ),
-
-                // 3 иконки — тот же стиль 44×44, что и календарь
                 const SizedBox(width: 8),
                 _IconSlot(
                   assetPath: 'assets/icons/ruble.png',
@@ -130,14 +484,14 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
                 const SizedBox(width: 8),
                 _IconSlot(
-                  assetPath: 'assets/icons/fish.png',
+                  assetPath: 'assets/icons/clients.png',
                   active: _selectedIcon == 1,
                   onTap: () => setState(() =>
                       _selectedIcon = _selectedIcon == 1 ? -1 : 1),
                 ),
                 const SizedBox(width: 8),
                 _IconSlot(
-                  assetPath: "assets/icons/clients.png",
+                  assetPath: 'assets/icons/fish.png',
                   active: _selectedIcon == 2,
                   onTap: () => setState(() =>
                       _selectedIcon = _selectedIcon == 2 ? -1 : 2),
@@ -149,6 +503,10 @@ class _ReportScreenState extends State<ReportScreen> {
           // ── Контент ──
           Expanded(
             child: switch (_selectedIcon) {
+              1 => _ClientStatsContent(
+                    period: _period,
+                    dateRange: _dateRange,
+                  ),
               2 => const _FishStatsContent(),
               _ => const Center(
                     child: Text('Раздел в разработке',
@@ -161,6 +519,657 @@ class _ReportScreenState extends State<ReportScreen> {
       ),
     );
   }
+}
+
+// ============================================================================
+// _ClientStatsContent — лента оплат клиентов
+// ============================================================================
+class _ClientStatsContent extends StatelessWidget {
+  final _PeriodFilter? period;
+  final DateTimeRange? dateRange;
+
+  const _ClientStatsContent({required this.period, required this.dateRange});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _paymentFeed.where((e) {
+      if (period == null || period == _PeriodFilter.all) {
+        // фильтр по календарю если есть
+        if (dateRange != null) {
+          final d = DateTime(e.date.year, e.date.month, e.date.day);
+          final s = DateTime(dateRange!.start.year, dateRange!.start.month,
+              dateRange!.start.day);
+          final en = DateTime(
+              dateRange!.end.year, dateRange!.end.month, dateRange!.end.day);
+          return !d.isBefore(s) && !d.isAfter(en);
+        }
+        return true;
+      }
+      final now = DateTime.now();
+      final start = switch (period!) {
+        _PeriodFilter.today => DateTime(now.year, now.month, now.day),
+        _PeriodFilter.week => now.subtract(const Duration(days: 7)),
+        _PeriodFilter.month => now.subtract(const Duration(days: 30)),
+        _PeriodFilter.quarter => now.subtract(const Duration(days: 90)),
+        _PeriodFilter.all => DateTime(0),
+      };
+      final matchesPeriod =
+          e.date.isAfter(start) || e.date.isAtSameMomentAs(start);
+      if (dateRange != null) {
+        final d = DateTime(e.date.year, e.date.month, e.date.day);
+        final s = DateTime(dateRange!.start.year, dateRange!.start.month,
+            dateRange!.start.day);
+        final en = DateTime(
+            dateRange!.end.year, dateRange!.end.month, dateRange!.end.day);
+        return matchesPeriod && !d.isBefore(s) && !d.isAfter(en);
+      }
+      return matchesPeriod;
+    }).toList();
+
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(40),
+        child: Center(
+          child: Text(
+            'Нет оплат по заданным условиям',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: _muted2),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 20),
+      itemCount: items.length,
+      itemBuilder: (_, i) => _ClientPaymentRow(
+        entry: items[i],
+        onAvatarTap: () {
+          final full = _findFullClient(items[i].client.id);
+          if (full != null) {
+            showDialog(
+              context: context,
+              barrierColor: Colors.black.withOpacity(0.5),
+              builder: (_) => _ClientCard(client: full),
+            );
+          }
+        },
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// _ClientPaymentRow — строка ленты оплат (стиль как _ReceiptRow)
+// ============================================================================
+class _ClientPaymentRow extends StatelessWidget {
+  final _ClientPaymentEntry entry;
+  final VoidCallback onAvatarTap;
+
+  const _ClientPaymentRow({
+    required this.entry,
+    required this.onAvatarTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 2),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: _hairline2)),
+      ),
+      child: Row(
+        children: [
+          // Аватар (кликабельный)
+          GestureDetector(
+            onTap: onAvatarTap,
+            child: _Avatar(client: entry.client, size: 44),
+          ),
+          const SizedBox(width: 12),
+          // Имя + дата оплаты
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.client.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                      color: _ink),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _fmtDate(entry.date),
+                  style:
+                      const TextStyle(fontSize: 12.5, color: _muted2),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Сумма оплаты (зелёная, с "+")
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '+${_money(entry.amount)} ₽',
+                style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF3FA66B)),
+              ),
+              const SizedBox(height: 2),
+              // LT/LTV
+              Text(
+                'LTV ${formatLtv(entry.ltvK)}',
+                style:
+                    const TextStyle(fontSize: 11.5, color: _muted2),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// _Avatar — аватар клиента (как в чеках)
+// ============================================================================
+class _Avatar extends StatelessWidget {
+  final Client? client;
+  final bool guest;
+  final double size;
+  const _Avatar({this.client, this.guest = false, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    if (guest || client == null) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: const BoxDecoration(
+            color: Color(0xFFF1ECE0), shape: BoxShape.circle),
+        child: const Icon(Icons.person_outline, color: _muted2, size: 22),
+      );
+    }
+    final c = client!;
+    if (c.avatarAsset != null) {
+      return ClipOval(
+        child: Image.asset(c.avatarAsset!,
+            width: size, height: size, fit: BoxFit.cover),
+      );
+    }
+    final colors = [
+      const Color(0xFFE8912B),
+      const Color(0xFF6A8CBB),
+      const Color(0xFF7BAE7F),
+      const Color(0xFFC97A7A),
+    ];
+    final color = colors[c.id % colors.length];
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: Text(
+        c.initials.toUpperCase(),
+        style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: size * 0.36),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// _ClientCard — полная карточка клиента (из чеков)
+// ============================================================================
+class _ClientCard extends StatelessWidget {
+  final _FullClient client;
+  const _ClientCard({required this.client});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = _levels[client.level]!;
+    final initials = client.name
+        .split(' ')
+        .map((p) => p.isEmpty ? '' : p[0])
+        .take(2)
+        .join();
+    final pct =
+        ((client.points / client.pointsNext) * 100).clamp(0, 100).round();
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        constraints: const BoxConstraints(maxWidth: 340),
+        decoration: BoxDecoration(
+          color: _paper,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.35),
+                blurRadius: 60,
+                offset: const Offset(0, 24))
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── Header ──
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [l.color, _ink],
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Row(
+                        children: [
+                          client.avatarAsset != null
+                              ? ClipOval(
+                                  child: Image.asset(
+                                    client.avatarAsset!,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        Container(
+                                          width: 60,
+                                          height: 60,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: client.color,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: Colors.white
+                                                    .withOpacity(0.5),
+                                                width: 3),
+                                          ),
+                                          child: Text(initials,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight:
+                                                      FontWeight.w800,
+                                                  fontSize: 22)),
+                                        ),
+                                  ),
+                                )
+                              : Container(
+                                  width: 60,
+                                  height: 60,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: client.color,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Colors.white
+                                            .withOpacity(0.5),
+                                        width: 3),
+                                  ),
+                                  child: Text(initials,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 22)),
+                                ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(client.name,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 6),
+                              _LevelBadge(level: client.level),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close,
+                              color: Colors.white, size: 18),
+                          style: IconButton.styleFrom(
+                            backgroundColor:
+                                Colors.white.withOpacity(0.18),
+                            minimumSize: const Size(28, 28),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Body ──
+                Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                _iconRow(Icons.phone_outlined,
+                                    client.phone),
+                                const SizedBox(height: 8),
+                                _iconRow(Icons.mail_outline,
+                                    client.email),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.center,
+                            children: [
+                              const Text('ПОСЛЕДНЕЕ ПОСЕЩЕНИЕ',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black45,
+                                      letterSpacing: 0.3)),
+                              const SizedBox(height: 2),
+                              Text(client.lastVisit,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: _ink)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Прогресс баллов
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(
+                            14, 12, 14, 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: _hairline),
+                        ),
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('БАЛЛЫ ЛОЯЛЬНОСТИ',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black54)),
+                                Text(
+                                    '${client.points} / ${client.pointsNext}',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: l.color)),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(999),
+                              child: LinearProgressIndicator(
+                                value: pct / 100,
+                                minHeight: 7,
+                                backgroundColor:
+                                    const Color(0xFFEFE9DC),
+                                valueColor:
+                                    AlwaysStoppedAnimation(l.color),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Сетка статов
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics:
+                            const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 2.1,
+                        children: [
+                          _statBlock('Тариф', client.tariff),
+                          _statBlock(
+                              'Посещений / LTV',
+                              '${client.visits} / ${formatLtv(client.ltvK)}'),
+                          _statBlock('Всего поймано рыб',
+                              '${client.fish} шт. / ${client.totalWeight} кг.'),
+                          _statBlock(
+                              'Первый визит', client.firstVisit),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Лучший улов
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(
+                            14, 12, 14, 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFBEEDA),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                                Icons.emoji_events_outlined,
+                                color: _ember,
+                                size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  const Text('ЛУЧШИЙ УЛОВ',
+                                      style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight:
+                                              FontWeight.w700,
+                                          color: Colors.black54,
+                                          letterSpacing: 0.3)),
+                                  Text(
+                                      '${client.bestCatch.species} · ${client.bestCatch.weight}',
+                                      style: const TextStyle(
+                                          fontSize: 13.5,
+                                          fontWeight:
+                                              FontWeight.w700,
+                                          color: _ink)),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'СЕКТОР №${client.bestCatch.sector}',
+                                    style: const TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black54,
+                                        letterSpacing: 0.3)),
+                                Text(client.bestCatch.date,
+                                    style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: _ink)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _iconRow(IconData icon, String text) => Row(children: [
+        Icon(icon, size: 15, color: _ember),
+        const SizedBox(width: 8),
+        Text(text,
+            style: const TextStyle(fontSize: 13, color: _ink)),
+      ]);
+
+  static Widget _statBlock(String label, String value) => Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _hairline),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(label,
+                textAlign: TextAlign.left,
+                style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black45,
+                    letterSpacing: 0.3)),
+            const SizedBox(height: 3),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Text(value,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: _ink)),
+            ),
+          ],
+        ),
+      );
+}
+
+// ── LevelBadge ──────────────────────────────────────────────────────────────
+class _LevelBadge extends StatelessWidget {
+  final LevelKey level;
+  const _LevelBadge({required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = _levels[level]!;
+    const size = 18.0;
+    final medal = _Medal(style: l, size: size);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: l.color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        medal,
+        const SizedBox(width: 4),
+        Text(l.label,
+            style: TextStyle(
+                color: l.color,
+                fontSize: 12,
+                fontWeight: FontWeight.w700)),
+      ]),
+    );
+  }
+}
+
+class _Medal extends StatelessWidget {
+  final LevelStyle style;
+  final double size;
+  const _Medal({required this.style, required this.size});
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(painter: _MedalPainter(style: style)),
+    );
+  }
+}
+
+class _MedalPainter extends CustomPainter {
+  final LevelStyle style;
+  _MedalPainter({required this.style});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+    final rect = Rect.fromCircle(center: center, radius: r);
+    canvas.drawCircle(
+        center,
+        r,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(-0.3, -0.4),
+            radius: 0.75,
+            colors: [
+              style.medalTop,
+              style.medalMid,
+              style.medalBottom
+            ],
+            stops: const [0, 0.55, 1],
+          ).createShader(rect));
+    final tp = TextPainter(
+      text: TextSpan(
+          text: style.letter,
+          style: TextStyle(
+            color: style.letterColor,
+            fontWeight: FontWeight.w800,
+            fontSize: size.width * 0.52,
+          )),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas,
+        Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
+  }
+
+  @override
+  bool shouldRepaint(covariant _MedalPainter old) =>
+      old.style != style;
 }
 
 // ============================================================================
@@ -177,9 +1186,8 @@ class _FishStatsContent extends StatelessWidget {
   };
   static const _defaultImageHeight = 17.0;
 
-  // Градиент выручки: бледно-оранжевый (мин) → зелёный (макс)
-  static const _revenueMin = Color(0xFFFBE8D0); // бледно-оранжевый
-  static const _revenueMax = Color(0xFFD4EDDA); // зелёный
+  static const _revenueMin = Color(0xFFFBE8D0);
+  static const _revenueMax = Color(0xFFD4EDDA);
 
   Color _revenueColor(double value, double min, double max) {
     if (max <= min) return _revenueMin;
@@ -238,7 +1246,6 @@ class _FishStatsContent extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // 1. Тип рыбы: изображение + название под ним
                   Expanded(
                     flex: 3,
                     child: Column(
@@ -259,14 +1266,12 @@ class _FishStatsContent extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // 2. Вылов (шт.)
                   Expanded(
                     flex: 2,
                     child: Text(_formatNum(s.count), textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 13, color: Color(0xFF14130F))),
                   ),
-                  // 3. Ср. Вес
                   Expanded(
                     flex: 2,
                     child: Text(s.avgWeight.toStringAsFixed(1),
@@ -274,7 +1279,6 @@ class _FishStatsContent extends StatelessWidget {
                         style: const TextStyle(
                             fontSize: 13, color: Color(0xFF14130F))),
                   ),
-                  // 4. Выручка (₽) — градиентный фон
                   Expanded(
                     flex: 3,
                     child: Container(
@@ -294,7 +1298,6 @@ class _FishStatsContent extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // 5. Остаток (шт.) — красный если < 50
                   Expanded(
                     flex: 2,
                     child: Text(
@@ -360,7 +1363,6 @@ class _FishStatsContent extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          // 1. Тип рыбы
                           Expanded(
                             flex: 3,
                             child: Column(
@@ -382,7 +1384,6 @@ class _FishStatsContent extends StatelessWidget {
                               ],
                             ),
                           ),
-                          // 2. Доля в выручке + мини-шкала
                           Expanded(
                             flex: 3,
                             child: _PercentCell(
@@ -390,7 +1391,6 @@ class _FishStatsContent extends StatelessWidget {
                               barColor: const Color(0xFFE8912B),
                             ),
                           ),
-                          // 3. Маржинальность + мини-шкала
                           Expanded(
                             flex: 3,
                             child: _PercentCell(
@@ -445,7 +1445,7 @@ class _FishStatsContent extends StatelessWidget {
 }
 
 // ============================================================================
-// _IconSlot — иконка-кнопка 44×44 (аналог _CalendarChip, без индикатора)
+// _PercentCell — ячейка с процентом и мини-шкалой
 // ============================================================================
 class _PercentCell extends StatelessWidget {
   final int pct;
@@ -461,39 +1461,36 @@ class _PercentCell extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('\$pct%',
+        Text('$pct%',
             textAlign: TextAlign.center,
             style: const TextStyle(
                 fontSize: 13, color: Color(0xFF14130F))),
         const SizedBox(height: 4),
-        Stack(
-          children: [
-            // Full-width background bar (100%)
-            Container(
-              height: 6,
+        Container(
+          height: 6,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFE8D8),
+            borderRadius: BorderRadius.circular(3),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: pct / 100.0,
+            child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFEFE8D8),
+                color: barColor,
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-            // Colored fill representing the actual percentage
-            FractionallySizedBox(
-              widthFactor: pct / 100.0,
-              child: Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: barColor,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
   }
 }
 
+// ============================================================================
+// _IconSlot — иконка-кнопка 44×44
+// ============================================================================
 class _IconSlot extends StatelessWidget {
   final IconData? icon;
   final String? assetPath;
@@ -527,16 +1524,14 @@ class _IconSlot extends StatelessWidget {
                     fit: BoxFit.contain),
               )
             : Icon(icon,
-                size: 19, color: active ? Colors.white : _ink),
+                size: 20, color: active ? Colors.white : _ink),
       ),
     );
   }
 }
 
 // ============================================================================
-// _FilterDropdown — точная копия из checks_screen.dart
-// ============================================================================
-// _FilterDropdown — OverlayEntry-based dropdown (как AppDropdownField)
+// _FilterDropdown — OverlayEntry-based dropdown
 // ============================================================================
 class _FilterDropdownItem<T> {
   final T? value;
@@ -596,77 +1591,73 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
           Positioned.fill(
             child: Listener(
               behavior: HitTestBehavior.translucent,
-              onPointerDown: (_) => _close(),
+              onTap: _close,
             ),
           ),
           CompositedTransformFollower(
             link: _link,
             showWhenUnlinked: false,
-            // Ноль зазора — список приклеен к полю
-            offset: Offset(0, size.height),
+            offset: Offset(0, size.height + 4),
             child: Material(
               color: Colors.transparent,
-              child: SizedBox(
+              child: Container(
                 width: size.width,
-                child: Container(
-                  constraints: const BoxConstraints(maxHeight: 320),
-                  decoration: BoxDecoration(
-                    color: _fill,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(_borderRadius),
-                      bottomRight: Radius.circular(_borderRadius),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(_borderRadius),
+                  border: Border.all(color: _outline),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
-                    boxShadow: const [
-                      BoxShadow(
-                          color: Color(0x22000000),
-                          blurRadius: 10,
-                          offset: Offset(0, 6)),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: ListView(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    children: widget.items.map((item) {
-                      final selected = item.value == widget.value &&
-                          item.value != null;
-                      final enabled = item.enabled;
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: enabled
-                            ? () {
-                                widget.onChanged(item.value);
-                                _close();
-                              }
-                            : null,
-                        child: Container(
-                          width: double.infinity,
-                          height: _itemHeight,
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 12),
-                          color: selected
-                              ? _selected
-                              : Colors.transparent,
-                          child: Align(
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(_borderRadius),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: _itemHeight * widget.items.length + 8,
+                    ),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      shrinkWrap: true,
+                      itemCount: widget.items.length,
+                      itemBuilder: (_, i) {
+                        final item = widget.items[i];
+                        final isSelected = item.value == widget.value;
+                        return InkWell(
+                          onTap: item.enabled
+                              ? () {
+                                  widget.onChanged(item.value);
+                                  _close();
+                                }
+                              : null,
+                          child: Container(
+                            height: _itemHeight,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 14),
                             alignment: Alignment.centerLeft,
+                            color: isSelected
+                                ? _selected.withOpacity(0.4)
+                                : null,
                             child: Text(
                               item.label,
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: item.isReset
-                                    ? FontWeight.w400
-                                    : selected
-                                        ? FontWeight.w700
-                                        : FontWeight.w400,
-                                color: enabled
-                                    ? (item.isReset ? _muted2 : _ink)
-                                    : _muted,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                                color: item.enabled
+                                    ? _ink
+                                    : _muted2,
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -681,70 +1672,54 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
   }
 
   void _close() {
-    final entry = _entry;
+    _entry?.remove();
     _entry = null;
-    if (mounted) setState(() => _open = false);
-    if (mounted) entry?.remove();
+    setState(() => _open = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Когда меню открыто — срезаем нижние углы поля
-    final radius = BorderRadius.only(
-      topLeft: const Radius.circular(_borderRadius),
-      topRight: const Radius.circular(_borderRadius),
-      bottomLeft: Radius.circular(_open ? 0 : _borderRadius),
-      bottomRight: Radius.circular(_open ? 0 : _borderRadius),
-    );
-
-    // Определяем текущий лейбл
-    String displayLabel = widget.label;
-    if (widget.value != null) {
-      for (final item in widget.items) {
-        if (item.value == widget.value && !item.isReset) {
-          displayLabel = item.label;
-          break;
-        }
-      }
-    }
-    final active = widget.value != null;
-
     return CompositedTransformTarget(
       link: _link,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: radius,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          key: _fieldKey,
-          onTap: _toggle,
-          child: Ink(
-            decoration: BoxDecoration(color: _fill, borderRadius: radius),
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    displayLabel,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight:
-                          active ? FontWeight.w700 : FontWeight.w400,
-                      color: active ? _ink : _muted2,
-                    ),
+      child: GestureDetector(
+        key: _fieldKey,
+        onTap: _toggle,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: _fill,
+            borderRadius: BorderRadius.circular(_borderRadius),
+            border: Border.all(
+                color: _open ? _orange : _hairline),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.value != null
+                      ? widget.items
+                          .firstWhere((i) => i.value == widget.value)
+                          .label
+                      : widget.label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: widget.value != null
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: widget.value != null ? _ink : _muted2,
                   ),
                 ),
-                Icon(
-                  _open
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                  size: 20,
-                  color: _muted2,
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                _open
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                size: 20,
+                color: _muted2,
+              ),
+            ],
           ),
         ),
       ),
@@ -753,7 +1728,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
 }
 
 // ============================================================================
-// _CalendarChip — точная копия из checks_screen.dart
+// _CalendarChip — кнопка календаря 44×44
 // ============================================================================
 class _CalendarChip extends StatelessWidget {
   final bool active;
@@ -769,26 +1744,13 @@ class _CalendarChip extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-            color: _fill, borderRadius: BorderRadius.circular(12)),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(Icons.calendar_today_outlined,
-                size: 19, color: active ? _orange : _ink),
-            if (active)
-              const Positioned(
-                top: 7,
-                right: 7,
-                child: SizedBox(
-                  width: 7,
-                  height: 7,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                        color: _orange, shape: BoxShape.circle),
-                  ),
-                ),
-              ),
-          ],
+          color: active ? _orange : _fill,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          Icons.calendar_today_outlined,
+          size: 20,
+          color: active ? Colors.white : _ink,
         ),
       ),
     );
@@ -796,8 +1758,14 @@ class _CalendarChip extends StatelessWidget {
 }
 
 // ============================================================================
-// _RangeCalendarPicker + _showRangeCalendarPicker — точная копия
+// Календарь периода (range-выбор)
 // ============================================================================
+const _monthsFull = [
+  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
+];
+const _weekdaysShort = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
 Future<DateTimeRange?> _showRangeCalendarPicker(
     BuildContext context, DateTimeRange? initial) {
   return showDialog<DateTimeRange>(
@@ -810,276 +1778,231 @@ Future<DateTimeRange?> _showRangeCalendarPicker(
 class _RangeCalendarPicker extends StatefulWidget {
   final DateTimeRange? initial;
   const _RangeCalendarPicker({this.initial});
+
   @override
   State<_RangeCalendarPicker> createState() => _RangeCalendarPickerState();
 }
 
 class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
-  late DateTime cursor = DateTime(
-      (widget.initial?.start ?? DateTime.now()).year,
-      (widget.initial?.start ?? DateTime.now()).month,
-      1);
-  DateTime? start;
-  DateTime? end;
-  bool _wasReset = false;
+  late DateTime _month;
+  DateTime? _start;
+  DateTime? _end;
 
   @override
   void initState() {
     super.initState();
-    start = widget.initial?.start;
-    end = widget.initial?.end;
+    _start = widget.initial?.start;
+    _end = widget.initial?.end;
+    _month = _start ?? DateTime.now();
+    _month = DateTime(_month.year, _month.month);
   }
-
-  bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 
   void _pick(DateTime d) {
     setState(() {
-      if (start == null || (start != null && end != null)) {
-        start = d;
-        end = null;
-      } else if (_sameDay(d, start!)) {
-        end = null;
-      } else if (d.isBefore(start!)) {
-        end = start;
-        start = d;
+      if (_start == null || (_start != null && _end != null)) {
+        _start = d;
+        _end = null;
       } else {
-        end = d;
+        if (d.isBefore(_start!)) {
+          _end = _start;
+          _start = d;
+        } else {
+          _end = d;
+        }
       }
     });
   }
 
+  void _prev() =>
+      setState(() => _month = DateTime(_month.year, _month.month - 1));
+  void _next() =>
+      setState(() => _month = DateTime(_month.year, _month.month + 1));
+
   @override
   Widget build(BuildContext context) {
-    final firstWeekday =
-        (DateTime(cursor.year, cursor.month, 1).weekday - 1) % 7;
     final daysInMonth =
-        DateTime(cursor.year, cursor.month + 1, 0).day;
-    final cells = <int?>[
-      ...List<int?>.filled(firstWeekday, null),
-      ...List.generate(daysInMonth, (i) => i + 1),
-    ];
+        DateTime(_month.year, _month.month + 1, 0).day;
+    final firstWeekday =
+        DateTime(_month.year, _month.month, 1).weekday; // 1=Mon
+    final cells = <_DayCell>[];
+    for (int i = 1; i < firstWeekday; i++) {
+      cells.add(const _DayCell.empty());
+    }
+    for (int d = 1; d <= daysInMonth; d++) {
+      final date = DateTime(_month.year, _month.month, d);
+      bool selected = false;
+      if (_start != null && _end != null) {
+        selected = !date.isBefore(_start!) && !date.isAfter(_end!);
+      } else if (_start != null) {
+        selected = date.isAtSameMomentAs(_start!);
+      }
+      cells.add(_DayCell(
+        day: d,
+        selected: selected,
+        isStart: _start != null && date.isAtSameMomentAs(_start!),
+        isEnd: _end != null && date.isAtSameMomentAs(_end!),
+        onTap: () => _pick(date),
+      ));
+    }
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (_wasReset) {
-          Navigator.pop(context,
-              DateTimeRange(start: DateTime(2000), end: DateTime(2000)));
-        } else {
-          Navigator.pop(context);
-        }
-      },
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          width: 300,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _paper,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                  color: Color(0x4D000000),
-                  blurRadius: 50,
-                  offset: Offset(0, 20)),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _navButton(Icons.chevron_left, () => setState(() {
-                        cursor =
-                            DateTime(cursor.year, cursor.month - 1, 1);
-                      })),
-                  Text(
-                      '${_monthsFull[cursor.month - 1]} ${cursor.year}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                          color: _ink)),
-                  _navButton(Icons.chevron_right, () => setState(() {
-                        cursor =
-                            DateTime(cursor.year, cursor.month + 1, 1);
-                      })),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: _weekdaysShort
-                    .map((w) => Expanded(
-                        child: Center(
-                            child: Text(w,
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: _muted2)))))
-                    .toList(),
-              ),
-              const SizedBox(height: 6),
-              GridView.count(
-                crossAxisCount: 7,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
-                childAspectRatio: 1,
-                children: cells.map((d) {
-                  if (d == null) return const SizedBox.shrink();
-                  final date = DateTime(cursor.year, cursor.month, d);
-                  final isStart =
-                      start != null && _sameDay(date, start!);
-                  final isEnd = end != null && _sameDay(date, end!);
-                  final inRange = start != null &&
-                      end != null &&
-                      date.isAfter(start!) &&
-                      date.isBefore(end!);
-                  return GestureDetector(
-                    onTap: () => _pick(date),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: inRange
-                            ? _selected.withOpacity(0.55)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.horizontal(
-                          left: isStart
-                              ? const Radius.circular(16)
-                              : Radius.zero,
-                          right: isEnd
-                              ? const Radius.circular(16)
-                              : Radius.zero,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: (isStart || isEnd)
-                              ? _orange
-                              : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text('$d',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: (isStart || isEnd)
-                                  ? FontWeight.w800
-                                  : FontWeight.w500,
-                              color: (isStart || isEnd)
-                                  ? Colors.white
-                                  : _ink,
-                            )),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                start == null
-                    ? 'Выберите дату'
-                    : end == null
-                        ? '${_fmtDateShort(start!)} · выберите вторую дату'
-                        : '${_fmtDateShort(start!)} — ${_fmtDateShort(end!)}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 11.5, color: _muted2),
-              ),
-              const SizedBox(height: 12),
-              Row(children: [
+    return Dialog(
+      backgroundColor: _paper,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20)),
+      insetPadding:
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, size: 22),
+                  onPressed: _prev,
+                  color: _ink,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                      minWidth: 36, minHeight: 36),
+                ),
                 Expanded(
-                  child: OutlinedButton(
+                  child: Text(
+                    '${_monthsFull[_month.month - 1]} ${_month.year}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _ink),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, size: 22),
+                  onPressed: _next,
+                  color: _ink,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                      minWidth: 36, minHeight: 36),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Weekdays
+            Row(
+              children: _weekdaysShort
+                  .map((d) => Expanded(
+                        child: Text(d,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _muted2)),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 6),
+            // Grid
+            Wrap(
+              children: cells,
+            ),
+            const SizedBox(height: 12),
+            // Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
                     onPressed: () {
-                      setState(() {
-                        start = null;
-                        end = null;
-                        _wasReset = true;
-                      });
+                      // Сброс
+                      Navigator.of(context).pop(
+                          DateTimeRange(
+                              start: DateTime(2000),
+                              end: DateTime(2000)));
                     },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _muted,
-                      side: const BorderSide(color: _outline),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
                     child: const Text('Сбросить',
                         style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700)),
+                            color: _muted2,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: FilledButton(
-                    onPressed: start == null
-                        ? null
-                        : () => Navigator.pop(
-                            context,
-                            DateTimeRange(
-                                start: start!, end: end ?? start!)),
-                    style: FilledButton.styleFrom(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
                       backgroundColor: _orange,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: _hairline,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 12),
                     ),
+                    onPressed: _start != null && _end != null
+                        ? () => Navigator.of(context).pop(
+                            DateTimeRange(
+                                start: _start!, end: _end!))
+                        : null,
                     child: const Text('Применить',
                         style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700)),
+                            fontWeight: FontWeight.w700)),
                   ),
                 ),
-              ]),
-            ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DayCell extends StatelessWidget {
+  final int? day;
+  final bool selected, isStart, isEnd;
+  final VoidCallback? onTap;
+
+  const _DayCell({
+    this.day,
+    this.selected = false,
+    this.isStart = false,
+    this.isEnd = false,
+    this.onTap,
+  });
+
+  const _DayCell.empty()
+      : day = null,
+        selected = false,
+        isStart = false,
+        isEnd = false,
+        onTap = null;
+
+  @override
+  Widget build(BuildContext context) {
+    if (day == null) {
+      return const SizedBox(width: 40, height: 36);
+    }
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? _orange : null,
+          borderRadius: BorderRadius.horizontal(
+            left: isStart ? const Radius.circular(8) : Radius.zero,
+            right: isEnd ? const Radius.circular(8) : Radius.zero,
+          ),
+        ),
+        child: Text(
+          '$day',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight:
+                selected ? FontWeight.w700 : FontWeight.w400,
+            color: selected ? Colors.white : _ink,
           ),
         ),
       ),
     );
   }
-
-  Widget _navButton(IconData icon, VoidCallback onTap) => InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Container(
-          width: 30,
-          height: 30,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: _hairline),
-          ),
-          child: Icon(icon, size: 15, color: _ink),
-        ),
-      );
 }
-
-String _fmtDateShort(DateTime d) {
-  String two(int n) => n.toString().padLeft(2, '0');
-  return '${two(d.day)}.${two(d.month)}';
-}
-
-// ─── Константы для календаря ────────────────────────────────────────────────
-const _monthsFull = [
-  'Январь',
-  'Февраль',
-  'Март',
-  'Апрель',
-  'Май',
-  'Июнь',
-  'Июль',
-  'Август',
-  'Сентябрь',
-  'Октябрь',
-  'Ноябрь',
-  'Декабрь',
-];
-const _weekdaysShort = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
