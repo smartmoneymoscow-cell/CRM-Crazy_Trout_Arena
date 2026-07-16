@@ -983,36 +983,7 @@ class _ClientCard extends StatelessWidget {
 
 
 
-/// Обнаруживает жест скролла и вызывает onScroll.
-/// Работает поверх ScrollView — не блокирует скролл, но закрывает dropdown.
-class _ScrollDetector extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onScroll;
-  const _ScrollDetector({required this.child, required this.onScroll});
-  @override
-  State<_ScrollDetector> createState() => _ScrollDetectorState();
-}
 
-class _ScrollDetectorState extends State<_ScrollDetector> {
-  Offset? _startPos;
-  static const _threshold = 10.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: (e) => _startPos = e.position,
-      onPointerMove: (e) {
-        if (_startPos != null && (e.position - _startPos!).distance > _threshold) {
-          _startPos = null;
-          widget.onScroll();
-        }
-      },
-      onPointerUp: (_) => _startPos = null,
-      child: widget.child,
-    );
-  }
-}
 
 class FiltersDropdown extends StatefulWidget {
   final FilterValue value;
@@ -1074,14 +1045,12 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
       btnBottomY: btnPos.dy + btnSize.height,
       screenH: screenH,
       bottomPadding: bottomSafe,
-    ) + _overlap;
+    );
 
     return OverlayEntry(
       builder: (overlayContext) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _closeDropdown,
-        child: _ScrollDetector(
-          onScroll: _closeDropdown,
           child: Stack(children: [
           Positioned(
             width: dropdownW,
