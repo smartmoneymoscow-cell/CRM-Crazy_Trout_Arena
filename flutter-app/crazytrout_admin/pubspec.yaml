@@ -78,6 +78,9 @@ flutter:
     - assets/fish/grass_carp.png
     - assets/fish/tench.png
     - assets/fish/trout.png
+    - assets/icons/ruble.png
+    - assets/icons/clients.png
+    - assets/icons/fish.png
 
 # Автогенерация нативных иконок (Android + iOS) из логотипа компании.
 # После `flutter pub get` запустите: flutter pub run flutter_launcher_icons
