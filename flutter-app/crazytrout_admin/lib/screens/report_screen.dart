@@ -1229,7 +1229,7 @@ class _FishStatsContent extends StatelessWidget {
 
   _FishStatsContent({this.period, this.dateRange});
 
-  static const double _imageSize = 28;
+  static const double _imageSize = 36;
 
   static const _revenueMin = Color(0xFFFBE8D0);
   static const _revenueMax = Color(0xFFD4EDDA);
