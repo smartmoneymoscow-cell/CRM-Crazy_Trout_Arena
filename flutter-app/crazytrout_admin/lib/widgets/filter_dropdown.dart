@@ -64,7 +64,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     final btnBottomY = box.localToGlobal(Offset(0, size.height)).dy;
     final mq = MediaQuery.of(context);
     final screenH = mq.size.height;
-    final safeBottom = kBottomNavHeight + mq.padding.bottom + 8;
+    final safeBottom = kBottomNavHeight + mq.padding.bottom + 8.0;
 
     final spaceBelow = screenH - btnBottomY - safeBottom;
 
