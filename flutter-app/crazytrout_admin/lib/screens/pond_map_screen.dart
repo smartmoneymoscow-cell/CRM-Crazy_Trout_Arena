@@ -890,6 +890,8 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int? selected;
   FilterValue filter = FilterValue.none;
   bool _isFilterOpen = false;
+  final _filterLink = LayerLink();
+  OverlayEntry? _filterEntry;
 
   List<List<Slot>> get schedules =>
       List.generate(16, (i) => _scheduleFor(date, i + 1));
@@ -955,10 +957,31 @@ class _PondMapScreenState extends State<PondMapScreen> {
   }
 
   void _toggleFilter() {
-    setState(() => _isFilterOpen = !_isFilterOpen);
+    if (_isFilterOpen) {
+      _closeFilter();
+    } else {
+      _isFilterOpen = true;
+      _filterEntry = OverlayEntry(
+        builder: (ctx) => Stack(children: [
+          Positioned.fill(child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _closeFilter,
+          )),
+          CompositedTransformFollower(
+            link: _filterLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, kFilterRowHeight + kDropdownGap),
+            child: _buildDropdown(),
+          ),
+        ]),
+      );
+      Overlay.of(context).insert(_filterEntry!);
+    }
   }
 
   void _closeFilter() {
+    _filterEntry?.remove();
+    _filterEntry = null;
     if (mounted) setState(() => _isFilterOpen = false);
   }
 
