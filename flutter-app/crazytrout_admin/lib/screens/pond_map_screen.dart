@@ -1101,59 +1101,64 @@ class _PondMapScreenState extends State<PondMapScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFEFE9DC),
-      body: SafeArea(child: ListView(clipBehavior: Clip.none,
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-            child: Center(child: Text('Карта пруда',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
-          ),
-          Row(children: [
-            Expanded(child: _chip(Icons.calendar_today_outlined, 'ДАТА',
-              '${date.day} ${_monthsShort[date.month - 1]}',
-              onTap: () async {
-                final picked = await _showCalendarPicker(context, date);
-                if (picked != null) setState(() { date = picked; selected = null; });
-              })),
-            const SizedBox(width: 8),
-            Expanded(child: _chip(Icons.access_time, 'ВРЕМЯ', _fmt(hour),
-              onTap: () async {
-                final picked = await showDialog<int>(
-                  context: context,
-                  barrierColor: const Color(0x7314130F),
-                  builder: (_) => _TimePicker(hour: hour));
-                if (picked != null) setState(() { hour = picked; selected = null; });
-              })),
-          ]),
-          const SizedBox(height: 14),
-          Row(children: [
-            Expanded(child: _statCard(dark: true, label: 'ЗАГРУЗКА', value: '$load%', valueColor: _orange)),
-            const SizedBox(width: 10),
-            Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: _ink)),
-          ]),
-          const SizedBox(height: 12),
-          PondMapView(sectorStatuses: statuses, selected: selected,
-            onTap: (n) => setState(() => selected = selected == n ? null : n)),
-          const SizedBox(height: 16),
-          // Фильтры + dropdown: Stack — dropdown поверх контента, не двигает его.
-          Stack(clipBehavior: Clip.none, children: [
+      body: SafeArea(child: Stack(children: [
+        // Слой 1: единый скролл страницы.
+        ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
+              child: Center(child: Text('Карта пруда',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
+            ),
+            Row(children: [
+              Expanded(child: _chip(Icons.calendar_today_outlined, 'ДАТА',
+                '${date.day} ${_monthsShort[date.month - 1]}',
+                onTap: () async {
+                  final picked = await _showCalendarPicker(context, date);
+                  if (picked != null) setState(() { date = picked; selected = null; });
+                })),
+              const SizedBox(width: 8),
+              Expanded(child: _chip(Icons.access_time, 'ВРЕМЯ', _fmt(hour),
+                onTap: () async {
+                  final picked = await showDialog<int>(
+                    context: context,
+                    barrierColor: const Color(0x7314130F),
+                    builder: (_) => _TimePicker(hour: hour));
+                  if (picked != null) setState(() { hour = picked; selected = null; });
+                })),
+            ]),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(child: _statCard(dark: true, label: 'ЗАГРУЗКА', value: '$load%', valueColor: _orange)),
+              const SizedBox(width: 10),
+              Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: _ink)),
+            ]),
+            const SizedBox(height: 12),
+            PondMapView(sectorStatuses: statuses, selected: selected,
+              onTap: (n) => setState(() => selected = selected == n ? null : n)),
+            const SizedBox(height: 16),
+            // Кнопка фильтров — скроллится со страницей.
             _buildFilterRow(free, occupied),
-            if (_isFilterOpen)
-              Positioned(top: 36, left: 0, child: _buildDropdown()),
-          ]),
-          const SizedBox(height: 8),
-          Text(
-            selected != null
-                ? 'РАСПИСАНИЕ · СЕКТОР № ${selected!.toString().padLeft(2, '0')}'
-                : 'ЛЕНТА БРОНИРОВАНИЙ НА ПРУДУ',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black45, letterSpacing: 0.4),
+            const SizedBox(height: 8),
+            Text(
+              selected != null
+                  ? 'РАСПИСАНИЕ · СЕКТОР № ${selected!.toString().padLeft(2, '0')}'
+                  : 'ЛЕНТА БРОНИРОВАНИЙ НА ПРУДУ',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black45, letterSpacing: 0.4),
+            ),
+            const SizedBox(height: 8),
+            _buildFeed(scheds),
+          ],
+        ),
+        // Слой 2: dropdown overlay — поверх всего контента, под нижним меню.
+        if (_isFilterOpen)
+          Positioned(
+            top: 36, left: 20,
+            child: _buildDropdown(),
           ),
-          const SizedBox(height: 8),
-          _buildFeed(scheds),
-        ],
-      )),
+      ])),
     );
   }
 
