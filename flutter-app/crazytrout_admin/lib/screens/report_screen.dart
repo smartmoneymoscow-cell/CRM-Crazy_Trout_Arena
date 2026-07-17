@@ -10,7 +10,7 @@ import '../widgets/revenue_dynamics_chart.dart';
 import '../data/finance_kpi_stats.dart';
 import '../data/revenue_dynamics_data.dart';
 import '../data/demo_receipts.dart';
-import '../data/demo_data.dart' as app_data show kDemoClients, kSpecies, kSpeciesImage;
+import '../data/demo_data.dart' as app_data show kDemoClients, kSpecies, kSpeciesImage, kSpeciesImageHeight, kSpeciesImageHeightDefault;
 import '../models/client.dart';
 import 'pond_map_filter_config.dart' show kBottomNavHeight;
 
