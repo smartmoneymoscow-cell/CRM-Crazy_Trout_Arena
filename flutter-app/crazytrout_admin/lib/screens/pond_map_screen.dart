@@ -912,9 +912,8 @@ class _PondMapScreenState extends State<PondMapScreen> {
 
   void _onScroll() {
     if (_isFilterOpen) {
-      // Позиция кнопки изменилась — пересчитываем и обновляем UI.
-      _updateFilterBtnPosition();
-      setState(() {});
+      // При скролле dropdown закрывается, а не летает за кнопкой.
+      _closeFilter();
     }
   }
 
