@@ -964,7 +964,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
 
   Widget _buildFilterRow(int free, int occupied) {
     return Stack(
-      clipBehavior: Clip.none,
+      clipBehavior: Clip.hardEdge,
       children: [
         Row(children: [
           // Кнопка фильтра — оборачиваем в GestureDetector

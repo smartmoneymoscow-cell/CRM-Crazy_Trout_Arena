@@ -194,7 +194,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     return GestureDetector(
       onTap: _toggle,
       child: Stack(
-        clipBehavior: Clip.none,
+        clipBehavior: Clip.hardEdge,
         children: [
           // Кнопка фильтра
           Material(
