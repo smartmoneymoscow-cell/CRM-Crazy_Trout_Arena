@@ -227,9 +227,12 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: _scanQr,
-                      child: const Icon(Icons.qr_code_scanner_rounded, size: 20, color: Color(0xFF2A6A7E)),
+                    IconButton(
+                      icon: const Icon(Icons.qr_code_scanner_rounded, size: 20, color: Color(0xFF2A6A7E)),
+                      tooltip: 'Сканировать QR клиента',
+                      onPressed: _scanQr,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
