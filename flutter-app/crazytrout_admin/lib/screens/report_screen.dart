@@ -8,6 +8,7 @@ import '../data/payment_tariff_stats.dart';
 import '../widgets/kpi_cards.dart';
 import '../widgets/revenue_dynamics_chart.dart';
 import '../data/finance_kpi_stats.dart';
+import '../data/demo_finance_stats.dart' show buildFinanceStats;
 import '../data/revenue_dynamics_data.dart';
 import '../data/demo_receipts.dart';
 import '../data/demo_data.dart' as app_data show kDemoClients, kSpecies, kSpeciesImage, kSpeciesImageHeight, kSpeciesImageHeightDefault;
@@ -608,7 +609,7 @@ class _FinanceContent extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
       child: Column(
         children: [
-          const FinanceDashboardCard(),
+          FinanceDashboardCard(stats: buildFinanceStats(dateRange: dateRange)),
           const SizedBox(height: 14),
           FinancePieChart(data: salesData),
           const SizedBox(height: 14),
