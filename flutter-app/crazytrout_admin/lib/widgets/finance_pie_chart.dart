@@ -61,8 +61,10 @@ class FinancePieChart extends StatelessWidget {
           SizedBox(width: 120, height: 120, child: Stack(
             alignment: Alignment.center,
             children: [
-              CustomPaint(size: const Size(120, 120),
-                painter: _DonutPainter(segments: data.segments, colors: _segColors, total: data.total)),
+              ClipRect(
+                child: CustomPaint(size: const Size(120, 120),
+                  painter: _DonutPainter(segments: data.segments, colors: _segColors, total: data.total)),
+              ),
               Column(mainAxisSize: MainAxisSize.min, children: [
                 Text('${_fmtAmount(data.total)} ₽',
                   textAlign: TextAlign.center,
@@ -80,13 +82,15 @@ class FinancePieChart extends StatelessWidget {
 String _fmtPct(double v) => v.toStringAsFixed(1).replaceAll('.', ',');
 
 String _fmtAmount(double v) {
-  final s = v.round().toString();
-  final buf = StringBuffer();
-  for (int i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
-    buf.write(s[i]);
+  if (v >= 1000000) {
+    final k = v / 1000000;
+    return '${k.toStringAsFixed(1).replaceAll('.', ',')} млн';
   }
-  return buf.toString();
+  if (v >= 1000) {
+    final k = v / 1000;
+    return '${k.toStringAsFixed(1).replaceAll('.', ',')} тыс.';
+  }
+  return v.round().toString();
 }
 
 class _DonutPainter extends CustomPainter {

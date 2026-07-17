@@ -60,9 +60,11 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
           _legendDot(const Color(0xFFC0392B), 'Расходы'),
         ]),
         const SizedBox(height: 16),
-        SizedBox(height: 180, child: CustomPaint(
-          size: const Size(double.infinity, 180),
-          painter: _ChartPainter(data: _points),
+        SizedBox(height: 180, child: ClipRect(
+          child: CustomPaint(
+            size: const Size(double.infinity, 180),
+            painter: _ChartPainter(data: _points),
+          ),
         )),
         const SizedBox(height: 12),
         SizedBox(height: 20, child: Row(

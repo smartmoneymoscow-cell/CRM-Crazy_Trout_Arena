@@ -42,11 +42,11 @@ enum _PeriodFilter { today, week, month, quarter, all }
 
 extension on _PeriodFilter {
   String get label => switch (this) {
-        _PeriodFilter.today => 'За сегодня',
-        _PeriodFilter.week => 'За неделю',
-        _PeriodFilter.month => 'За месяц',
-        _PeriodFilter.quarter => 'За квартал',
-        _PeriodFilter.all => 'За все время',
+        _PeriodFilter.today => 'Сегодня',
+        _PeriodFilter.week => 'Неделя',
+        _PeriodFilter.month => 'Месяц',
+        _PeriodFilter.quarter => 'Квартал',
+        _PeriodFilter.all => 'Все вр.',
       };
 }
 
@@ -467,9 +467,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   /// DateTimeRange для вкладки «Финансы».
   DateTimeRange? get _effectiveDateForFinance {
-    if (_lastFilterSource == 'dropdown') {
-      return _periodToDateRange(_period);
-    }
+    if (_period != null) return _periodToDateRange(_period);
     return _dateRange;
   }
 
@@ -484,6 +482,7 @@ class _ReportScreenState extends State<ReportScreen> {
     } else {
       setState(() {
         _dateRange = res;
+        _period = null; // Сбрасываем период (требование 1)
         _lastFilterSource = 'calendar';
       });
     }
@@ -537,7 +536,13 @@ class _ReportScreenState extends State<ReportScreen> {
                     ],
                     onChanged: (v) => setState(() {
                     _period = v;
-                    _lastFilterSource = v != null ? 'dropdown' : (_dateRange != null ? 'calendar' : null);
+                    if (v != null) {
+                      // Выбран период — сбрасываем календарь (требование 1)
+                      _dateRange = null;
+                      _lastFilterSource = 'dropdown';
+                    } else {
+                      _lastFilterSource = _dateRange != null ? 'calendar' : null;
+                    }
                   }),
                   ),
                 ),
@@ -1314,7 +1319,7 @@ class _FishStatsContentState extends State<_FishStatsContent> {
   // Размеры рыб в отчёте — пропорции из dropdown чека, уменьшены на 25%.
   // Каждая рыба имеет свой размер, не единый квадрат.
   static const Map<String, double> _imageHeight = {
-    'Осётр': 45,
+    'Осётр': 33,
     'Амур': 30,
     'Форель': 27,
     'Карп': 27,
@@ -1360,352 +1365,326 @@ class _FishStatsContentState extends State<_FishStatsContent> {
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
       child: Column(
         children: [
-          // ── Таблица 1: единый контейнер без зазоров ──
+          // ── Шапка таблицы ──
           Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
+              color: const Color(0xFFF3EEE4),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFEFE8D8)),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
+            child: const Row(
               children: [
-                // Шапка — нижние углы прямые
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF3EEE4),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Expanded(flex: 3, child: Text('Тип рыбы',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                      Expanded(flex: 2, child: Text('Вылов\n(шт.)', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                      Expanded(flex: 2, child: Text('Ср. Вес\n(кг.)', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                      Expanded(flex: 3, child: Text('Выручка', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                      Expanded(flex: 2, child: Text('Остаток\n(шт.)', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                    ],
-                  ),
-                ),
-                // Строки рыбы — без скруглений, с разделителем
-                for (final s in stats)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFBF6EC),
-                      border: Border(top: BorderSide(color: Color(0xFFEFE8D8))),
-                    ),
-                    child: Row(
+                Expanded(flex: 3, child: Text('Тип рыбы',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+                Expanded(flex: 2, child: Text('Вылов\n(шт.)', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+                Expanded(flex: 2, child: Text('Вес (кг.)', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+                Expanded(flex: 3, child: Text('Выручка', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+                Expanded(flex: 2, child: Text('Остаток\n(шт.)', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // ── Строки ──
+          for (final s in stats) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBF6EC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFEFE8D8)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: Image.asset(
-                                  s.imageAsset,
-                                  height: _imageHeight[s.species] ?? _imageHeightDefault,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(s.species,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      fontSize: 13, fontWeight: FontWeight.w600,
-                                      color: Color(0xFF14130F))),
-                            ],
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.asset(
+                            s.imageAsset,
+                            height: _imageHeight[s.species] ?? _imageHeightDefault,
+                            fit: BoxFit.contain,
                           ),
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(_formatNum(s.count), textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF14130F))),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(s.avgWeight.toStringAsFixed(1),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF14130F))),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _revenueColor(
-                                  s.revenue, minRev, maxRev),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              _formatRevenue(s.revenue),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w600,
-                                  color: Color(0xFF14130F)),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Builder(
-                            builder: (_) {
-                              final remaining = s.remaining + (_addedFish[s.species] ?? 0);
-                              return Text(
-                                _formatNum(remaining),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: remaining < 50
-                                      ? FontWeight.w700 : FontWeight.w400,
-                                  color: remaining < 50
-                                      ? const Color(0xFFC9302C)
-                                      : const Color(0xFF14130F),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                        const SizedBox(height: 4),
+                        Text(s.species,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600,
+                                color: Color(0xFF14130F))),
                       ],
                     ),
                   ),
-                // ИТОГО — верхние углы прямые, нижние скруглены
-                Builder(
-                  builder: (context) {
-                    final totalCount = stats.fold<int>(0, (s, e) => s + e.count);
-                    final totalRevenue = stats.fold<double>(0, (s, e) => s + e.revenue);
-                    final totalRemaining = stats.fold<int>(0, (s, e) => s + e.remaining)
-                        + _addedFish.values.fold<int>(0, (a, b) => a + b);
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF3EEE4),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
-                        ),
-                        border: Border(top: BorderSide(color: Color(0xFFDDD3BC))),
+                  Expanded(
+                    flex: 2,
+                    child: Text(_formatNum(s.count), textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 13, color: Color(0xFF14130F))),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(s.avgWeight.toStringAsFixed(1),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 13, color: Color(0xFF14130F))),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _revenueColor(
+                            s.revenue, minRev, maxRev),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            flex: 3,
-                            child: Text('ИТОГО',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w800,
-                                    color: Color(0xFF14130F))),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(_formatNum(totalCount), textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w700,
-                                    color: Color(0xFF14130F))),
-                          ),
-                          const Expanded(
-                            flex: 2,
-                            child: Text('—',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w700,
-                                    color: Color(0xFF9C9484))),
-                          ),
-                          Expanded(
-                            flex: 3,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFD4EDDA),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _formatRevenue(totalRevenue),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w800,
-                                    color: Color(0xFF14130F)),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              _formatNum(totalRemaining),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w700,
-                                  color: Color(0xFF14130F)),
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        _formatRevenue(s.revenue),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600,
+                            color: Color(0xFF14130F)),
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Builder(
+                      builder: (_) {
+                        final remaining = s.remaining + (_addedFish[s.species] ?? 0);
+                        return Text(
+                          _formatNum(remaining),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: remaining < 50
+                                ? FontWeight.w700 : FontWeight.w400,
+                            color: remaining < 50
+                                ? const Color(0xFFC9302C)
+                                : const Color(0xFF14130F),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
+          ],
+
+          // ── ИТОГО строка таблицы 1 ──
+          Builder(
+            builder: (context) {
+              final totalCount = stats.fold<int>(0, (s, e) => s + e.count);
+              final totalWeight = stats.fold<double>(0, (s, e) => s + e.weightKg);
+              final totalRevenue = stats.fold<double>(0, (s, e) => s + e.revenue);
+              final totalRemaining = stats.fold<int>(0, (s, e) => s + e.remaining)
+                  + _addedFish.values.fold<int>(0, (a, b) => a + b);
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3EEE4),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFDDD3BC)),
+                ),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      flex: 3,
+                      child: Text('ИТОГО',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w800,
+                              color: Color(0xFF14130F))),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(_formatNum(totalCount), textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700,
+                              color: Color(0xFF14130F))),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(totalWeight.toStringAsFixed(1),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700,
+                              color: Color(0xFF14130F))),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD4EDDA),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _formatRevenue(totalRevenue),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w800,
+                              color: Color(0xFF14130F)),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        _formatNum(totalRemaining),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w700,
+                            color: Color(0xFF14130F)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 18),
 
-// ── Таблица 2: единый контейнер без зазоров ──
+          // ── Таблица 2: Доля в выручке + Маржинальность ──
           Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
+              color: const Color(0xFFF3EEE4),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFEFE8D8)),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
+            child: const Row(
               children: [
-                // Шапка таблицы 2 — нижние углы прямые
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF3EEE4),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Expanded(flex: 3, child: Text('Тип рыбы',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                      Expanded(flex: 3, child: Text('Доля в выручке', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                      Expanded(flex: 3, child: Text('Маржа', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                              color: Color(0xFF8C8576)))),
-                    ],
-                  ),
-                ),
-                // Строки таблицы 2 — без скруглений
-                Builder(
-                  builder: (context) {
-                    final totalRev = stats.fold<double>(0, (s, e) => s + e.revenue);
-                    return Column(
-                      children: [
-                        for (final s in stats)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 12),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFBF6EC),
-                              border: Border(top: BorderSide(color: Color(0xFFEFE8D8))),
-                            ),
-                            child: Row(
+                Expanded(flex: 3, child: Text('Тип рыбы',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+                Expanded(flex: 3, child: Text('Доля в выручке', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+                Expanded(flex: 3, child: Text('Маржа', textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: Color(0xFF8C8576)))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // ── Строки таблицы 2 ──
+          Builder(
+            builder: (context) {
+              final totalRev = stats.fold<double>(0, (s, e) => s + e.revenue);
+
+              return Column(
+                children: [
+                  for (final s in stats) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFBF6EC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: const Color(0xFFEFE8D8)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.asset(
-                                          s.imageAsset,
-                                          height: _imageHeight[s.species] ?? _imageHeightDefault,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(s.species,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF14130F))),
-                                    ],
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Image.asset(
+                                    s.imageAsset,
+                                    height: _imageHeight[s.species] ?? _imageHeightDefault,
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
-                                Expanded(
-                                  flex: 3,
-                                  child: _PercentCell(
-                                    pct: (s.revenue / totalRev * 100).round(),
-                                    barColor: const Color(0xFFE8912B),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  flex: 3,
-                                  child: _PercentCell(
-                                    pct: s.marginPct.round(),
-                                    barColor: const Color(0xFF3FA66B),
-                                  ),
-                                ),
+                                const SizedBox(height: 4),
+                                Text(s.species,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF14130F))),
                               ],
                             ),
                           ),
-                        // ИТОГО таблицы 2 — верхние углы прямые
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF3EEE4),
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(12),
-                              bottomRight: Radius.circular(12),
+                          Expanded(
+                            flex: 3,
+                            child: _PercentCell(
+                              pct: (s.revenue / totalRev * 100).round(),
+
+                              barColor: const Color(0xFFE8912B),
                             ),
-                            border: Border(top: BorderSide(color: Color(0xFFDDD3BC))),
                           ),
-                          child: Row(
-                            children: [
-                              const Expanded(
-                                flex: 3,
-                                child: Text('ИТОГО',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontSize: 13, fontWeight: FontWeight.w800,
-                                        color: Color(0xFF14130F))),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: _PercentCell(
-                                  pct: 100,
-                                  barColor: const Color(0xFFE8912B),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                flex: 3,
-                                child: _PercentCell(
-                                  pct: (stats.fold<double>(0, (s, e) => s + e.marginPct) / stats.length).round(),
-                                  barColor: const Color(0xFF3FA66B),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 4),
+                          Expanded(
+                            flex: 3,
+                            child: _PercentCell(
+                              pct: s.marginPct.round(),
+
+                              barColor: const Color(0xFF3FA66B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // ── ИТОГО строка таблицы 2 ──
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3EEE4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFDDD3BC)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          flex: 3,
+                          child: Text('ИТОГО',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w800,
+                                  color: Color(0xFF14130F))),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: _PercentCell(
+                            pct: 100,
+                            barColor: const Color(0xFFE8912B),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          flex: 3,
+                          child: _PercentCell(
+                            pct: (stats.fold<double>(0, (s, e) => s + e.marginPct) / stats.length).round(),
+                            barColor: const Color(0xFF3FA66B),
                           ),
                         ),
                       ],
-                    );
-                  },
-                ),
-              ],
-            ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 24),
@@ -1748,7 +1727,7 @@ class _FishStatsContentState extends State<_FishStatsContent> {
             return Center(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
-                constraints: const BoxConstraints(maxWidth: 380),
+                constraints: const BoxConstraints(maxWidth: 360),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFBF6EC),
                   borderRadius: BorderRadius.circular(22),
@@ -1765,7 +1744,7 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                   child: Material(
                     color: Colors.transparent,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1779,20 +1758,10 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                               letterSpacing: 0.5,
                             ),
                           ),
-                          const SizedBox(height: 18),
-                          // Выбор рыбы — подпись над полем
-                          const Text(
-                            'ВЫБЕРИТЕ РЫБУ',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF9C9484),
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 16),
+                          // Выбор рыбы
                           Container(
-                            height: 48,
+                            height: 44,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3EEE4),
@@ -1811,18 +1780,15 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                                   value: sp,
                                   child: Row(
                                     children: [
+                                      Image.asset(
+                                        app_data.kSpeciesImage[sp]!,
+                                        height: app_data.kSpeciesImageHeight[sp]
+                                            ?? app_data.kSpeciesImageHeightDefault,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      const SizedBox(width: 10),
                                       Text(sp, style: const TextStyle(
                                         fontSize: 14, color: Color(0xFF14130F))),
-                                      const Spacer(),
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.asset(
-                                          app_data.kSpeciesImage[sp]!,
-                                          height: (app_data.kSpeciesImageHeight[sp]
-                                              ?? app_data.kSpeciesImageHeightDefault) * 0.7,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 )).toList(),
@@ -1830,70 +1796,44 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          // Количество + Затраты — подписи над полями
+                          const SizedBox(height: 12),
+                          // Количество + Затраты
                           Row(children: [
-                            Expanded(child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'КОЛ-ВО ШТ.',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF9C9484),
-                                    letterSpacing: 0.3,
-                                  ),
+                            Expanded(child: TextField(
+                              controller: qtyCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: 'Количество (шт.)',
+                                labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF9C9484)),
+                                filled: true,
+                                fillColor: const Color(0xFFF3EEE4),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
                                 ),
-                                const SizedBox(height: 6),
-                                TextField(
-                                  controller: qtyCtrl,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFFF3EEE4),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 14),
-                                  ),
-                                ),
-                              ],
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                              ),
                             )),
                             const SizedBox(width: 10),
-                            Expanded(child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'ЗАТРАТЫ',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF9C9484),
-                                    letterSpacing: 0.3,
-                                  ),
+                            Expanded(child: TextField(
+                              controller: costCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: 'Затраты',
+                                labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF9C9484)),
+                                filled: true,
+                                fillColor: const Color(0xFFF3EEE4),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
                                 ),
-                                const SizedBox(height: 6),
-                                TextField(
-                                  controller: costCtrl,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFFF3EEE4),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 14),
-                                  ),
-                                ),
-                              ],
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                              ),
                             )),
                           ]),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
                           // Кнопки
                           Row(children: [
                             Expanded(child: OutlinedButton(
@@ -2243,29 +2183,21 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
           decoration: BoxDecoration(
             color: _fill,
             borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(_borderRadius),
-              topRight: const Radius.circular(_borderRadius),
+              topLeft: Radius.circular(_open ? 0 : _borderRadius),
+              topRight: Radius.circular(_open ? 0 : _borderRadius),
               bottomLeft: Radius.circular(_open ? 0 : _borderRadius),
               bottomRight: Radius.circular(_open ? 0 : _borderRadius),
             ),
             border: Border.all(
                 color: _open ? _orange : _hairline),
           ),
-          child: Row(
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              if (widget.value != null) ...[
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: _orange,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Expanded(
-                child: Text(
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
                   widget.value != null
                       ? widget.items
                           .firstWhere((i) => i.value == widget.value)
@@ -2287,6 +2219,22 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                 size: 20,
                 color: _muted2,
               ),
+              ],
+              ),
+              // Оранжевая точка-индикатор — поверх карточки (требование 8)
+              if (widget.value != null)
+                Positioned(
+                  top: -3,
+                  right: -3,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: _orange,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -2308,18 +2256,37 @@ class _CalendarChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: active ? _orange : _fill,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          Icons.calendar_today_outlined,
-          size: 20,
-          color: active ? Colors.white : _ink,
-        ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _fill,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.calendar_today_outlined,
+              size: 20,
+              color: _ink,
+            ),
+          ),
+          // Оранжевая точка-индикатор (требование 9)
+          if (active)
+            Positioned(
+              top: -3,
+              right: -3,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: _orange,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

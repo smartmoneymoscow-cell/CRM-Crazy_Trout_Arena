@@ -47,19 +47,21 @@ class FinanceDashboardCard extends StatelessWidget {
             children: [
               // ── Левая карточка: выручка + спарклайн ──
               Expanded(
-                flex: 5,
+                flex: 4,
                 child: _RevenueCard(stats: stats),
               ),
 
               // ── «Скоба»-разделитель ──
-              const SizedBox(
+              SizedBox(
                 width: 22,
-                child: CustomPaint(painter: _BracePainter()),
+                child: ClipRect(
+                  child: CustomPaint(painter: const _BracePainter()),
+                ),
               ),
 
               // ── Правая колонка: 2 карточки статистики ──
               Expanded(
-                flex: 4,
+                flex: 5,
                 child: Column(
                   children: [
                     Expanded(
@@ -192,8 +194,10 @@ class _RevenueCard extends StatelessWidget {
                 SizedBox(
                   height: 44,
                   width: double.infinity,
-                  child: CustomPaint(
-                    painter: _SparklinePainter(stats.sparkline),
+                  child: ClipRect(
+                    child: CustomPaint(
+                      painter: _SparklinePainter(stats.sparkline),
+                    ),
                   ),
                 ),
               ],
