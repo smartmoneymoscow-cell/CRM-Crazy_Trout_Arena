@@ -342,7 +342,6 @@ class _ChecksScreenState extends State<ChecksScreen> {
 
     return Container(
       color: kPaper,
-      child: SingleChildScrollView(
       child: Column(
         children: [
           const Padding(
@@ -460,7 +459,6 @@ class _ChecksScreenState extends State<ChecksScreen> {
                   ),
           ),
         ],
-      ),
       ),
     );
   }
