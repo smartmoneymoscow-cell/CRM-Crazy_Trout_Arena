@@ -71,7 +71,9 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     final spaceBelow = screenH - btnBottomY - safeBottom;
     final spaceAbove = btnTopY - safeTop;
 
-    // Сначала пробуем снизу, потом сверху, иначе не открываем
+    // 1. Снизу есть место → вниз
+    // 2. Снизу нет, сверху есть → вверх
+    // 3. Нигде нет → не открывать
     final bool showBelow = spaceBelow >= _itemHeight;
     final bool showAbove = !showBelow && spaceAbove >= _itemHeight;
     if (!showBelow && !showAbove) return;
@@ -80,15 +82,6 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     final offset = showBelow
         ? Offset(0, size.height)
         : Offset(0, -maxH);
-    final radius = showBelow
-        ? const BorderRadius.only(
-            bottomLeft: Radius.circular(_borderRadius),
-            bottomRight: Radius.circular(_borderRadius),
-          )
-        : const BorderRadius.only(
-            topLeft: Radius.circular(_borderRadius),
-            topRight: Radius.circular(_borderRadius),
-          );
 
     _entry = OverlayEntry(
       builder: (ctx) => Stack(
@@ -111,7 +104,10 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
                   constraints: BoxConstraints(maxHeight: maxH),
                   decoration: BoxDecoration(
                     color: kFill,
-                    borderRadius: radius,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(_borderRadius),
+                      bottomRight: Radius.circular(_borderRadius),
+                    ),
                     boxShadow: const [
                       BoxShadow(
                           color: Color(0x22000000),

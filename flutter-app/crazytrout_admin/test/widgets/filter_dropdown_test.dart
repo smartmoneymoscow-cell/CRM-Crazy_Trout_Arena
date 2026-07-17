@@ -64,7 +64,7 @@ void main() {
       await tester.tap(find.text('Тест'));
       await tester.pumpAndSettle();
 
-      // Dropdown должен открыться (вверх) — элементы видны
+      // Dropdown открылся вверх — элементы видны
       expect(find.text('Опция A'), findsOneWidget);
     });
 
