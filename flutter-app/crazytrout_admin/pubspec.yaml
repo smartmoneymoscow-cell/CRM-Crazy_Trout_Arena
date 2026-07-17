@@ -23,7 +23,7 @@ dependencies:
   # Прямой поиск и подключение к Bluetooth-принтерам (ESC/POS), аналог кнопки
   # «Найти принтер и распечатать» из веб-версии, но уже с полноценным доступом
   # к Bluetooth на iOS (в отличие от Web Bluetooth, недоступного в Safari).
-  flutter_blue_plus: ^2.3.10
+  flutter_blue_plus: ^1.32.12
 
   # Запрос рантайм-разрешений BLUETOOTH_SCAN/BLUETOOTH_CONNECT на Android 12+ —
   # без них FlutterBluePlus.startScan() падает молча (кнопка «ничего не делает»).
@@ -93,5 +93,3 @@ flutter_launcher_icons:
   remove_alpha_ios: true
 
 
-dependency_overrides:
-  flutter_blue_plus_android: 9.0.3
