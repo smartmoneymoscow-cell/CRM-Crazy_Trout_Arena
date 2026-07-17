@@ -198,26 +198,30 @@ class _FloatPainter extends CustomPainter {
     double dipOffset = 0;
     double tilt = 0;
     if (biteValue > 0) {
-      if (biteValue < 0.12) {
-        // Quick dip
-        final t = _easeOutCubic(biteValue / 0.12);
-        dipOffset = t * 20;
-        tilt = t * 0.12;
-      } else if (biteValue < 0.3) {
-        // Submerge
-        final t = _easeInOutCubic((biteValue - 0.12) / 0.18);
-        dipOffset = 20 + t * 20;
-        tilt = 0.12 + t * 0.08;
-      } else if (biteValue < 0.6) {
+      if (biteValue < 0.08) {
+        // Quick sharp dip
+        final t = _easeOutCubic(biteValue / 0.08);
+        dipOffset = t * 35;
+        tilt = t * 0.18;
+      } else if (biteValue < 0.22) {
+        // Submerge deep
+        final t = _easeInOutCubic((biteValue - 0.08) / 0.14);
+        dipOffset = 35 + t * 40;
+        tilt = 0.18 + t * 0.1;
+      } else if (biteValue < 0.45) {
+        // Stay under water
+        dipOffset = 75;
+        tilt = 0.28;
+      } else if (biteValue < 0.7) {
         // Rise with bounce
-        final t = _easeOutBounce((biteValue - 0.3) / 0.3);
-        dipOffset = 40 * (1 - t);
-        tilt = 0.2 * (1 - t);
+        final t = _easeOutBounce((biteValue - 0.45) / 0.25);
+        dipOffset = 75 * (1 - t);
+        tilt = 0.28 * (1 - t);
       } else {
         // Wobble settle
-        final t = (biteValue - 0.6) / 0.4;
-        dipOffset = sin(t * pi * 6) * 3 * (1 - t);
-        tilt = sin(t * pi * 5) * 0.02 * (1 - t);
+        final t = (biteValue - 0.7) / 0.3;
+        dipOffset = sin(t * pi * 7) * 3 * (1 - t);
+        tilt = sin(t * pi * 6) * 0.02 * (1 - t);
       }
     }
 
@@ -241,20 +245,20 @@ class _FloatPainter extends CustomPainter {
 
     // --- Keel (draw first, behind body) ---
     canvas.drawLine(
-      const Offset(0, 26),
-      const Offset(0, 42),
+      const Offset(0, 22),
+      const Offset(0, 36),
       Paint()
         ..color = const Color(0xFF6B5B3A)
-        ..strokeWidth = 1.5
+        ..strokeWidth = 1.3
         ..strokeCap = StrokeCap.round,
     );
     // Keel weight — tapered oval
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 44), width: 6, height: 10),
+      Rect.fromCenter(center: const Offset(0, 38), width: 5, height: 9),
       Paint()..color = const Color(0xFF4A3D28),
     );
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 44), width: 6, height: 10),
+      Rect.fromCenter(center: const Offset(0, 38), width: 5, height: 9),
       Paint()
         ..color = Colors.black.withOpacity(0.15)
         ..style = PaintingStyle.stroke
@@ -262,41 +266,41 @@ class _FloatPainter extends CustomPainter {
     );
 
     // --- Body: realistic pear shape ---
-    // White bottom portion (below waterline)
+    // White bottom — more oval
     final whitePath = Path()
-      ..moveTo(0, -6)
-      ..cubicTo(7, -2, 11, 10, 9, 22)
-      ..cubicTo(7, 26, 3, 26, 0, 26)
-      ..cubicTo(-3, 26, -7, 26, -9, 22)
-      ..cubicTo(-11, 10, -7, -2, 0, -6)
+      ..moveTo(0, -4)
+      ..cubicTo(8, 0, 12, 12, 9, 20)
+      ..cubicTo(6, 24, 3, 22, 0, 22)
+      ..cubicTo(-3, 22, -6, 24, -9, 20)
+      ..cubicTo(-12, 12, -8, 0, 0, -4)
       ..close();
     final whiteShader = ui.Gradient.linear(
-      const Offset(-10, 0),
-      const Offset(10, 0),
-      [const Color(0xFFE8E0D0), const Color(0xFFFAF5EA), const Color(0xFFFAF5EA), const Color(0xFFD8D0C0)],
-      [0.0, 0.3, 0.7, 1.0],
+      const Offset(-11, 8),
+      const Offset(11, 8),
+      [const Color(0xFFDDD5C5), const Color(0xFFFAF5EA), const Color(0xFFFAF5EA), const Color(0xFFD0C8B8)],
+      [0.0, 0.35, 0.65, 1.0],
     );
     canvas.drawPath(whitePath, Paint()..shader = whiteShader);
     canvas.drawPath(
       whitePath,
       Paint()
-        ..color = Colors.black.withOpacity(0.12)
+        ..color = Colors.black.withOpacity(0.1)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.7,
+        ..strokeWidth = 0.6,
     );
 
-    // Red top portion (above waterline)
+    // Red top — more oval
     final redPath = Path()
-      ..moveTo(0, -22)
-      ..cubicTo(5, -20, 8, -14, 7, -6)
-      ..lineTo(-7, -6)
-      ..cubicTo(-8, -14, -5, -20, 0, -22)
+      ..moveTo(0, -20)
+      ..cubicTo(6, -18, 9, -12, 8, -4)
+      ..lineTo(-8, -4)
+      ..cubicTo(-9, -12, -6, -18, 0, -20)
       ..close();
     final redShader = ui.Gradient.linear(
-      const Offset(-8, -14),
-      const Offset(8, -14),
-      [const Color(0xFFA02020), const Color(0xFFD43838), const Color(0xFFE04040), const Color(0xFFA02020)],
-      [0.0, 0.3, 0.6, 1.0],
+      const Offset(-8, -12),
+      const Offset(8, -12),
+      [const Color(0xFFCC2020), const Color(0xFFFF3838), const Color(0xFFFF4444), const Color(0xFFCC2020)],
+      [0.0, 0.25, 0.55, 1.0],
     );
     canvas.drawPath(redPath, Paint()..shader = redShader);
     canvas.drawPath(
@@ -327,14 +331,14 @@ class _FloatPainter extends CustomPainter {
     const double antTop = -70;
     const double antBase = -22;
 
-    // Tapered stick
+    // Stick (tapered)
     final stickPath = Path()
-      ..moveTo(-stickW / 2 - 0.3, antBase)
-      ..lineTo(-stickW / 2, antTop + 8)
-      ..lineTo(stickW / 2, antTop + 8)
-      ..lineTo(stickW / 2 + 0.3, antBase)
+      ..moveTo(-stickW / 2 - 0.2, antBase)
+      ..lineTo(-stickW / 2, antTop + 7)
+      ..lineTo(stickW / 2, antTop + 7)
+      ..lineTo(stickW / 2 + 0.2, antBase)
       ..close();
-    canvas.drawPath(stickPath, Paint()..color = const Color(0xFFE04040));
+    canvas.drawPath(stickPath, Paint()..color = const Color(0xFFFF3838));
 
     // White band
     const double bandY = antTop + (antBase - antTop) * 0.5;
@@ -345,21 +349,21 @@ class _FloatPainter extends CustomPainter {
 
     // Ball on top
     final ballShader = ui.Gradient.radial(
-      Offset(-1, antTop + 6.5),
-      0.5,
-      [const Color(0xFFFF6060), const Color(0xFFD43838), const Color(0xFFA02020)],
-      [0.0, 0.5, 1.0],
+      Offset(-0.8, antTop + 5.5),
+      0.3,
+      [const Color(0xFFFF7070), const Color(0xFFFF3838), const Color(0xFFCC2020)],
+      [0.0, 0.4, 1.0],
     );
     canvas.drawCircle(
-      Offset(0, antTop + 8),
-      3.8,
+      Offset(0, antTop + 7),
+      3.5,
       Paint()..shader = ballShader,
     );
     // Highlight
     canvas.drawCircle(
-      Offset(-1.2, antTop + 6.5),
-      1.2,
-      Paint()..color = Colors.white.withOpacity(0.5),
+      Offset(-1, antTop + 5.5),
+      1,
+      Paint()..color = Colors.white.withOpacity(0.55),
     );
 
     canvas.restore();

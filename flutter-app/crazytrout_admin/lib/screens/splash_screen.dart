@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/float_preloader.dart';
+
 /// Экран загрузки (прелоадер) — показывает крупный логотип на кремовом фоне
 /// пока приложение инициализируется.
 class SplashScreen extends StatelessWidget {
@@ -12,8 +14,7 @@ class SplashScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Крупный логотип на весь экран (с прозрачным фоном — без белой
-            // подложки вокруг), а не маленький бокс 320×320.
+            // Крупный логотип на весь экран
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -23,15 +24,11 @@ class SplashScreen extends StatelessWidget {
                 ),
               ),
             ),
+            // Поплавок-прелоадер
             const Padding(
               padding: EdgeInsets.only(bottom: 40),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Color(0xFFE8912B),
-                ),
+              child: FloatPreloader(
+                label: 'Загрузка…',
               ),
             ),
           ],

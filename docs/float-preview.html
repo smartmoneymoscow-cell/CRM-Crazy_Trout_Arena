@@ -8,7 +8,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Inter', -apple-system, sans-serif;
-  background: #1a1a1a;
+  background: #111;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,43 +18,11 @@ body {
   padding: 20px;
 }
 h1 { color: #fff; font-size: 18px; font-weight: 600; }
-h2 { color: #8C8576; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
-.card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 24px 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  width: 260px;
-}
-canvas { display: block; }
-.progress-track {
-  width: 160px;
-  height: 4px;
-  background: #F3EEE4;
-  border-radius: 2px;
-  margin: 10px auto 8px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #D4A85A, #E89829);
-  border-radius: 2px;
-  transition: width 0.15s linear;
-}
-.label {
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: #8C8576;
-}
+h2 { color: #8C8576; font-size: 13px; font-weight: 500; margin-bottom: 8px; }
 .controls {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -74,30 +42,111 @@ canvas { display: block; }
   color: #fff;
   border-color: #E89829;
 }
+
+/* Phone frame */
+.phone {
+  width: 280px;
+  height: 560px;
+  background: #1a1a1a;
+  border-radius: 36px;
+  border: 3px solid #333;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 2px #222;
+  overflow: hidden;
+  position: relative;
+}
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 22px;
+  background: #1a1a1a;
+  border-radius: 0 0 16px 16px;
+  z-index: 10;
+}
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #FBF6EC;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.phone-logo {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: #2C5F3C;
+  text-align: center;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.phone-logo-sub {
+  font-family: Georgia, serif;
+  font-size: 10px;
+  color: #6B8F7B;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+}
+.phone-status {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.phone-status-text {
+  font-size: 10px;
+  color: #8C8576;
+  font-weight: 600;
+}
+
+/* Standalone card */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+canvas { display: block; }
 </style>
 </head>
 <body>
 
 <h1>🐟 Float Preloader — v6</h1>
 
-<div class="card">
-  <h2>Покой + Поклёвка</h2>
-  <canvas id="c1" width="300" height="200"></canvas>
-  <div class="progress-track"><div id="fill1" class="progress-fill"></div></div>
-  <div class="label" id="label1">Ищем принтеры…</div>
-  <div class="controls">
-    <button class="accent" onclick="triggerBite()">🎣 Поклёвка</button>
-    <button onclick="togglePause()">⏸ Пауза</button>
+<!-- Phone emulator with splash screen -->
+<div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+  <h2>Экран загрузки (эмулятор)</h2>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="phone-logo">🐟 CRAZY TROUT</div>
+      <div class="phone-logo-sub">A R E N A</div>
+      <canvas id="phone-float" width="200" height="120"></canvas>
+      <div class="phone-status">
+        <div class="phone-status-text" id="phone-label">Загрузка…</div>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- Standalone -->
 <div class="card">
-  <h2>Печать (determinate)</h2>
-  <canvas id="c2" width="300" height="200"></canvas>
-  <div class="progress-track"><div id="fill2" class="progress-fill"></div></div>
-  <div class="label" id="label2">Подключение…</div>
+  <h2>Поклёвка</h2>
+  <canvas id="c1" width="300" height="180"></canvas>
   <div class="controls">
-    <button onclick="animateDet()">▶ Печать</button>
+    <button class="accent" onclick="f1.triggerBite()">🎣 Поклёвка</button>
+    <button onclick="f1.paused = !f1.paused">⏸ Пауза</button>
   </div>
 </div>
 
@@ -115,6 +164,7 @@ class FloatAnimator {
     this.biteTime = 0;
     this.biteDipOffset = 0;
     this.biteTilt = 0;
+    this.ripples = [];
     this.running = true;
     this.loop();
   }
@@ -124,6 +174,7 @@ class FloatAnimator {
     if (!this.paused) {
       this.bobTime += this.bobSpeed;
       this.updateBite();
+      this.updateRipples();
     }
     this.draw();
     requestAnimationFrame(() => this.loop());
@@ -133,33 +184,50 @@ class FloatAnimator {
     if (this.bitePhase !== 0) return;
     this.bitePhase = 1;
     this.biteTime = 0;
+    // Add ripple at start
+    this.ripples.push({ r: 5, alpha: 0.4, age: 0 });
+  }
+
+  updateRipples() {
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const rip = this.ripples[i];
+      rip.age += 0.02;
+      rip.r += 1.2;
+      rip.alpha = Math.max(0, 0.4 - rip.age * 0.25);
+      if (rip.alpha <= 0) this.ripples.splice(i, 1);
+    }
   }
 
   updateBite() {
     if (this.bitePhase === 0) return;
-    this.biteTime += 0.025;
+    this.biteTime += 0.035; // faster
     switch (this.bitePhase) {
-      case 1:
-        this.biteDipOffset = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 30;
-        this.biteTilt = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 0.12;
-        if (this.biteTime >= 0.3) { this.bitePhase = 2; this.biteTime = 0; }
+      case 1: // Quick sharp dip
+        this.biteDipOffset = this.easeOutCubic(Math.min(this.biteTime / 0.2, 1)) * 35;
+        this.biteTilt = this.easeOutCubic(Math.min(this.biteTime / 0.2, 1)) * 0.18;
+        if (this.biteTime >= 0.2) { this.bitePhase = 2; this.biteTime = 0; this.ripples.push({ r: 8, alpha: 0.5, age: 0 }); }
         break;
-      case 2:
-        this.biteDipOffset = 30 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 25;
-        this.biteTilt = 0.12 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 0.08;
-        if (this.biteTime >= 0.5) { this.bitePhase = 3; this.biteTime = 0; }
+      case 2: // Submerge deep
+        this.biteDipOffset = 35 + this.easeInOutCubic(Math.min(this.biteTime / 0.35, 1)) * 40;
+        this.biteTilt = 0.18 + this.easeInOutCubic(Math.min(this.biteTime / 0.35, 1)) * 0.1;
+        if (this.biteTime >= 0.35) { this.bitePhase = 3; this.biteTime = 0; }
         break;
-      case 3:
-        const riseT = this.easeOutBounce(Math.min(this.biteTime / 0.8, 1));
-        this.biteDipOffset = 55 * (1 - riseT);
-        this.biteTilt = 0.2 * (1 - riseT);
+      case 3: // Stay under water (pause submerged)
+        this.biteDipOffset = 75;
+        this.biteTilt = 0.28;
         if (this.biteTime >= 0.8) { this.bitePhase = 4; this.biteTime = 0; }
         break;
-      case 4:
-        const wobbleT = Math.min(this.biteTime / 1.2, 1);
-        this.biteDipOffset = Math.sin(this.biteTime * 12) * 3 * (1 - wobbleT);
-        this.biteTilt = Math.sin(this.biteTime * 10) * 0.02 * (1 - wobbleT);
-        if (this.biteTime >= 1.2) { this.bitePhase = 0; this.biteDipOffset = 0; this.biteTilt = 0; }
+      case 4: // Rise with bounce
+        const riseT = this.easeOutBounce(Math.min(this.biteTime / 0.7, 1));
+        this.biteDipOffset = 75 * (1 - riseT);
+        this.biteTilt = 0.28 * (1 - riseT);
+        if (this.biteTime >= 0.7) { this.bitePhase = 5; this.biteTime = 0; this.ripples.push({ r: 5, alpha: 0.3, age: 0 }); }
+        break;
+      case 5: // Wobble settle
+        const wt = Math.min(this.biteTime / 1.0, 1);
+        this.biteDipOffset = Math.sin(this.biteTime * 14) * 3 * (1 - wt);
+        this.biteTilt = Math.sin(this.biteTime * 12) * 0.02 * (1 - wt);
+        if (this.biteTime >= 1.0) { this.bitePhase = 0; this.biteDipOffset = 0; this.biteTilt = 0; }
         break;
     }
   }
@@ -180,143 +248,141 @@ class FloatAnimator {
     const cx = w / 2;
     ctx.clearRect(0, 0, w, h);
 
-    const waterY = h * 0.58;
-    const bob = Math.sin(this.bobTime * Math.PI) * 5;
+    const waterY = h * 0.6;
+    const bob = Math.sin(this.bobTime * Math.PI) * 4;
     const extraDip = this.biteDipOffset;
 
     // Water
-    ctx.fillStyle = 'rgba(42, 106, 126, 0.08)';
+    ctx.fillStyle = 'rgba(42, 106, 126, 0.06)';
     ctx.fillRect(0, waterY, w, h - waterY);
     ctx.beginPath();
     ctx.moveTo(0, waterY);
     ctx.lineTo(w, waterY);
-    ctx.strokeStyle = 'rgba(42, 106, 126, 0.25)';
+    ctx.strokeStyle = 'rgba(42, 106, 126, 0.2)';
     ctx.lineWidth = 1;
     ctx.stroke();
+
+    // Ripples
+    for (const rip of this.ripples) {
+      ctx.beginPath();
+      ctx.ellipse(cx, waterY, rip.r, rip.r * 0.2, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(42, 106, 126, ${rip.alpha})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
 
     // === FLOAT ===
     ctx.save();
     ctx.translate(cx, waterY - 2 + bob + extraDip);
     ctx.rotate(this.biteTilt);
 
-    // --- Keel (draw first, behind body) ---
+    // Keel
     ctx.beginPath();
-    ctx.moveTo(0, 26);
-    ctx.lineTo(0, 42);
+    ctx.moveTo(0, 22);
+    ctx.lineTo(0, 36);
     ctx.strokeStyle = '#6B5B3A';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.3;
     ctx.lineCap = 'round';
     ctx.stroke();
-    // Keel weight — small tapered oval
     ctx.beginPath();
-    ctx.ellipse(0, 44, 3, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 38, 2.5, 4.5, 0, 0, Math.PI * 2);
     ctx.fillStyle = '#4A3D28';
     ctx.fill();
+
+    // --- Body: oval/pear ---
+    // White bottom
     ctx.beginPath();
-    ctx.ellipse(0, 44, 3, 5, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 0.5;
+    ctx.moveTo(0, -4);
+    ctx.bezierCurveTo(8, 0, 12, 12, 9, 20);
+    ctx.bezierCurveTo(6, 24, 3, 22, 0, 22);
+    ctx.bezierCurveTo(-3, 22, -6, 24, -9, 20);
+    ctx.bezierCurveTo(-12, 12, -8, 0, 0, -4);
+    ctx.closePath();
+    const wg = ctx.createLinearGradient(-11, 8, 11, 8);
+    wg.addColorStop(0, '#DDD5C5');
+    wg.addColorStop(0.35, '#FAF5EA');
+    wg.addColorStop(0.65, '#FAF5EA');
+    wg.addColorStop(1, '#D0C8B8');
+    ctx.fillStyle = wg;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 0.6;
     ctx.stroke();
 
-    // --- Body: realistic pear shape using bezier curves ---
-    // The body is a classic "груша" (pear) shape — narrow at top, wide at bottom
-
-    // White bottom portion (below waterline)
+    // Red top — more oval
     ctx.beginPath();
-    ctx.moveTo(0, -6);          // top junction
-    ctx.bezierCurveTo(7, -2, 11, 10, 9, 22);   // right side
-    ctx.bezierCurveTo(7, 26, 3, 26, 0, 26);    // bottom right
-    ctx.bezierCurveTo(-3, 26, -7, 26, -9, 22); // bottom left
-    ctx.bezierCurveTo(-11, 10, -7, -2, 0, -6); // left side
+    ctx.moveTo(0, -20);
+    ctx.bezierCurveTo(6, -18, 9, -12, 8, -4);
+    ctx.lineTo(-8, -4);
+    ctx.bezierCurveTo(-9, -12, -6, -18, 0, -20);
     ctx.closePath();
-    const whiteGrad = ctx.createLinearGradient(-10, 0, 10, 0);
-    whiteGrad.addColorStop(0, '#E8E0D0');
-    whiteGrad.addColorStop(0.3, '#FAF5EA');
-    whiteGrad.addColorStop(0.7, '#FAF5EA');
-    whiteGrad.addColorStop(1, '#D8D0C0');
-    ctx.fillStyle = whiteGrad;
+    const rg = ctx.createLinearGradient(-9, -12, 9, -12);
+    rg.addColorStop(0, '#CC2020');
+    rg.addColorStop(0.25, '#FF3838');
+    rg.addColorStop(0.55, '#FF4444');
+    rg.addColorStop(1, '#CC2020');
+    ctx.fillStyle = rg;
     ctx.fill();
-    // Outline
     ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 0.7;
+    ctx.lineWidth = 0.6;
     ctx.stroke();
 
-    // Red top portion (above waterline)
+    // Gloss
     ctx.beginPath();
-    ctx.moveTo(0, -22);         // top point (narrow)
-    ctx.bezierCurveTo(5, -20, 8, -14, 7, -6);   // right side
-    ctx.lineTo(-7, -6);         // bottom edge (waterline)
-    ctx.bezierCurveTo(-8, -14, -5, -20, 0, -22); // left side
-    ctx.closePath();
-    const redGrad = ctx.createLinearGradient(-8, -14, 8, -14);
-    redGrad.addColorStop(0, '#A02020');
-    redGrad.addColorStop(0.3, '#D43838');
-    redGrad.addColorStop(0.6, '#E04040');
-    redGrad.addColorStop(1, '#A02020');
-    ctx.fillStyle = redGrad;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 0.7;
-    ctx.stroke();
-
-    // Glossy highlight on red
-    ctx.beginPath();
-    ctx.ellipse(-2, -14, 2, 6, -0.1, 0, Math.PI * 2);
+    ctx.ellipse(-2.5, -12, 2, 5.5, -0.1, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.fill();
 
-    // Waterline ring (thin band at junction)
+    // Waterline ring
     ctx.beginPath();
-    ctx.ellipse(0, -6, 7.5, 1.5, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(100,80,50,0.25)';
-    ctx.lineWidth = 0.8;
+    ctx.ellipse(0, -4, 8.5, 1.2, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(80,60,30,0.2)';
+    ctx.lineWidth = 0.7;
     ctx.stroke();
 
     // --- Antenna ---
-    // Thin stick emerging from top of body
-    const stickW = 1.8;
-    const antTop = -70;
-    const antBase = -22;
+    const stickW = 1.6;
+    const antTop = -62;
+    const antBase = -20;
 
-    // Stick — slight taper (thinner at top)
+    // Stick (tapered)
     ctx.beginPath();
-    ctx.moveTo(-stickW/2 - 0.3, antBase);
-    ctx.lineTo(-stickW/2, antTop + 8);
-    ctx.lineTo(stickW/2, antTop + 8);
-    ctx.lineTo(stickW/2 + 0.3, antBase);
+    ctx.moveTo(-stickW/2 - 0.2, antBase);
+    ctx.lineTo(-stickW/2, antTop + 7);
+    ctx.lineTo(stickW/2, antTop + 7);
+    ctx.lineTo(stickW/2 + 0.2, antBase);
     ctx.closePath();
-    ctx.fillStyle = '#E04040';
+    ctx.fillStyle = '#FF3838';
     ctx.fill();
 
-    // White band on stick
-    const bandY = antTop + (antBase - antTop) * 0.5;
+    // White band
+    const bandY = antTop + (antBase - antTop) * 0.48;
     ctx.beginPath();
-    ctx.rect(-stickW/2 - 0.2, bandY, stickW + 0.4, 4);
+    ctx.rect(-stickW/2 - 0.3, bandY, stickW + 0.6, 3.5);
     ctx.fillStyle = '#F5F0E3';
     ctx.fill();
 
-    // Ball on top
+    // Ball
     ctx.beginPath();
-    ctx.arc(0, antTop + 8, 3.8, 0, Math.PI * 2);
-    const ballGrad = ctx.createRadialGradient(-1, antTop + 6.5, 0.5, 0, antTop + 8, 3.8);
-    ballGrad.addColorStop(0, '#FF6060');
-    ballGrad.addColorStop(0.5, '#D43838');
-    ballGrad.addColorStop(1, '#A02020');
-    ctx.fillStyle = ballGrad;
+    ctx.arc(0, antTop + 7, 3.5, 0, Math.PI * 2);
+    const bg = ctx.createRadialGradient(-0.8, antTop + 5.5, 0.3, 0, antTop + 7, 3.5);
+    bg.addColorStop(0, '#FF7070');
+    bg.addColorStop(0.4, '#FF3838');
+    bg.addColorStop(1, '#CC2020');
+    ctx.fillStyle = bg;
     ctx.fill();
-    // Highlight
     ctx.beginPath();
-    ctx.arc(-1.2, antTop + 6.5, 1.2, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.arc(-1, antTop + 5.5, 1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.fill();
 
-    // --- Fishing line (леска) ---
+    // Fishing line
     ctx.beginPath();
     ctx.setLineDash([2, 3]);
-    ctx.moveTo(0, 49);
-    ctx.lineTo(0, 65);
-    ctx.strokeStyle = 'rgba(100,100,100,0.12)';
-    ctx.lineWidth = 0.5;
+    ctx.moveTo(0, 43);
+    ctx.lineTo(0, 56);
+    ctx.strokeStyle = 'rgba(100,100,100,0.1)';
+    ctx.lineWidth = 0.4;
     ctx.stroke();
     ctx.setLineDash([]);
 
@@ -326,36 +392,25 @@ class FloatAnimator {
   destroy() { this.running = false; }
 }
 
-// === Canvas 1: Bite demo ===
-const f1 = new FloatAnimator(document.getElementById('c1'));
-const fill1 = document.getElementById('fill1');
-let p1 = 0;
-function tick1() {
-  p1 += 0.004;
-  if (p1 >= 1) p1 = 0;
-  fill1.style.width = (p1 * 100) + '%';
-  requestAnimationFrame(tick1);
+// Phone float (smaller, slower)
+const fp = new FloatAnimator(document.getElementById('phone-float'), { bobSpeed: 0.015 });
+const phoneLabel = document.getElementById('phone-label');
+let ph = 0;
+function tickPhone() {
+  ph += 0.003;
+  if (ph >= 1) ph = 0;
+  if (ph < 0.3) phoneLabel.textContent = 'Загрузка…';
+  else if (ph < 0.6) phoneLabel.textContent = 'Инициализация…';
+  else if (ph < 0.85) phoneLabel.textContent = 'Подключение…';
+  else phoneLabel.textContent = 'Почти готово…';
+  requestAnimationFrame(tickPhone);
 }
-tick1();
-function triggerBite() { f1.triggerBite(); }
-function togglePause() { f1.paused = !f1.paused; }
+tickPhone();
+// Auto bite on phone every ~8s
+setInterval(() => fp.triggerBite(), 8000);
 
-// === Canvas 2: Determinate ===
-const f2 = new FloatAnimator(document.getElementById('c2'), { bobSpeed: 0.014 });
-const fill2 = document.getElementById('fill2');
-const label2 = document.getElementById('label2');
-function animateDet() {
-  let p = 0;
-  fill2.style.width = '0%';
-  label2.textContent = 'Подключение…';
-  const iv = setInterval(() => {
-    p += 0.01;
-    if (p >= 0.3 && p < 0.32) { label2.textContent = 'Печать…'; f2.triggerBite(); }
-    if (p >= 0.7 && p < 0.72) { label2.textContent = 'Отправка данных…'; }
-    if (p >= 1) { p = 1; clearInterval(iv); label2.textContent = 'Чек отправлен ✓'; }
-    fill2.style.width = (p * 100) + '%';
-  }, 50);
-}
+// Standalone
+const f1 = new FloatAnimator(document.getElementById('c1'));
 </script>
 
 </body>
