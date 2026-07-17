@@ -1164,11 +1164,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
         if (_isFilterOpen)
           Positioned(
             top: 36, left: 20,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {}, // Блокирует всплытие к close-слою.
-              child: _buildDropdown(),
-            ),
+            child: _buildDropdown(),
           ),
       ])),
     );
