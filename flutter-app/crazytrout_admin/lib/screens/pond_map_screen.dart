@@ -1139,9 +1139,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
           const SizedBox(height: 16),
           // Фильтры + dropdown: Stack — dropdown поверх контента, не двигает его.
           Stack(clipBehavior: Clip.none, children: [
-            // Кнопка фильтров — единственный non-positioned ребёнок.
             _buildFilterRow(free, occupied),
-            // Dropdown поверх контента.
             if (_isFilterOpen)
               Positioned(top: 36, left: 0, child: _buildDropdown()),
           ]),

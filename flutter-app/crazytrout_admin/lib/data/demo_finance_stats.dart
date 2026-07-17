@@ -8,6 +8,8 @@
 
 import 'package:flutter/material.dart';
 import '../data/demo_receipts.dart';
+import '../models/receipt_history.dart';
+import '../models/receipt_history.dart';
 
 class FinanceStats {
   final double revenue;         // выручка за период, ₽
