@@ -2,8 +2,12 @@
 // demo_finance_stats.dart — Демо-данные для финансового дашборда экрана
 // «Отчёт» (вкладка «Финансы и метрики»).
 //
-// В production заменяется на выборку из backend за выбранный период.
+// buildFinanceStats() — динамическая версия, фильтрует kDemoReceipts
+// по dateRange. kDemoFinanceStats оставлен как fallback.
 // ============================================================================
+
+import 'package:flutter/material.dart';
+import '../data/demo_receipts.dart';
 
 class FinanceStats {
   final double revenue;         // выручка за период, ₽
@@ -12,7 +16,6 @@ class FinanceStats {
   final double variableExpenses; // переменные расходы, ₽
 
   // Точки для спарклайна тренда выручки, нормализованные 0..1
-  // (0 — минимум графика, 1 — максимум).
   final List<double> sparkline;
 
   const FinanceStats({
@@ -40,3 +43,96 @@ const kDemoFinanceStats = FinanceStats(
     0.62, 0.40, 0.46, 0.86, 0.94, 1.00,
   ],
 );
+
+/// Строит FinanceStats из демо-чеков с фильтрацией по [dateRange].
+/// Если dateRange == null, берёт все чеки.
+FinanceStats buildFinanceStats({DateTimeRange? dateRange}) {
+  // ── Фильтрация чеков ──
+  final filtered = <ReceiptHistoryItem>[];
+  final prevFiltered = <ReceiptHistoryItem>[];
+
+  // Длительность периода для расчёта «прошлого периода»
+  Duration periodDuration;
+  if (dateRange != null) {
+    periodDuration = dateRange.end.difference(dateRange.start);
+  } else {
+    // Для «всего времени» — сравниваем с пустым прошлым периодом
+    periodDuration = const Duration(days: 30);
+  }
+
+  for (final r in kDemoReceipts) {
+    final d = DateTime(r.date.year, r.date.month, r.date.day);
+
+    if (dateRange != null) {
+      final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+      final e = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+
+      // Текущий период
+      if (!d.isBefore(s) && !d.isAfter(e)) {
+        filtered.add(r);
+      }
+
+      // Прошлый период (той же длительности, перед текущим)
+      final prevEnd = s.subtract(const Duration(days: 1));
+      final prevStart = prevEnd.subtract(periodDuration);
+      if (!d.isBefore(prevStart) && !d.isAfter(prevEnd)) {
+        prevFiltered.add(r);
+      }
+    } else {
+      filtered.add(r);
+    }
+  }
+
+  // ── Вычисление выручки ──
+  final revenue = filtered.fold<double>(0, (s, r) => s + r.total);
+  final prevRevenue = prevFiltered.fold<double>(0, (s, r) => s + r.total);
+
+  final deltaPct = prevRevenue > 0
+      ? ((revenue - prevRevenue) / prevRevenue * 100)
+      : (revenue > 0 ? 100.0 : 0.0);
+
+  // ── Маржа и расходы (из данных чеков) ──
+  // Маржинальная прибыль: выручка от рыбы (с наценкой) минус себестоимость
+  // Условно: тариф — чистая маржа, рыба — 45% маржа
+  double fishRevenue = 0;
+  double tariffRevenue = 0;
+  for (final r in filtered) {
+    tariffRevenue += r.tariffPrice;
+    for (final row in r.rows) {
+      fishRevenue += row.sum;
+    }
+  }
+  // Маржа: тариф 100% + рыба 45%
+  final marginProfit = tariffRevenue + fishRevenue * 0.45;
+  final variableExpenses = revenue - marginProfit;
+
+  // ── Спарклайн (агрегация по дням) ──
+  final dayMap = <String, double>{};
+  for (final r in filtered) {
+    final key = '${r.date.year}-${r.date.month.toString().padLeft(2, '0')}-${r.date.day.toString().padLeft(2, '0')}';
+    dayMap[key] = (dayMap[key] ?? 0) + r.total;
+  }
+
+  List<double> sparkline;
+  if (dayMap.length >= 2) {
+    final sorted = dayMap.values.toList()..sort();
+    final minVal = sorted.first;
+    final maxVal = sorted.last;
+    final range = maxVal - minVal;
+    sparkline = dayMap.keys.toList()..sort();
+    sparkline = (dayMap.keys.toList()..sort())
+        .map((k) => range > 0 ? (dayMap[k]! - minVal) / range : 0.5)
+        .toList();
+  } else {
+    // Недостаточно точек — рисуем ровную линию
+    sparkline = [0.5, 0.5];
+  }
+
+  return FinanceStats(
+    revenue: revenue,
+    revenueDeltaPct: deltaPct,
+    marginProfit: marginProfit,
+    variableExpenses: variableExpenses,
+    sparkline: sparkline,
+  );
+}

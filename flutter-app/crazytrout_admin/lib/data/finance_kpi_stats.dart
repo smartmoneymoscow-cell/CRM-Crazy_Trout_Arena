@@ -1,5 +1,7 @@
 // ============================================================================
 // finance_kpi_stats.dart — Агрегация KPI-метрик из демо-чеков.
+//
+// Все метрики фильтруются по dateRange.
 // ============================================================================
 
 import 'package:flutter/material.dart';
@@ -35,9 +37,9 @@ class FinanceKpiStats {
 /// Строит KPI-статистику из демо-чеков.
 /// [dateRange] — если задан, фильтрует чеки по дате.
 FinanceKpiStats buildFinanceKpiStats({DateTimeRange? dateRange}) {
+  // ── Фильтрация чеков (без гостей для большинства метрик) ──
   final nonGuestReceipts = kDemoReceipts.where((r) {
     if (r.isGuest) return false;
-    // Фильтр по дате
     if (dateRange != null) {
       final d = DateTime(r.date.year, r.date.month, r.date.day);
       final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
@@ -47,65 +49,78 @@ FinanceKpiStats buildFinanceKpiStats({DateTimeRange? dateRange}) {
     return true;
   }).toList();
 
-  final totalRevenue = nonGuestReceipts.fold<double>(0, (s, r) => s + r.total);
-  final avgCheck = nonGuestReceipts.isNotEmpty
-      ? totalRevenue / nonGuestReceipts.length
-      : 0.0;
+  // Все чеки (включая гостей) — для общего количества
+  final allFiltered = kDemoReceipts.where((r) {
+    if (dateRange != null) {
+      final d = DateTime(r.date.year, r.date.month, r.date.day);
+      final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+      final e = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+      if (d.isBefore(s) || d.isAfter(e)) return false;
+    }
+    return true;
+  }).toList();
 
-  const visitsMap = <int, int>{
-    1: 42, 2: 18, 3: 55, 5: 21, 6: 68, 7: 7, 8: 14, 100: 1,
-  };
-  const ltvMap = <int, int>{
-    1: 120, 2: 54, 3: 1200, 5: 68, 6: 2400, 7: 15, 8: 46, 100: 1,
-  };
+  // ── Средний чек и количество оплат ──
+  final totalRevenue = allFiltered.fold<double>(0, (s, r) => s + r.total);
+  final avgCheck = allFiltered.isNotEmpty ? totalRevenue / allFiltered.length : 0.0;
+  final paymentsCount = allFiltered.length;
 
-  final clients = app_data.kDemoClients;
-  final clientVisits = <int>[];
-  final clientLtv = <int>[];
-  for (final c in clients) {
-    final v = visitsMap[c.id] ?? 0;
-    final l = ltvMap[c.id] ?? 0;
-    if (v > 0) clientVisits.add(v);
-    if (l > 0) clientLtv.add(l);
+  // ── Визиты на клиента (сколько раз каждый клиент приходил в периоде) ──
+  final clientVisitCount = <int, int>{};
+  for (final r in nonGuestReceipts) {
+    if (r.client != null) {
+      clientVisitCount[r.client!.id] = (clientVisitCount[r.client!.id] ?? 0) + 1;
+    }
   }
-
-  final avgVisits = clientVisits.isNotEmpty
-      ? clientVisits.reduce((a, b) => a + b) / clientVisits.length
-      : 0.0;
-  final avgLtv = clientLtv.isNotEmpty
-      ? clientLtv.reduce((a, b) => a + b) / clientLtv.length * 1000.0
+  final visitCounts = clientVisitCount.values.toList();
+  final avgVisits = visitCounts.isNotEmpty
+      ? visitCounts.reduce((a, b) => a + b) / visitCounts.length
       : 0.0;
 
-  final totalClients = clients.length;
-  final returning = clientVisits.where((v) => v > 1).length;
+  // ── LTV на клиента (сколько потратил в периоде, в ₽) ──
+  final clientSpending = <int, double>{};
+  for (final r in nonGuestReceipts) {
+    if (r.client != null) {
+      clientSpending[r.client!.id] = (clientSpending[r.client!.id] ?? 0) + r.total;
+    }
+  }
+  final spendingValues = clientSpending.values.toList();
+  final avgLtv = spendingValues.isNotEmpty
+      ? spendingValues.reduce((a, b) => a + b) / spendingValues.length
+      : 0.0;
+
+  // ── Уникальные клиенты и возвращаемость ──
+  final totalClients = clientVisitCount.length;
+  final returning = clientVisitCount.values.where((v) => v > 1).length;
   final returnPct = totalClients > 0 ? returning / totalClients * 100 : 0.0;
 
-  const fishMap = <int, double>{
-    1: 215, 2: 78, 3: 289, 5: 103, 6: 365, 7: 22, 8: 61, 100: 3,
-  };
-  final fishWeights = fishMap.values.where((w) => w > 0).toList();
-  final avgFish = fishWeights.isNotEmpty
-      ? fishWeights.reduce((a, b) => a + b) / fishWeights.length
-      : 0.0;
+  // ── Улов на клиента ──
+  double totalFishCount = 0;
+  double totalFishWeight = 0;
+  for (final r in nonGuestReceipts) {
+    for (final row in r.rows) {
+      totalFishCount += row.weight > 0 ? 1 : 0; // 1 позиция = ~1 шт
+      totalFishWeight += row.weight;
+    }
+  }
+  final avgFishPerClient = totalClients > 0 ? totalFishCount / totalClients : 0.0;
+  final avgWeightPerClient = totalClients > 0 ? totalFishWeight / totalClients : 0.0;
 
-  const weightMap = <int, double>{
-    1: 215, 2: 78, 3: 289, 5: 103, 6: 365, 7: 22, 8: 61, 100: 3,
-  };
-  final weights = weightMap.values.where((w) => w > 0).toList();
-  final avgWeight = weights.isNotEmpty
-      ? weights.reduce((a, b) => a + b) / weights.length
-      : 0.0;
+  // ── Рейтинг (демо — привязан к количеству отзывов за период) ──
+  // В реальном приложении — из таблицы отзывов
+  final reviewsCount = allFiltered.length; // 1 чек = 1 отзыв (условно)
+  final avgRating = reviewsCount > 0 ? (4.2 + (reviewsCount % 10) * 0.04).clamp(4.0, 5.0) : 0.0;
 
   return FinanceKpiStats(
     avgCheck: avgCheck,
-    paymentsCount: nonGuestReceipts.length,
+    paymentsCount: paymentsCount,
     avgVisits: avgVisits,
     avgLtv: avgLtv,
     totalClients: totalClients,
     returnPct: returnPct,
-    avgRating: 4.6,
-    reviewsCount: 128,
-    avgFishPerClient: avgFish,
-    avgWeightPerClient: avgWeight,
+    avgRating: avgRating,
+    reviewsCount: reviewsCount,
+    avgFishPerClient: avgFishPerClient,
+    avgWeightPerClient: avgWeightPerClient,
   );
 }
