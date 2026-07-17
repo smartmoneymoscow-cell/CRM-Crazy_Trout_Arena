@@ -1,0 +1,36 @@
+#!/bin/bash
+# Pre-commit hook: flutter analyze перед пушем в main.
+# Установка: cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Или: git config core.hooksPath .githooks
+
+set -e
+
+# Только для ветки main
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "main" ]; then
+  exit 0
+fi
+
+echo "🔍 flutter analyze (pre-commit)..."
+cd flutter-app/crazytrout_admin
+
+# Проверяем только изменённые .dart файлы
+CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep '\.dart$' || true)
+if [ -z "$CHANGED" ]; then
+  echo "Нет изменённых .dart файлов — пропускаю analyze"
+  exit 0
+fi
+
+# flutter analyze проверяет весь проект (нельзя передать файлы)
+# но это быстро для маленького проекта
+flutter analyze --fatal-infos 2>&1 | tail -20
+RESULT=${PIPESTATUS[0]}
+
+if [ $RESULT -ne 0 ]; then
+  echo ""
+  echo "❌ flutter analyze провалился. Исправьте ошибки перед коммитом."
+  echo "   Для пропуска: git commit --no-verify"
+  exit 1
+fi
+
+echo "✅ flutter analyze OK"

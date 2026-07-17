@@ -35,7 +35,6 @@ import 'pond_map_filter_config.dart';
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
 import '../data/pond_stats.dart';
-import '../models/client.dart';
 
 // ─────────────────────────── Растровые ассеты (встроены base64, без pubspec) ───────────────────────────
 // Реальные фото-текстуры деревьев (вид сверху, прозрачный фон, без белой каймы —
@@ -84,7 +83,7 @@ String _fmt(int h) => '${h.toString().padLeft(2, '0')}:00';
 // статистика подмешивается по id из kPondStatsById. Если для нового клиента
 // ещё нет записи в kPondStatsById — используется безопасный дефолт, а не
 // падение/пропуск клиента.
-final List<Client> _clients = app_data.kDemoClients.map((c) {
+final List<FullClient> _clients = app_data.kDemoClients.map((c) {
   final s = kPondStatsById[c.id] ??
       const PondStats(
         color: Color(0xFF8B94A0), level: LevelKey.basic,
@@ -92,7 +91,7 @@ final List<Client> _clients = app_data.kDemoClients.map((c) {
         firstVisit: '—', lastVisit: '—', email: '—',
         bestCatch: BestCatch(species: '—', weight: '—', sector: 0, date: '—'),
       );
-  return Client(
+  return FullClient(
     id: c.id,
     name: c.name,
     phone: c.phone,
@@ -129,7 +128,7 @@ String formatLtv(int k) {
 // ─────────────────────────── Мок-расписание ───────────────────────────
 class Slot {
   final int start, end;
-  final Client? client;
+  final FullClient client;
   const Slot(this.start, this.end, this.client);
 }
 
@@ -662,13 +661,13 @@ class LevelBadge extends StatelessWidget {
   }
 }
 // ─────────────────────────── Карточка клиента ───────────────────────────
-Future<void> showClientCard(BuildContext context, Client client) {
+Future<void> showClientCard(BuildContext context, FullClient client) {
   return showDialog(context: context, barrierColor: Colors.black.withOpacity(0.5),
     builder: (_) => _ClientCard(client: client));
 }
 
 class _ClientCard extends StatelessWidget {
-  final Client client;
+  final FullClient client;
   const _ClientCard({required this.client});
   @override
   Widget build(BuildContext context) {
@@ -1207,7 +1206,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
     );
   }
 
-  Widget _avatar(Client c, double size) {
+  Widget _avatar(FullClient c, double size) {
     final initials = c.name.split(' ').map((p) => p.isEmpty ? '' : p[0]).take(2).join();
     if (c.avatarAsset != null) {
       return ClipOval(
