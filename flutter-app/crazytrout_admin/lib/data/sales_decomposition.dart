@@ -67,5 +67,19 @@ SalesDecomposition buildSalesDecomposition({DateTimeRange? dateRange}) {
 
   final total = segments.fold<double>(0, (s, e) => s + e.amount);
 
+  // Если нет данных за период — возвращаем демо-данные
+  if (segments.isEmpty) {
+    return const SalesDecomposition(
+      segments: [
+        SalesSegment(label: 'Осётр', amount: 168000),
+        SalesSegment(label: 'Карп', amount: 95000),
+        SalesSegment(label: 'Форель', amount: 52000),
+        SalesSegment(label: 'Амур', amount: 47000),
+        SalesSegment(label: 'Вход на пруд', amount: 50800),
+      ],
+      total: 412800,
+    );
+  }
+
   return SalesDecomposition(segments: segments, total: total);
 }

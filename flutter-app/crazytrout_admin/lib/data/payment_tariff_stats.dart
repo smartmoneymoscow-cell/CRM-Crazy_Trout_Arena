@@ -72,6 +72,23 @@ PaymentTariffStats buildPaymentTariffStats({DateTimeRange? dateRange}) {
 
   final total = payments.fold<double>(0, (s, e) => s + e.amount);
 
+  // Если нет данных за период — возвращаем демо-данные
+  if (payments.isEmpty) {
+    return const PaymentTariffStats(
+      payments: [
+        PaymentBreakdown(label: 'Картой', amount: 234000),
+        PaymentBreakdown(label: 'Наличными', amount: 128000),
+        PaymentBreakdown(label: 'Счет заведения', amount: 50800),
+      ],
+      tariffs: [
+        TariffBreakdown(label: 'Стандарт', amount: 32500, count: 43),
+        TariffBreakdown(label: 'Гостевой', amount: 5500, count: 11),
+        TariffBreakdown(label: 'Пенсионер', amount: 0, count: 3),
+      ],
+      totalRevenue: 412800,
+    );
+  }
+
   return PaymentTariffStats(
     payments: payments,
     tariffs: tariffs,

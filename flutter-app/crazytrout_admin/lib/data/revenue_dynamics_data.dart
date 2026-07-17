@@ -62,7 +62,8 @@ RevenueDynamicsData buildRevenueDynamicsData({DateTimeRange? dateRange}) {
     ));
   }
 
-  if (monthly.isEmpty) {
+  if (monthly.length < 2) {
+    // Недостаточно точек для графика — используем моковые данные
     return RevenueDynamicsData(
       monthly: const [
         PeriodPoint(label: 'Янв', revenue: 280000, margin: 126000, expenses: 154000),
@@ -88,7 +89,7 @@ List<PeriodPoint> _buildWeekly(List<ReceiptHistoryItem> receipts) {
     weekMap[weekNum] = (weekMap[weekNum] ?? 0) + r.total;
   }
 
-  if (weekMap.isEmpty) return _mockWeekly();
+  if (weekMap.length < 2) return _mockWeekly();
 
   final sortedWeeks = weekMap.keys.toList()..sort();
   return sortedWeeks.map((w) {

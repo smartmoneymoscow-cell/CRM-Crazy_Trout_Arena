@@ -9,7 +9,6 @@
 import 'package:flutter/material.dart';
 import '../data/demo_receipts.dart';
 import '../models/receipt_history.dart';
-import '../models/receipt_history.dart';
 
 class FinanceStats {
   final double revenue;         // выручка за период, ₽
@@ -84,6 +83,9 @@ FinanceStats buildFinanceStats({DateTimeRange? dateRange}) {
       filtered.add(r);
     }
   }
+
+  // Если фильтр дал пустой результат — возвращаем дефолтные данные
+  if (filtered.isEmpty) return kDemoFinanceStats;
 
   // ── Вычисление выручки ──
   final revenue = filtered.fold<double>(0, (s, r) => s + r.total);
