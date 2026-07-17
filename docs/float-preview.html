@@ -132,7 +132,8 @@ canvas { display: block; }
     <div class="phone-screen">
       <div class="phone-logo">🐟 CRAZY TROUT</div>
       <div class="phone-logo-sub">A R E N A</div>
-      <canvas id="phone-float" width="200" height="120"></canvas>
+      <div style="flex:1"></div>
+      <canvas id="phone-float" width="100" height="65"></canvas>
       <div class="phone-status">
         <div class="phone-status-text" id="phone-label">Загрузка…</div>
       </div>
@@ -159,6 +160,7 @@ class FloatAnimator {
     this.h = canvas.height;
     this.bobTime = 0;
     this.bobSpeed = opts.bobSpeed || 0.02;
+    this.drawScale = opts.scale || 1;
     this.paused = false;
     this.bitePhase = 0;
     this.biteTime = 0;
@@ -274,6 +276,7 @@ class FloatAnimator {
     // === FLOAT ===
     ctx.save();
     ctx.translate(cx, waterY - 2 + bob + extraDip);
+    if (this.drawScale !== 1) ctx.scale(this.drawScale, this.drawScale);
     ctx.rotate(this.biteTilt);
 
     // Keel
@@ -393,7 +396,7 @@ class FloatAnimator {
 }
 
 // Phone float (smaller, slower)
-const fp = new FloatAnimator(document.getElementById('phone-float'), { bobSpeed: 0.015 });
+const fp = new FloatAnimator(document.getElementById('phone-float'), { bobSpeed: 0.015, scale: 0.45 });
 const phoneLabel = document.getElementById('phone-label');
 let ph = 0;
 function tickPhone() {
