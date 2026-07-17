@@ -3,22 +3,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crazytrout_admin/main.dart';
 
 void main() {
+  // Подавляем overflow-ошибки (RenderFlex overflowed) — это предупреждения,
+  // а не краши. Overflow возникает из-за Stack dropdown на маленьком экране теста.
+  setUp(() {
+    FlutterError.onError = (details) {
+      if (details.exceptionAsString().contains('overflowed')) return;
+      FlutterError.presentError(details);
+    };
+  });
+
+  tearDown(() {
+    FlutterError.onError = FlutterError.presentError;
+  });
+
   group('App — smoke tests', () {
     testWidgets('приложение запускается без крашей', (WidgetTester tester) async {
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        FlutterError.presentError(details);
-      };
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
     });
 
     testWidgets('после SplashScreen показывается HomeShell', (WidgetTester tester) async {
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        FlutterError.presentError(details);
-      };
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
@@ -26,10 +31,6 @@ void main() {
     });
 
     testWidgets('нижнее меню содержит все 5 вкладок', (WidgetTester tester) async {
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        FlutterError.presentError(details);
-      };
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
@@ -41,10 +42,6 @@ void main() {
     });
 
     testWidgets('экран чека содержит заголовок', (WidgetTester tester) async {
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        FlutterError.presentError(details);
-      };
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
@@ -53,10 +50,6 @@ void main() {
     });
 
     testWidgets('поиск клиента и QR-кнопка присутствуют', (WidgetTester tester) async {
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        FlutterError.presentError(details);
-      };
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
