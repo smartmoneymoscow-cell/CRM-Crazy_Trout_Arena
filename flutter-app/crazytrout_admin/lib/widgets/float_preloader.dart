@@ -77,8 +77,8 @@ class FloatPreloaderState extends State<FloatPreloader>
 
   @override
   Widget build(BuildContext context) {
-    const double width = 160;
-    const double height = 140;
+    const double width = 80;
+    const double height = 65;
 
     return SizedBox(
       width: width,
@@ -88,7 +88,7 @@ class FloatPreloaderState extends State<FloatPreloader>
         children: [
           SizedBox(
             width: width,
-            height: 90,
+            height: 45,
             child: AnimatedBuilder(
               animation: Listenable.merge([
                 _bobController,
@@ -96,7 +96,7 @@ class FloatPreloaderState extends State<FloatPreloader>
               ]),
               builder: (context, _) {
                 return CustomPaint(
-                  size: const Size(width, 90),
+                  size: const Size(width, 45),
                   painter: _FloatPainter(
                     bobPhase: _bobController.value,
                     biteValue: _biteController.value,
@@ -105,13 +105,13 @@ class FloatPreloaderState extends State<FloatPreloader>
               },
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           _buildProgressBar(),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             widget.label,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 10,
               fontWeight: FontWeight.w600,
               color: Color(0xFF8C8576),
             ),
@@ -122,8 +122,8 @@ class FloatPreloaderState extends State<FloatPreloader>
   }
 
   Widget _buildProgressBar() {
-    const barWidth = 130.0;
-    const barHeight = 4.0;
+    const barWidth = 60.0;
+    const barHeight = 3.0;
 
     if (widget.progress != null) {
       return Container(
@@ -192,7 +192,7 @@ class _FloatPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final waterY = size.height * 0.58;
-    final bob = sin(bobPhase * pi) * 6.0;
+    final bob = sin(bobPhase * pi) * 3.0;
 
     // Bite animation offsets
     double dipOffset = 0;
@@ -201,21 +201,21 @@ class _FloatPainter extends CustomPainter {
       if (biteValue < 0.08) {
         // Quick sharp dip
         final t = _easeOutCubic(biteValue / 0.08);
-        dipOffset = t * 35;
+        dipOffset = t * 18;
         tilt = t * 0.18;
       } else if (biteValue < 0.22) {
         // Submerge deep
         final t = _easeInOutCubic((biteValue - 0.08) / 0.14);
-        dipOffset = 35 + t * 40;
+        dipOffset = 18 + t * 20;
         tilt = 0.18 + t * 0.1;
       } else if (biteValue < 0.45) {
         // Stay under water
-        dipOffset = 75;
+        dipOffset = 38;
         tilt = 0.28;
       } else if (biteValue < 0.7) {
         // Rise with bounce
         final t = _easeOutBounce((biteValue - 0.45) / 0.25);
-        dipOffset = 75 * (1 - t);
+        dipOffset = 38 * (1 - t);
         tilt = 0.28 * (1 - t);
       } else {
         // Wobble settle
@@ -241,6 +241,7 @@ class _FloatPainter extends CustomPainter {
     // === Float ===
     canvas.save();
     canvas.translate(cx, waterY - 2 + bob + dipOffset);
+    canvas.scale(0.5);
     canvas.rotate(tilt);
 
     // --- Keel (draw first, behind body) ---
