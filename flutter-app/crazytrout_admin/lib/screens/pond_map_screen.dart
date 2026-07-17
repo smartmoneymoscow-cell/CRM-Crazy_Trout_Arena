@@ -890,29 +890,8 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int? selected;
   FilterValue filter = FilterValue.none;
   bool _isFilterOpen = false;
-  final _scrollController = ScrollController();
-  final _filterBtnKey = GlobalKey();
-  final _stackKey = GlobalKey();
-  double _filterBtnTop = 0;
-  double _filterBtnLeft = 0;
-  double _filterBtnWidth = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    // Dropdown остаётся на месте — контент скроллится под ним.
-  }
+  final _filterLink = LayerLink();
+  OverlayEntry? _filterEntry;
 
   List<List<Slot>> get schedules =>
       List.generate(16, (i) => _scheduleFor(date, i + 1));
@@ -929,9 +908,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFEFE9DC),
-      body: SafeArea(child: Stack(key: _stackKey, children: [
-        // Слой 1: вся страница единым скроллом.
-        ListView(controller: _scrollController, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
+      body: SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
             child: Center(child: Text('Карта пруда',
@@ -975,57 +952,50 @@ class _PondMapScreenState extends State<PondMapScreen> {
           const SizedBox(height: 8),
           _buildFeed(scheds),
         ]),
-        // Слой 2: dropdown overlay — поверх всего контента, под нижним меню.
-        if (_isFilterOpen)
-          Positioned(
-            top: _filterBtnTop,
-            left: _filterBtnLeft,
-            child: _buildDropdown(),
-          ),
-      ])),
     );
   }
 
   void _toggleFilter() {
     if (_isFilterOpen) {
-      setState(() => _isFilterOpen = false);
+      _closeFilter();
     } else {
-      setState(() => _isFilterOpen = true);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateFilterBtnPosition();
-        if (mounted) setState(() {});
-      });
+      _isFilterOpen = true;
+      _filterEntry = OverlayEntry(
+        builder: (ctx) => Stack(children: [
+          // Tap-to-close по пустому месту
+          Positioned.fill(child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _closeFilter,
+          )),
+          // Dropdown следует за кнопкой через CompositedTransformFollower
+          CompositedTransformFollower(
+            link: _filterLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, kFilterRowHeight + kDropdownGap),
+            child: _buildDropdown(),
+          ),
+        ]),
+      );
+      Overlay.of(context).insert(_filterEntry!);
     }
   }
-  void _closeFilter() { if (mounted && _isFilterOpen) setState(() => _isFilterOpen = false); }
 
-  /// Вычисляет глобальную позицию кнопки фильтров относительно Stack.
-  void _updateFilterBtnPosition() {
-    final btnCtx = _filterBtnKey.currentContext;
-    if (btnCtx == null) return;
-    final btnBox = btnCtx.findRenderObject() as RenderBox?;
-    if (btnBox == null || !btnBox.attached) return;
-    final btnPos = btnBox.localToGlobal(Offset.zero);
-    final btnSize = btnBox.size;
-    // Координаты Stack — контейнера для Positioned dropdown.
-    final stackCtx = _stackKey.currentContext;
-    if (stackCtx == null) return;
-    final stackBox = stackCtx.findRenderObject() as RenderBox?;
-    if (stackBox == null || !stackBox.attached) return;
-    final stackPos = stackBox.localToGlobal(Offset.zero);
-    _filterBtnTop = btnPos.dy - stackPos.dy + btnSize.height;
-    _filterBtnLeft = btnPos.dx - stackPos.dx;
-    _filterBtnWidth = btnSize.width;
+  void _closeFilter() {
+    _filterEntry?.remove();
+    _filterEntry = null;
+    if (mounted) setState(() => _isFilterOpen = false);
   }
 
   Widget _buildFilterRow(int free, int occupied) {
     return Row(children: [
-      FiltersDropdown(
-        key: _filterBtnKey,
-        value: filter,
-        onChange: (v) => setState(() => filter = v),
-        isOpen: _isFilterOpen,
-        onToggle: _toggleFilter,
+      CompositedTransformTarget(
+        link: _filterLink,
+        child: FiltersDropdown(
+          value: filter,
+          onChange: (v) => setState(() => filter = v),
+          isOpen: _isFilterOpen,
+          onToggle: _toggleFilter,
+        ),
       ),
       const Spacer(),
       _legend(_green, 'Свободно $free'),
@@ -1037,14 +1007,12 @@ class _PondMapScreenState extends State<PondMapScreen> {
   /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).
   Widget _buildDropdown() {
     final mq = MediaQuery.of(context);
-    // Ограничение высоты: от кнопки фильтров до нижнего меню.
-    final stackH = mq.size.height - mq.padding.top - mq.padding.bottom;
-    final maxH = stackH - _filterBtnTop - kBottomNavHeight;
+    final maxH = mq.size.height - mq.padding.top - mq.padding.bottom - kBottomNavHeight;
 
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: _filterBtnWidth > 0 ? _filterBtnWidth : 120,
+        width: 120,
         constraints: BoxConstraints(
           maxHeight: maxH > 0 ? maxH : 0,
         ),
