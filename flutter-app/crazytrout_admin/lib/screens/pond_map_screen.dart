@@ -1227,7 +1227,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
     ]);
   }
 
-  }
 
   /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).
   Widget _buildDropdown() {
