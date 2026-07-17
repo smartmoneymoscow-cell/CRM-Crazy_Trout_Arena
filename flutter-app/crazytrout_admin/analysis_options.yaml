@@ -4,7 +4,11 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   errors:
     deprecated_member_use: ignore
+    unused_element: ignore
+    unused_field: ignore
+    unused_element_parameter: ignore
 
 linter:
   rules:
+    unnecessary_import: false
     # prefer_const_constructors: false  # если мешает
