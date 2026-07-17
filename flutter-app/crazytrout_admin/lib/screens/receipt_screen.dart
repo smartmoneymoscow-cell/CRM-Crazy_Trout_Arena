@@ -202,21 +202,37 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _searchCtrl,
-                decoration: InputDecoration(
-                  hintText: 'Поиск по имени или телефону…',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF2A6A7E)),
-                    tooltip: 'Сканировать QR клиента',
-                    onPressed: _scanQr,
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF3EEE4),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              Container(
+                height: 46,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3EEE4),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                onChanged: _search,
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, size: 18, color: Color(0xFF9C9484)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchCtrl,
+                        onChanged: _search,
+                        cursorColor: const Color(0xFFE8912B),
+                        style: const TextStyle(fontSize: 14.5, color: Color(0xFF14130F)),
+                        decoration: const InputDecoration(
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          hintText: 'Поиск по имени или телефону…',
+                          hintStyle: TextStyle(color: Color(0xFF9C9484), fontSize: 14.5),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _scanQr,
+                      child: const Icon(Icons.qr_code_scanner_rounded, size: 20, color: Color(0xFF2A6A7E)),
+                    ),
+                  ],
+                ),
               ),
               if (_searchResults.isNotEmpty)
                 ..._searchResults.map(

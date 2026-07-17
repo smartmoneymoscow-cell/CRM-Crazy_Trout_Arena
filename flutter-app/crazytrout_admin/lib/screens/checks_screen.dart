@@ -380,6 +380,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
   _PeriodFilter? _period;
   _TypeFilter? _type;
   DateTimeRange? _dateRange;
+  String _sortMode = 'date'; // date, total, name
 
   @override
   void dispose() {
@@ -434,13 +435,26 @@ class _ChecksScreenState extends State<ChecksScreen> {
     return _type == _TypeFilter.fiscal ? r.fiscal : !r.fiscal;
   }
 
-  List<ReceiptHistoryItem> get _filtered => kDemoReceipts
-      .where((r) =>
-          _matchesQuery(r) &&
-          _matchesPeriod(r) &&
-          _matchesRange(r) &&
-          _matchesType(r))
-      .toList();
+  List<ReceiptHistoryItem> get _filtered {
+    final list = kDemoReceipts
+        .where((r) =>
+            _matchesQuery(r) &&
+            _matchesPeriod(r) &&
+            _matchesRange(r) &&
+            _matchesType(r))
+        .toList();
+    switch (_sortMode) {
+      case 'total':
+        list.sort((a, b) => b.total.compareTo(a.total));
+        break;
+      case 'name':
+        list.sort((a, b) => a.displayName.compareTo(b.displayName));
+        break;
+      default: // date
+        list.sort((a, b) => b.date.compareTo(a.date));
+    }
+    return list;
+  }
 
   // ---------- поисковые подсказки клиентов ----------
   List<Client> get _clientSuggestions {
@@ -460,6 +474,70 @@ class _ChecksScreenState extends State<ChecksScreen> {
   }
 
   // ---------- открытия ----------
+  void _showFiscalFilterMenu(BuildContext context) {
+    final RenderBox box = context.findRenderObject() as RenderBox;
+    final offset = box.localToGlobal(Offset.zero);
+    showMenu<_TypeFilter?>(
+      context: context,
+      position: RelativeRect.fromLTRB(offset.dx + box.size.width - 120, offset.dy + 50, offset.dx + box.size.width, offset.dy),
+      items: [
+        PopupMenuItem<_TypeFilter?>(
+          value: null,
+          child: Row(
+            children: [
+              if (_type == null) const Icon(Icons.check, size: 16, color: _orange) else const SizedBox(width: 16),
+              const SizedBox(width: 8),
+              const Text('Все'),
+            ],
+          ),
+        ),
+        for (final t in _TypeFilter.values)
+          PopupMenuItem<_TypeFilter?>(
+            value: t,
+            child: Row(
+              children: [
+                if (_type == t) const Icon(Icons.check, size: 16, color: _orange) else const SizedBox(width: 16),
+                const SizedBox(width: 8),
+                Text(t.label),
+              ],
+            ),
+          ),
+      ],
+    ).then((v) {
+      if (v == null && _type == null) return;
+      setState(() => _type = v);
+    });
+  }
+
+  void _showSortMenu(BuildContext context) {
+    final RenderBox box = context.findRenderObject() as RenderBox;
+    final offset = box.localToGlobal(Offset.zero);
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(offset.dx + box.size.width - 120, offset.dy + 50, offset.dx + box.size.width, offset.dy),
+      items: [
+        _sortMenuItem('date', 'По дате'),
+        _sortMenuItem('total', 'По сумме'),
+        _sortMenuItem('name', 'По имени'),
+      ],
+    ).then((v) {
+      if (v != null) setState(() => _sortMode = v);
+    });
+  }
+
+  PopupMenuItem<String> _sortMenuItem(String value, String label) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          if (_sortMode == value) const Icon(Icons.check, size: 16, color: _orange) else const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
+      ),
+    );
+  }
+
   Future<void> _openCalendar() async {
     final res = await _showRangeCalendarPicker(context, _dateRange);
     if (!mounted || res == null) return;
@@ -528,7 +606,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
                             value: null,
                             label: 'Нет',
                             isReset: true,
-                            enabled: _period != null,
+                            enabled: true,
                           ),
                           for (final p in _PeriodFilter.values)
                             _FilterDropdownItem<_PeriodFilter>(
@@ -545,25 +623,13 @@ class _ChecksScreenState extends State<ChecksScreen> {
                       onTap: _openCalendar,
                     ),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: _FilterDropdown<_TypeFilter>(
-                        value: _type,
-                        label: 'Тип',
-                        items: [
-                          _FilterDropdownItem<_TypeFilter>(
-                            value: null,
-                            label: 'Все',
-                            isReset: true,
-                            enabled: _type != null,
-                          ),
-                          for (final t in _TypeFilter.values)
-                            _FilterDropdownItem<_TypeFilter>(
-                              value: t,
-                              label: t.label,
-                            ),
-                        ],
-                        onChanged: (v) => setState(() => _type = v),
-                      ),
+                    _FiscalFilterChip(
+                      type: _type,
+                      onTap: () => _showFiscalFilterMenu(context),
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      onTap: () => _showSortMenu(context),
                     ),
                   ],
                 ),
@@ -951,6 +1017,67 @@ class _CalendarChip extends StatelessWidget {
   }
 }
 
+class _FiscalFilterChip extends StatelessWidget {
+  final _TypeFilter? type;
+  final VoidCallback onTap;
+  const _FiscalFilterChip({required this.type, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final active = type != null;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+            color: _fill, borderRadius: BorderRadius.circular(12)),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(Icons.receipt_long_outlined,
+                size: 19, color: active ? _orange : _ink),
+            if (active)
+              const Positioned(
+                top: 7,
+                right: 7,
+                child: SizedBox(
+                  width: 7,
+                  height: 7,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                        color: _orange, shape: BoxShape.circle),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortChip extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SortChip({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+            color: _fill, borderRadius: BorderRadius.circular(12)),
+        child: const Icon(Icons.sort_rounded, size: 19, color: _ink),
+      ),
+    );
+  }
+}
+
 class _ReceiptRow extends StatelessWidget {
   final ReceiptHistoryItem item;
   final VoidCallback onTap;
@@ -995,11 +1122,11 @@ class _ReceiptRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              '${_money(item.total)} ₽',
+              '+${_money(item.total)} ₽',
               style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: _ink),
+                  color: Color(0xFF3FA66B)),
             ),
             const SizedBox(width: 8),
             SizedBox(
