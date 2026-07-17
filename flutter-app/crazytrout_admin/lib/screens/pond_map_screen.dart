@@ -31,7 +31,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart' as app_data show kDemoClients;
-import 'pond_map_filter_config.dart';
+import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownGap, kFilterRowHeight, kDropdownVPadding;
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
 import '../data/pond_stats.dart';
@@ -891,9 +891,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
   FilterValue filter = FilterValue.none;
   bool _isFilterOpen = false;
   final _filterLink = LayerLink();
-  final _filterBtnKey = GlobalKey();
   OverlayEntry? _filterEntry;
-  double _dropdownMaxH = 300;
 
   List<List<Slot>> get schedules =>
       List.generate(16, (i) => _scheduleFor(date, i + 1));
@@ -961,22 +959,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
     if (_isFilterOpen) {
       _closeFilter();
     } else {
-      // Рассчитываем maxHeight. Если места нет — не открываем.
-      final btnCtx = _filterBtnKey.currentContext;
-      if (btnCtx != null) {
-        final btnBox = btnCtx.findRenderObject() as RenderBox?;
-        final mq = MediaQuery.of(context);
-        if (btnBox != null && btnBox.attached) {
-          final btnBottom = btnBox.localToGlobal(Offset(0, btnBox.size.height)).dy;
-          final available = calcMaxDropdownHeight(
-            btnBottomY: btnBottom,
-            screenH: mq.size.height,
-            bottomPadding: mq.padding.bottom,
-          );
-          if (!hasEnoughSpaceForDropdown(available)) return;
-          _dropdownMaxH = available;
-        }
-      }
       _isFilterOpen = true;
       _filterEntry = OverlayEntry(
         builder: (ctx) => Stack(children: [
@@ -1007,7 +989,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
       CompositedTransformTarget(
         link: _filterLink,
         child: FiltersDropdown(
-          key: _filterBtnKey,
           value: filter,
           onChange: (v) => setState(() => filter = v),
           isOpen: _isFilterOpen,
@@ -1029,9 +1010,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
       color: Colors.transparent,
       child: Container(
         width: 120,
-        constraints: BoxConstraints(
-          maxHeight: _dropdownMaxH > 0 ? _dropdownMaxH : 0,
-        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -1047,11 +1025,10 @@ class _PondMapScreenState extends State<PondMapScreen> {
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
               children: filterOptions.entries.map((e) {
                 final isSelected = filter == e.key;
                 return InkWell(

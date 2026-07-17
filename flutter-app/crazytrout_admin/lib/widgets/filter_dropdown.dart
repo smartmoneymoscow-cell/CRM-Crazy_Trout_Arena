@@ -62,8 +62,33 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     final box = _fieldKey.currentContext!.findRenderObject() as RenderBox;
     final size = box.size;
     final btnBottomY = box.localToGlobal(Offset(0, size.height)).dy;
+    final btnTopY = box.localToGlobal(Offset.zero).dy;
     final mq = MediaQuery.of(context);
-    final maxH = mq.size.height - btnBottomY - kBottomNavHeight - mq.padding.bottom - 8;
+    final screenH = mq.size.height;
+    final safeBottom = kBottomNavHeight + mq.padding.bottom + 8;
+    final safeTop = mq.padding.top + 8;
+
+    final spaceBelow = screenH - btnBottomY - safeBottom;
+    final spaceAbove = btnTopY - safeTop;
+
+    // Сначала пробуем снизу, потом сверху, иначе не открываем
+    final bool showBelow = spaceBelow >= _itemHeight;
+    final bool showAbove = !showBelow && spaceAbove >= _itemHeight;
+    if (!showBelow && !showAbove) return;
+
+    final maxH = showBelow ? spaceBelow : spaceAbove;
+    final offset = showBelow
+        ? Offset(0, size.height)
+        : Offset(0, -maxH);
+    final radius = showBelow
+        ? const BorderRadius.only(
+            bottomLeft: Radius.circular(_borderRadius),
+            bottomRight: Radius.circular(_borderRadius),
+          )
+        : const BorderRadius.only(
+            topLeft: Radius.circular(_borderRadius),
+            topRight: Radius.circular(_borderRadius),
+          );
 
     _entry = OverlayEntry(
       builder: (ctx) => Stack(
@@ -77,19 +102,16 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           CompositedTransformFollower(
             link: _link,
             showWhenUnlinked: false,
-            offset: Offset(0, size.height),
+            offset: offset,
             child: Material(
               color: Colors.transparent,
               child: SizedBox(
                 width: size.width,
                 child: Container(
-                  constraints: BoxConstraints(maxHeight: maxH > 0 ? maxH : 0),
+                  constraints: BoxConstraints(maxHeight: maxH),
                   decoration: BoxDecoration(
                     color: kFill,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(_borderRadius),
-                      bottomRight: Radius.circular(_borderRadius),
-                    ),
+                    borderRadius: radius,
                     boxShadow: const [
                       BoxShadow(
                           color: Color(0x22000000),

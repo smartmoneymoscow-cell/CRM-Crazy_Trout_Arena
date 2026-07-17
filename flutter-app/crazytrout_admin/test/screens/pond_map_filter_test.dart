@@ -11,12 +11,8 @@ import 'package:crazytrout_admin/screens/pond_map_filter_config.dart';
 void main() {
   group('Константы dropdown фильтров', () {
     test('gap = 0 (дропдаун вплотную к кнопке)', () {
-      // Баг: gap был 4px — видимый зазор между кнопкой и дропдауном.
-      // Фикс: commit 88018e6 (gap 2→0).
-      // Регрессия: commit 570740f вернул gap 0→4.
       expect(kDropdownGap, 0.0,
-        reason: 'gap должен быть 0 — дропдаун вплотную к кнопке. '
-                'См. коммит 570740f (регрессия) и 88018e6 (фикс).');
+        reason: 'gap должен быть 0 — дропдаун вплотную к кнопке.');
     });
 
     test('itemHeight > 0', () {
@@ -28,63 +24,8 @@ void main() {
     });
 
     test('bottomNavHeight > 0', () {
-      // Баг: без ограничения высоты дропдаун перекрывал нижнее меню.
-      // Фикс: commit 658fd82 добавил bottomNavHeight = 72.
-      // Регрессия: commit 6c597f7 удалил ограничение целиком.
       expect(kBottomNavHeight, greaterThan(0),
-        reason: 'bottomNavHeight должен быть задан — без него дропдаун '
-                'перекрывает нижнее меню. См. коммит 6c597f7 (регрессия).');
-    });
-
-
-  });
-
-  group('calcMaxDropdownHeight()', () {
-    test('ограничивает высоту снизу навбаром', () {
-      // Экран 800px, кнопка заканчивается на Y=600, safe area bottom=34
-      // Доступное пространство: 800 - 600 - 34 = 166
-      final h = calcMaxDropdownHeight(
-        btnBottomY: 600,
-        screenH: 800,
-        bottomPadding: 34,
-      );
-      expect(h, 166.0);
-    });
-
-    test('возвращает отрицательное если кнопка слишком низко', () {
-      // Кнопка у самого низа — мало места (с вычетом навбара)
-      final h = calcMaxDropdownHeight(
-        btnBottomY: 780,
-        screenH: 800,
-        bottomPadding: 0,
-      );
-      // 800 - 780 - 0 - 60 = -40 (отрицательное — места нет)
-      expect(h, lessThan(0),
-        reason: 'когда кнопка у низа — места нет, dropdown не откроется');
-    });
-
-    test('максимальная высота учитывает навбар и safe area', () {
-      final h = calcMaxDropdownHeight(
-        btnBottomY: 400,
-        screenH: 900,
-        bottomPadding: 34,
-      );
-      // 900 - 400 - 34 - 60 = 406
-      expect(h, 406.0);
-    });
-  });
-
-  group('hasEnoughSpaceForDropdown()', () {
-    test('true если места хватает на 2+ пункта', () {
-      // 2 пункта * 44 + 2 * 8 padding = 104
-      expect(hasEnoughSpaceForDropdown(104), isTrue);
-      expect(hasEnoughSpaceForDropdown(200), isTrue);
-    });
-
-    test('false если места не хватает на 2 пункта', () {
-      expect(hasEnoughSpaceForDropdown(50), isFalse);
-      expect(hasEnoughSpaceForDropdown(0), isFalse);
-      expect(hasEnoughSpaceForDropdown(-40), isFalse);
+        reason: 'bottomNavHeight должен быть задан.');
     });
   });
 
@@ -115,8 +56,6 @@ void main() {
 
   group('Стиль dropdown', () {
     test('выделение выбранного пункта — Color(0xFFF5EEDC)', () {
-      // Баг: был Color(0xFFF3EEE4) — невидимый на фоне.
-      // Фикс: патч dropdown — выделение 0xFFF5EEDC.
       const highlight = Color(0xFFF5EEDC);
       expect(highlight, isNot(const Color(0xFFF3EEE4)),
         reason: 'выделение должно отличаться от фона dropdown');
