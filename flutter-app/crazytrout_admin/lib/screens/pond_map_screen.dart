@@ -1364,27 +1364,51 @@ class _PondMapScreenState extends State<PondMapScreen> {
   );
 
   Widget _statCard({required bool dark, required String label, required String value, required Color valueColor}) => Container(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
+    clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
         colors: dark ? const [Color(0xFF1F1D18), _ink] : const [Colors.white, Color(0xFFFCFAF4)]),
       borderRadius: BorderRadius.circular(18),
       border: Border.all(color: dark ? Colors.white10 : _hairline),
     ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [
-        Container(width: 22, height: 22, alignment: Alignment.center,
-          decoration: BoxDecoration(color: dark ? Colors.white10 : _ember.withOpacity(0.10),
-            borderRadius: BorderRadius.circular(7)),
-          child: Icon(dark ? Icons.bar_chart : Icons.calendar_today_outlined, size: 13,
-            color: dark ? _orange : _ember)),
-        const SizedBox(width: 6),
-        Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.5,
-          color: dark ? Colors.white54 : Colors.black45)),
-      ]),
-      const SizedBox(height: 10),
-      Center(child: Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: valueColor))),
-    ]),
+    child: Stack(
+      children: [
+        // Декоративное свечение в углу — как на референсе (pond-map-preview_.tsx)
+        if (dark)
+          Positioned(
+            top: -30,
+            right: -30,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [_orange.withOpacity(0.20), _orange.withOpacity(0.0)],
+                  stops: const [0.0, 0.7],
+                ),
+              ),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Container(width: 22, height: 22, alignment: Alignment.center,
+                decoration: BoxDecoration(color: dark ? Colors.white10 : _ember.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(7)),
+                child: Icon(dark ? Icons.bar_chart : Icons.calendar_today_outlined, size: 13,
+                  color: dark ? _orange : _ember)),
+              const SizedBox(width: 6),
+              Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.5,
+                color: dark ? Colors.white54 : Colors.black45)),
+            ]),
+            const SizedBox(height: 10),
+            Center(child: Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: valueColor))),
+          ]),
+        ),
+      ],
+    ),
   );
 
   Widget _legend(Color color, String text) => Row(mainAxisSize: MainAxisSize.min, children: [

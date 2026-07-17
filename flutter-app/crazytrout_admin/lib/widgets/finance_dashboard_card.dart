@@ -117,7 +117,7 @@ class _RevenueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUp = stats.revenueDeltaPct >= 0;
     return Container(
-      padding: const EdgeInsets.all(18),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
@@ -127,53 +127,76 @@ class _RevenueCard extends StatelessWidget {
           stops: [0, 0.7],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Выручка',
-                style: TextStyle(
-                  color: _textLight,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          // Декоративное свечение в углу — как на референсе (pond-map-preview_.tsx)
+          Positioned(
+            top: -30,
+            right: -30,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [_orange.withOpacity(0.20), _orange.withOpacity(0.0)],
+                  stops: const [0.0, 0.7],
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                money(stats.revenue),
-                style: const TextStyle(
-                  color: _orange,
-                  fontSize: 21,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '${isUp ? '+' : ''}${_fmtPct(stats.revenueDeltaPct)}%',
-                style: TextStyle(
-                  color: isUp ? _delta : const Color(0xFFE15C4D),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                'к прошлому периоду',
-                style: TextStyle(color: _deltaLabel, fontSize: 10.5),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 44,
-            width: double.infinity,
-            child: CustomPaint(
-              painter: _SparklinePainter(stats.sparkline),
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Выручка',
+                      style: TextStyle(
+                        color: _textLight,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      money(stats.revenue),
+                      style: const TextStyle(
+                        color: _orange,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${isUp ? '+' : ''}${_fmtPct(stats.revenueDeltaPct)}%',
+                      style: TextStyle(
+                        color: isUp ? _delta : const Color(0xFFE15C4D),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'к прошлому периоду',
+                      style: TextStyle(color: _deltaLabel, fontSize: 10.5),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 44,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    painter: _SparklinePainter(stats.sparkline),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
