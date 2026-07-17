@@ -6,7 +6,6 @@
 
 import 'package:flutter/material.dart';
 import '../data/demo_receipts.dart';
-import '../data/demo_data.dart' as app_data show kDemoClients;
 
 class FinanceKpiStats {
   final double avgCheck;
