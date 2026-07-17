@@ -1305,7 +1305,16 @@ class _FishStatsContent extends StatelessWidget {
 
   _FishStatsContent({this.period, this.dateRange});
 
-  static const double _imageSize = 36;
+  // Размеры рыб в отчёте — пропорции из dropdown чека, уменьшены на 25%.
+  // Каждая рыба有自己的 размер, не единый квадрат.
+  static const Map<String, double> _imageHeight = {
+    'Осётр': 33,
+    'Амур': 30,
+    'Форель': 27,
+    'Карп': 27,
+    'Линь': 24,
+  };
+  static const double _imageHeightDefault = 24;
 
   static const _revenueMin = Color(0xFFFBE8D0);
   static const _revenueMax = Color(0xFFD4EDDA);
@@ -1392,13 +1401,10 @@ class _FishStatsContent extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: SizedBox(
-                            width: _imageSize,
-                            height: _imageSize,
-                            child: Image.asset(
-                              s.imageAsset,
-                              fit: BoxFit.cover,
-                            ),
+                          child: Image.asset(
+                            s.imageAsset,
+                            height: _imageHeight[s.species] ?? _imageHeightDefault,
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -1585,13 +1591,10 @@ class _FishStatsContent extends StatelessWidget {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(6),
-                                  child: SizedBox(
-                                    width: _imageSize,
-                                    height: _imageSize,
-                                    child: Image.asset(
-                                      s.imageAsset,
-                                      fit: BoxFit.cover,
-                                    ),
+                                  child: Image.asset(
+                                    s.imageAsset,
+                                    height: _imageHeight[s.species] ?? _imageHeightDefault,
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
