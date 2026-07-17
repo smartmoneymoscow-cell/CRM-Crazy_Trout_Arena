@@ -995,49 +995,34 @@ class _ClientCard extends StatelessWidget {
 /// Выпадающий список фильтров карты пруда.
 ///
 /// Требования (строго обязательно):
-///   1. Список выпадает как у кнопки тарифов на странице выставления чека
-///      (AppDropdownField — Overlay + CompositedTransformFollower).
-///   2. Выпадающий список НЕ нарушает скролл экрана (нет scroll listener).
+///   1. Dropdown рендерится в отдельном слое Stack (поверх feed, под нижним меню).
+///   2. Выпадающий список НЕ нарушает скролл экрана.
 ///   3. Выпадающий список НЕ сворачивается при скролле экрана.
-///   4. Выпадающий список скрывается ПОД нижнее меню — maxDropdownHeight
-///      ограничивает высоту так, что список не перекрывает нижнее меню.
+///   4. Выпадающий список скрывается ПОД нижнее меню — maxHeight ограничивает высоту.
 ///   5. Нет зазора между кнопкой и списком (gap = 0).
-///   6. При раскрытии нижние углы кнопки выпрямляются (как в AppDropdownField).
-///   7. Список НЕ смещается вверх — строго привязан к нижнему краю кнопки
-///      через CompositedTransformFollower с offset = Offset(0, buttonHeight).
+///   6. При раскрытии нижние углы кнопки выпрямляются, верхние НЕ меняются.
+///   7. Dropdown строго под кнопкой (top: 36 в Stack).
+///   8. Контент под dropdown НЕ двигается (Stack-слои, не inline).
 ///
-class FiltersDropdown extends StatefulWidget {
+class FiltersDropdown extends StatelessWidget {
   final FilterValue value;
   final ValueChanged<FilterValue> onChange;
-  const FiltersDropdown({super.key, required this.value, required this.onChange});
-
-  @override
-  State<FiltersDropdown> createState() => _FiltersDropdownState();
-}
-
-class _FiltersDropdownState extends State<FiltersDropdown> {
-  bool _isOpen = false;
-  final LayerLink _layerLink = LayerLink();
-  final GlobalKey _buttonKey = GlobalKey();
-
-  void _toggle() {
-    setState(() => _isOpen = !_isOpen);
-  }
-
-  void _close() {
-    if (mounted && _isOpen) setState(() => _isOpen = false);
-  }
-
-  double get _btnHeight {
-    final box = _buttonKey.currentContext?.findRenderObject() as RenderBox?;
-    return box?.size.height ?? 0;
-  }
+  final bool isOpen;
+  final VoidCallback onToggle;
+  const FiltersDropdown({
+    super.key,
+    required this.value,
+    required this.onChange,
+    required this.isOpen,
+    required this.onToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
     // При открытии нижние углы кнопки выпрямляются (требование 6).
+    // Верхние углы НЕ меняются — всегда pill (999).
     const pill = BorderRadius.all(Radius.circular(999));
-    final radius = _isOpen
+    final radius = isOpen
         ? const BorderRadius.only(
             topLeft: Radius.circular(999),
             topRight: Radius.circular(999),
@@ -1046,93 +1031,28 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
           )
         : pill;
 
-    // Требование 8: Stack внутри Scaffold.body, НЕ OverlayEntry.
-    // Требование 9: без maxHeight — контент полной высоты.
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: Stack(clipBehavior: Clip.none, children: [
-        // Кнопка — единственный non-positioned ребёнок → Stack = размер кнопки.
-        // Dropdown через CompositedTransformFollower рендерится ВНЕ Stack,
-        // поэтому размер Stack не ограничивает dropdown.
-        // Тап-за-пределами: кнопка toggle (повторный тап закрывает).
-        GestureDetector(
-          key: _buttonKey,
-          onTap: _toggle,
-          child: Container(
-            width: 120,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: radius,
-            ),
-            child: Row(children: [
-              const Icon(Icons.filter_list, size: 13, color: _ember),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  filterButtonLabels[widget.value]!,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink),
-                ),
-              ),
-            ]),
-          ),
+    return GestureDetector(
+      onTap: onToggle,
+      child: Container(
+        width: 120,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: radius,
         ),
-        // Dropdown — строго под кнопкой через CompositedTransformFollower.
-        if (_isOpen)
-          CompositedTransformFollower(
-            link: _layerLink,
-            showWhenUnlinked: false,
-            offset: Offset(0, _btnHeight), // gap = 0, под кнопкой
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: 120,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(14),
-                    bottomRight: Radius.circular(14),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x22000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 6),
-                    ),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: filterOptions.entries.map((e) {
-                    final isSelected = widget.value == e.key;
-                    return InkWell(
-                      onTap: () {
-                        widget.onChange(e.key);
-                        _close();
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
-                        child: Text(
-                          e.value,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: _ink,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+        child: Row(children: [
+          const Icon(Icons.filter_list, size: 13, color: _ember),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              filterButtonLabels[value]!,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink),
             ),
           ),
-      ]),
+        ]),
+      ),
     );
   }
 }
@@ -1157,6 +1077,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int hour = 6;
   int? selected;
   FilterValue filter = FilterValue.none;
+  bool _isFilterOpen = false;
   final _scrollController = ScrollController();
 
   @override
@@ -1181,59 +1102,166 @@ class _PondMapScreenState extends State<PondMapScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFEFE9DC),
       body: SafeArea(child: Column(children: [
-        Expanded(child: ListView(controller: _scrollController, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
-          // Заголовок
-          const Padding(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-            child: Center(child: Text('Карта пруда',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
+        // Заголовок, чипы, стата, карта — фиксированная часть, не скроллится.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: Column(children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
+              child: Center(child: Text('Карта пруда',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
+            ),
+            Row(children: [
+              Expanded(child: _chip(Icons.calendar_today_outlined, 'ДАТА',
+                '${date.day} ${_monthsShort[date.month - 1]}',
+                onTap: () async {
+                  final picked = await _showCalendarPicker(context, date);
+                  if (picked != null) setState(() { date = picked; selected = null; });
+                })),
+              const SizedBox(width: 8),
+              Expanded(child: _chip(Icons.access_time, 'ВРЕМЯ', _fmt(hour),
+                onTap: () async {
+                  final picked = await showDialog<int>(
+                    context: context,
+                    barrierColor: const Color(0x7314130F),
+                    builder: (_) => _TimePicker(hour: hour));
+                  if (picked != null) setState(() { hour = picked; selected = null; });
+                })),
+            ]),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(child: _statCard(dark: true, label: 'ЗАГРУЗКА', value: '$load%', valueColor: _orange)),
+              const SizedBox(width: 10),
+              Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: _ink)),
+            ]),
+            const SizedBox(height: 12),
+            PondMapView(sectorStatuses: statuses, selected: selected,
+              onTap: (n) => setState(() => selected = selected == n ? null : n)),
+            const SizedBox(height: 16),
+          ]),
+        ),
+        // Строка фильтров + лента броней: Stack — dropdown поверх feed, под нижним меню.
+        Expanded(child: Stack(children: [
+          // Слой 1: feed (скроллится).
+          ListView(controller: _scrollController, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
+            // Отступ под строку фильтров (высота кнопки 36 + padding 8*2).
+            const SizedBox(height: 52),
+            Text(
+              selected != null
+                  ? 'РАСПИСАНИЕ · СЕКТОР № ${selected!.toString().padLeft(2, '0')}'
+                  : 'ЛЕНТА БРОНИРОВАНИЙ НА ПРУДУ',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black45, letterSpacing: 0.4),
+            ),
+            const SizedBox(height: 8),
+            _buildFeed(scheds),
+          ]),
+          // Слой 2: tap-to-close (ловит тап вне кнопки и dropdown).
+          if (_isFilterOpen)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: _closeFilter,
+              ),
+            ),
+          // Слой 3: строка фильтров (поверх close-слоя, кнопка кликабельна).
+          Positioned(
+            top: 0, left: 20, right: 20,
+            child: _buildFilterRow(free, occupied),
           ),
-          // Chips
-          Row(children: [
-            Expanded(child: _chip(Icons.calendar_today_outlined, 'ДАТА',
-              '${date.day} ${_monthsShort[date.month - 1]}',
-              onTap: () async {
-                final picked = await _showCalendarPicker(context, date);
-                if (picked != null) setState(() { date = picked; selected = null; });
-              })),
-            const SizedBox(width: 8),
-            Expanded(child: _chip(Icons.access_time, 'ВРЕМЯ', _fmt(hour),
-              onTap: () async {
-                final picked = await showDialog<int>(
-                  context: context,
-                  barrierColor: const Color(0x7314130F),
-                  builder: (_) => _TimePicker(hour: hour));
-                if (picked != null) setState(() { hour = picked; selected = null; });
-              })),
-          ]),
-          const SizedBox(height: 14),
-          Row(children: [
-            Expanded(child: _statCard(dark: true, label: 'ЗАГРУЗКА', value: '$load%', valueColor: _orange)),
-            const SizedBox(width: 10),
-            Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: _ink)),
-          ]),
-          const SizedBox(height: 12),
-          PondMapView(sectorStatuses: statuses, selected: selected,
-            onTap: (n) => setState(() => selected = selected == n ? null : n)),
-          const SizedBox(height: 16),
-          Row(children: [
-            FiltersDropdown(value: filter, onChange: (v) => setState(() => filter = v)),
-            const Spacer(),
-            _legend(_green, 'Свободно $free'),
-            const SizedBox(width: 12),
-            _legend(_orange, 'Занято $occupied'),
-          ]),
-          const SizedBox(height: 12),
-          Text(
-            selected != null
-                ? 'РАСПИСАНИЕ · СЕКТОР № ${selected!.toString().padLeft(2, '0')}'
-                : 'ЛЕНТА БРОНИРОВАНИЙ НА ПРУДУ',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black45, letterSpacing: 0.4),
-          ),
-          const SizedBox(height: 8),
-          _buildFeed(scheds),
+          // Слой 4: dropdown (поверх всего, под нижним меню).
+          if (_isFilterOpen)
+            Positioned(
+              top: 36, left: 20,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {}, // Блокирует всплытие к close-слою.
+                child: _buildDropdown(),
+              ),
+            ),
         ])),
       ])),
+    );
+  }
+
+  void _toggleFilter() => setState(() => _isFilterOpen = !_isFilterOpen);
+  void _closeFilter() { if (mounted && _isFilterOpen) setState(() => _isFilterOpen = false); }
+
+  Widget _buildFilterRow(int free, int occupied) {
+    return Row(children: [
+      FiltersDropdown(
+        value: filter,
+        onChange: (v) => setState(() => filter = v),
+        isOpen: _isFilterOpen,
+        onToggle: _toggleFilter,
+      ),
+      const Spacer(),
+      _legend(_green, 'Свободно $free'),
+      const SizedBox(width: 12),
+      _legend(_orange, 'Занято $occupied'),
+    ]);
+  }
+
+  /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).
+  Widget _buildDropdown() {
+    final mq = MediaQuery.of(context);
+    // Ограничение высоты: от строки фильтров до нижнего меню.
+    final maxH = mq.size.height - mq.padding.bottom - kBottomNavHeight;
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: 120,
+        constraints: BoxConstraints(
+          maxHeight: maxH > 0 ? maxH : 0,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(14),
+            bottomRight: Radius.circular(14),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x22000000),
+              blurRadius: 10,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: filterOptions.entries.map((e) {
+                final isSelected = filter == e.key;
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      filter = e.key;
+                      _isFilterOpen = false;
+                    });
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
+                    child: Text(
+                      e.value,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _ink,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

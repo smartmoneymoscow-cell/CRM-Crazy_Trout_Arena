@@ -7,6 +7,7 @@
 /// Эти значения решают конкретные баги:
 ///   - gap = 0 → дропдаун вплотную к кнопке (баг: зазор 4px)
 ///   - maxDropdownH ограничивает высоту → не перекрывает нижнее меню
+///   - OverlayEntry (НЕ inline Stack) → контент под dropdown НЕ двигается
 
 enum FilterValue { none, all, premium, standard, basic }
 

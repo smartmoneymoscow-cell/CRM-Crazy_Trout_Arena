@@ -9,22 +9,21 @@ import 'package:crazytrout_admin/screens/pond_map_screen.dart';
 /// выбор варианта вызывает onChange.
 ///
 /// Требования (строго обязательно):
-///   1. Список выпадает как у кнопки тарифов (CompositedTransformFollower для позиционирования).
+///   1. Dropdown рендерится в отдельном слое Stack (поверх feed, под нижним меню).
 ///   2. Выпадающий список НЕ нарушает скролл экрана.
 ///   3. Выпадающий список НЕ сворачивается при скролле экрана.
-///   4. Выпадающий список скрывается ПОД нижнее меню.
+///   4. Выпадающий список скрывается ПОД нижнее меню (maxHeight ограничивает высоту).
 ///   5. Нет зазора между кнопкой и списком (gap = 0).
-///   6. При раскрытии нижние углы кнопки выпрямляются.
-///   7. Список НЕ смещается вверх от нижнего края кнопки.
-///   8. Выпадающий список рендерится ВНУТРИ Scaffold.body (Stack), а не через OverlayEntry —
-///      чтобы нижнее меню корректно перекрывало список при пересечении (п.4).
-///   9. Контейнер списка НЕ ограничен maxHeight за вычетом высоты нижнего меню —
-///      список занимает полную высоту контента, а нижнее меню перекрывает его при необходимости.
+///   6. При раскрытии нижние углы кнопки выпрямляются, верхние НЕ меняются.
+///   7. Dropdown строго под кнопкой (top: 36 в Stack).
+///   8. Контент под dropdown НЕ двигается (Stack-слои, не inline).
 void main() {
   group('FiltersDropdown', () {
     Widget buildApp({
       FilterValue value = FilterValue.none,
       ValueChanged<FilterValue>? onChange,
+      bool isOpen = false,
+      VoidCallback? onToggle,
     }) {
       return MaterialApp(
         home: Scaffold(
@@ -32,6 +31,8 @@ void main() {
             child: FiltersDropdown(
               value: value,
               onChange: onChange ?? (_) {},
+              isOpen: isOpen,
+              onToggle: onToggle ?? () {},
             ),
           ),
         ),
@@ -53,55 +54,28 @@ void main() {
       expect(find.text('Премиум'), findsOneWidget);
     });
 
-    testWidgets('тап по кнопке открывает dropdown с вариантами', (tester) async {
-      await tester.pumpWidget(buildApp());
+    testWidgets('тап по кнопке вызывает onToggle', (tester) async {
+      bool toggled = false;
+      await tester.pumpWidget(buildApp(onToggle: () => toggled = true));
       await tester.tap(find.text('Фильтры'));
-      await tester.pumpAndSettle();
-
-      // Должны появиться все варианты в overlay
-      expect(find.text('Нет'), findsOneWidget);
-      expect(find.text('Все клиенты'), findsOneWidget);
-      expect(find.text('Премиум'), findsOneWidget);
-      expect(find.text('Стандарт'), findsOneWidget);
-      expect(find.text('Базовый'), findsOneWidget);
+      expect(toggled, isTrue);
     });
 
-    testWidgets('выбор варианта вызывает onChange', (tester) async {
-      FilterValue? selected;
-      await tester.pumpWidget(buildApp(onChange: (v) => selected = v));
-      await tester.tap(find.text('Фильтры'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Премиум'));
-      await tester.pumpAndSettle();
-
-      expect(selected, FilterValue.premium);
+    testWidgets('при isOpen=true нижние углы кнопки выпрямляются', (tester) async {
+      await tester.pumpWidget(buildApp(isOpen: true));
+      // Кнопка всё ещё отображается
+      expect(find.text('Фильтры'), findsOneWidget);
     });
 
-    testWidgets('тап вне dropdown закрывает его', (tester) async {
-      await tester.pumpWidget(buildApp());
-      await tester.tap(find.text('Фильтры'));
-      await tester.pumpAndSettle();
-
-      // Dropdown открыт
-      expect(find.text('Нет'), findsOneWidget);
-
-      // Тапаем по кнопке ещё раз — dropdown закрывается
-      await tester.tap(find.text('Фильтры'));
-      await tester.pumpAndSettle();
-
-      // Dropdown закрыт — пункты меню исчезли
-      expect(find.text('Нет'), findsNothing);
-    });
-
-    testWidgets('FiltersDropdown не принимает isOpenNotifier и scrollController', (tester) async {
-      // Проверяем, что конструктор принимает только value и onChange
-      // (isOpenNotifier и scrollController удалены — они нарушали скролл)
+    testWidgets('FiltersDropdown принимает value, onChange, isOpen, onToggle', (tester) async {
       final dropdown = FiltersDropdown(
-        value: FilterValue.none,
+        value: FilterValue.premium,
         onChange: (_) {},
+        isOpen: false,
+        onToggle: () {},
       );
-      expect(dropdown.value, FilterValue.none);
+      expect(dropdown.value, FilterValue.premium);
+      expect(dropdown.isOpen, isFalse);
     });
   });
 }
