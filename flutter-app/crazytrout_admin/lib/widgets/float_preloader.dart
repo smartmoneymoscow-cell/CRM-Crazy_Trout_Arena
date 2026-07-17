@@ -76,8 +76,8 @@ class FloatPreloaderState extends State<FloatPreloader>
 
   @override
   Widget build(BuildContext context) {
-    const double width = 220;
-    const double height = 180;
+    const double width = 160;
+    const double height = 140;
 
     return SizedBox(
       width: width,
@@ -87,7 +87,7 @@ class FloatPreloaderState extends State<FloatPreloader>
         children: [
           SizedBox(
             width: width,
-            height: 120,
+            height: 90,
             child: AnimatedBuilder(
               animation: Listenable.merge([
                 _bobController,
@@ -95,7 +95,7 @@ class FloatPreloaderState extends State<FloatPreloader>
               ]),
               builder: (context, _) {
                 return CustomPaint(
-                  size: const Size(width, 120),
+                  size: const Size(width, 90),
                   painter: _FloatPainter(
                     bobPhase: _bobController.value,
                     biteValue: _biteController.value,
@@ -121,8 +121,8 @@ class FloatPreloaderState extends State<FloatPreloader>
   }
 
   Widget _buildProgressBar() {
-    const barWidth = 180.0;
-    const barHeight = 6.0;
+    const barWidth = 130.0;
+    const barHeight = 4.0;
 
     if (widget.progress != null) {
       return Container(
@@ -200,17 +200,17 @@ class _FloatPainter extends CustomPainter {
       if (biteValue < 0.12) {
         // Quick dip
         final t = _easeOutCubic(biteValue / 0.12);
-        dipOffset = t * 30;
+        dipOffset = t * 20;
         tilt = t * 0.12;
       } else if (biteValue < 0.3) {
         // Submerge
         final t = _easeInOutCubic((biteValue - 0.12) / 0.18);
-        dipOffset = 30 + t * 30;
+        dipOffset = 20 + t * 20;
         tilt = 0.12 + t * 0.08;
       } else if (biteValue < 0.6) {
         // Rise with bounce
         final t = _easeOutBounce((biteValue - 0.3) / 0.3);
-        dipOffset = 60 * (1 - t);
+        dipOffset = 40 * (1 - t);
         tilt = 0.2 * (1 - t);
       } else {
         // Wobble settle
@@ -230,7 +230,7 @@ class _FloatPainter extends CustomPainter {
       Offset(size.width, waterY),
       Paint()
         ..color = const Color(0xFF2A6A7E).withOpacity(0.25)
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 1,
     );
 
     // === Float ===
@@ -238,86 +238,83 @@ class _FloatPainter extends CustomPainter {
     canvas.translate(cx, waterY - 2 + bob + dipOffset);
     canvas.rotate(tilt);
 
-    // --- Antenna ---
-    // Long red stick with red ball on top and white stripe across
-    const double stickW = 4;
-    const double antTop = -80;
-    const double antBot = -20;
+    // --- Antenna: long thin red stick with ball on top ---
+    const double stickW = 2.5;
+    const double antTop = -65;
+    const double antBot = -14;
 
-    // Red stick (long)
+    // Red stick
     canvas.drawRect(
-      Rect.fromLTWH(-stickW / 2, antTop + 10, stickW, antBot - antTop - 10),
+      Rect.fromLTWH(-stickW / 2, antTop + 6, stickW, antBot - antTop - 6),
       Paint()..color = const Color(0xFFC9302C),
     );
 
-    // White stripe across the stick
+    // White stripe across
     const double stripeY = antTop + (antBot - antTop) * 0.45;
     canvas.drawRect(
-      Rect.fromLTWH(-stickW / 2 - 1, stripeY, stickW + 2, 5),
+      Rect.fromLTWH(-stickW / 2 - 0.5, stripeY, stickW + 1, 3),
       Paint()..color = const Color(0xFFF5F0E3),
     );
 
     // Red ball on top
     canvas.drawCircle(
-      const Offset(0, antTop + 10),
-      7,
+      const Offset(0, antTop + 6),
+      4.5,
       Paint()..color = const Color(0xFFC9302C),
     );
-    // Glossy highlight on ball
+    // Highlight
     canvas.drawCircle(
-      const Offset(-2, antTop + 7),
-      2.5,
-      Paint()..color = Colors.white.withOpacity(0.4),
+      const Offset(-1.5, antTop + 4.5),
+      1.5,
+      Paint()..color = Colors.white.withOpacity(0.45),
     );
 
-    // --- Body ---
-    // White bottom sphere (wider)
+    // --- Body: elongated teardrop ---
+    // Red top (elongated oval)
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 4), width: 40, height: 36),
+      Rect.fromCenter(center: const Offset(0, -8), width: 16, height: 28),
+      Paint()..color = const Color(0xFFC9302C),
+    );
+    // Glossy
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(-2, -12), width: 5, height: 10),
+      Paint()..color = Colors.white.withOpacity(0.35),
+    );
+
+    // White bottom (slightly wider)
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(0, 8), width: 18, height: 26),
       Paint()..color = const Color(0xFFF5F0E3),
     );
-    // Subtle outline
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 4), width: 40, height: 36),
+      Rect.fromCenter(center: const Offset(0, 8), width: 18, height: 26),
       Paint()
         ..color = Colors.black.withOpacity(0.08)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
-    );
-
-    // Red top sphere (smaller)
-    canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, -16), width: 28, height: 28),
-      Paint()..color = const Color(0xFFC9302C),
-    );
-
-    // Glossy highlight
-    canvas.drawOval(
-      Rect.fromCenter(center: const Offset(-4, -20), width: 8, height: 14),
-      Paint()..color = Colors.white.withOpacity(0.32),
+        ..strokeWidth = 0.8,
     );
 
     // Dividing line
     canvas.drawLine(
-      const Offset(-20, 2),
-      const Offset(20, 2),
+      const Offset(-9, 0),
+      const Offset(9, 0),
       Paint()
         ..color = const Color(0xFF8C8576).withOpacity(0.4)
-        ..strokeWidth = 1,
+        ..strokeWidth = 0.8,
     );
 
     // --- Keel ---
     canvas.drawLine(
-      const Offset(0, 22),
-      const Offset(0, 38),
+      const Offset(0, 21),
+      const Offset(0, 32),
       Paint()
         ..color = const Color(0xFF5C4D2F)
-        ..strokeWidth = 1.8
+        ..strokeWidth = 1.2
         ..strokeCap = StrokeCap.round,
     );
 
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(0, 40), width: 7, height: 5),
+      Rect.fromCenter(center: const Offset(0, 33), width: 5, height: 3.6),
       Paint()..color = const Color(0xFF3A3225),
     );
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Float Preloader — v4</title>
+<title>Float Preloader — v5</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -22,48 +22,48 @@ h2 { color: #8C8576; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
 .card {
   background: #fff;
   border-radius: 20px;
-  padding: 32px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  width: 340px;
+  width: 260px;
 }
 canvas { display: block; }
 .progress-track {
-  width: 220px;
-  height: 6px;
+  width: 160px;
+  height: 4px;
   background: #F3EEE4;
-  border-radius: 3px;
-  margin: 14px auto 10px;
+  border-radius: 2px;
+  margin: 10px auto 8px;
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #D4A85A, #E89829);
-  border-radius: 3px;
+  border-radius: 2px;
   transition: width 0.15s linear;
 }
 .label {
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #8C8576;
 }
 .controls {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
   flex-wrap: wrap;
   justify-content: center;
 }
 .controls button {
-  padding: 8px 14px;
+  padding: 6px 12px;
   border: 1px solid #E7E0D1;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #FAF6EE;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   color: #14130F;
   font-weight: 600;
@@ -78,11 +78,11 @@ canvas { display: block; }
 </head>
 <body>
 
-<h1>🐟 Float Preloader — v4</h1>
+<h1>🐟 Float Preloader — v5</h1>
 
 <div class="card">
   <h2>Покой + Поклёвка</h2>
-  <canvas id="c1" width="600" height="280"></canvas>
+  <canvas id="c1" width="300" height="200"></canvas>
   <div class="progress-track"><div id="fill1" class="progress-fill"></div></div>
   <div class="label" id="label1">Ищем принтеры…</div>
   <div class="controls">
@@ -93,7 +93,7 @@ canvas { display: block; }
 
 <div class="card">
   <h2>Печать (determinate)</h2>
-  <canvas id="c2" width="600" height="280"></canvas>
+  <canvas id="c2" width="300" height="200"></canvas>
   <div class="progress-track"><div id="fill2" class="progress-fill"></div></div>
   <div class="label" id="label2">Подключение…</div>
   <div class="controls">
@@ -116,8 +116,8 @@ class FloatAnimator {
     // Bite animation state
     this.bitePhase = 0; // 0=idle, 1=dip, 2=submerge, 3=rise, 4=wobble
     this.biteTime = 0;
-    this.biteDipOffset = 0; // extra vertical offset during bite
-    this.biteTilt = 0; // rotation during bite
+    this.biteDipOffset = 0;
+    this.biteTilt = 0;
 
     this.running = true;
     this.loop();
@@ -145,25 +145,25 @@ class FloatAnimator {
 
     switch (this.bitePhase) {
       case 1: // Quick dip down
-        this.biteDipOffset = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 35;
-        this.biteTilt = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 0.15;
+        this.biteDipOffset = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 30;
+        this.biteTilt = this.easeOutCubic(Math.min(this.biteTime / 0.3, 1)) * 0.12;
         if (this.biteTime >= 0.3) { this.bitePhase = 2; this.biteTime = 0; }
         break;
-      case 2: // Submerge (deep)
-        this.biteDipOffset = 35 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 30;
-        this.biteTilt = 0.15 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 0.1;
+      case 2: // Submerge
+        this.biteDipOffset = 30 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 25;
+        this.biteTilt = 0.12 + this.easeInOutCubic(Math.min(this.biteTime / 0.5, 1)) * 0.08;
         if (this.biteTime >= 0.5) { this.bitePhase = 3; this.biteTime = 0; }
         break;
       case 3: // Rise back
         const riseT = this.easeOutBounce(Math.min(this.biteTime / 0.8, 1));
-        this.biteDipOffset = 65 * (1 - riseT);
-        this.biteTilt = 0.25 * (1 - riseT);
+        this.biteDipOffset = 55 * (1 - riseT);
+        this.biteTilt = 0.2 * (1 - riseT);
         if (this.biteTime >= 0.8) { this.bitePhase = 4; this.biteTime = 0; }
         break;
       case 4: // Wobble settle
         const wobbleT = Math.min(this.biteTime / 1.2, 1);
-        this.biteDipOffset = Math.sin(this.biteTime * 12) * 4 * (1 - wobbleT);
-        this.biteTilt = Math.sin(this.biteTime * 10) * 0.03 * (1 - wobbleT);
+        this.biteDipOffset = Math.sin(this.biteTime * 12) * 3 * (1 - wobbleT);
+        this.biteTilt = Math.sin(this.biteTime * 10) * 0.02 * (1 - wobbleT);
         if (this.biteTime >= 1.2) { this.bitePhase = 0; this.biteDipOffset = 0; this.biteTilt = 0; }
         break;
     }
@@ -185,19 +185,18 @@ class FloatAnimator {
     const cx = w / 2;
     ctx.clearRect(0, 0, w, h);
 
-    const waterY = h * 0.58;
-    const bob = Math.sin(this.bobTime * Math.PI) * 8;
+    const waterY = h * 0.6;
+    const bob = Math.sin(this.bobTime * Math.PI) * 5;
     const extraDip = this.biteDipOffset;
 
     // Water — simple straight line
     ctx.fillStyle = 'rgba(42, 106, 126, 0.08)';
     ctx.fillRect(0, waterY, w, h - waterY);
-
     ctx.beginPath();
     ctx.moveTo(0, waterY);
     ctx.lineTo(w, waterY);
     ctx.strokeStyle = 'rgba(42, 106, 126, 0.25)';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // === FLOAT ===
@@ -205,101 +204,89 @@ class FloatAnimator {
     ctx.translate(cx, waterY - 2 + bob + extraDip);
     ctx.rotate(this.biteTilt);
 
-    const fy = 0; // local origin at waterline
+    const fy = 0;
 
-    // --- Antenna ---
-    // Long red stick with red ball on top and white stripe across
-    const antTop = fy - 80;
-    const antBot = fy - 20;
-    const stickW = 4;
+    // --- Antenna: long thin red stick with ball on top ---
+    const antTop = fy - 65;
+    const antBot = fy - 14;
+    const stickW = 2.5;
 
-    // Red stick (long)
+    // Red stick
     ctx.beginPath();
-    ctx.rect(-stickW / 2, antTop + 10, stickW, antBot - antTop - 10);
+    ctx.rect(-stickW / 2, antTop + 6, stickW, antBot - antTop - 6);
     ctx.fillStyle = '#C9302C';
     ctx.fill();
 
-    // White stripe across the stick
+    // White stripe across
     const stripeY = antTop + (antBot - antTop) * 0.45;
     ctx.beginPath();
-    ctx.rect(-stickW / 2 - 1, stripeY, stickW + 2, 5);
+    ctx.rect(-stickW / 2 - 0.5, stripeY, stickW + 1, 3);
     ctx.fillStyle = '#F5F0E3';
     ctx.fill();
 
     // Red ball on top
     ctx.beginPath();
-    ctx.arc(0, antTop + 10, 7, 0, Math.PI * 2);
+    ctx.arc(0, antTop + 6, 4.5, 0, Math.PI * 2);
     ctx.fillStyle = '#C9302C';
     ctx.fill();
-    // Glossy highlight on ball
+    // Highlight
     ctx.beginPath();
-    ctx.arc(-2, antTop + 7, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.arc(-1.5, antTop + 4.5, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.fill();
 
-    // --- Body: classic bobber (red sphere top + white sphere bottom) ---
-    const bodyTop = fy - 20;
-    const bodyMid = fy + 2;
-    const bodyBot = fy + 20;
-
-    // White bottom sphere (wider)
+    // --- Body: elongated teardrop ---
+    // Red top (elongated oval)
     ctx.beginPath();
-    ctx.ellipse(0, bodyMid + 4, 20, 18, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#F5F0E3';
-    ctx.fill();
-    // Subtle shadow
-    ctx.beginPath();
-    ctx.ellipse(0, bodyMid + 4, 20, 18, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Red top sphere (smaller, sits on top)
-    ctx.beginPath();
-    ctx.ellipse(0, bodyTop + 2, 14, 14, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, fy - 8, 8, 14, 0, 0, Math.PI * 2);
     ctx.fillStyle = '#C9302C';
     ctx.fill();
-
-    // Glossy highlight on red
+    // Glossy
     ctx.beginPath();
-    ctx.ellipse(-4, bodyTop - 2, 4, 7, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(-2, fy - 12, 2.5, 5, -0.15, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fill();
 
-    // Dividing line (waterline)
+    // White bottom (slightly wider)
     ctx.beginPath();
-    ctx.moveTo(-20, bodyMid);
-    ctx.lineTo(20, bodyMid);
+    ctx.ellipse(0, fy + 8, 9, 13, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#F5F0E3';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, fy + 8, 9, 13, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Dividing line
+    ctx.beginPath();
+    ctx.moveTo(-9, fy);
+    ctx.lineTo(9, fy);
     ctx.strokeStyle = 'rgba(140,133,118,0.4)';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.8;
     ctx.stroke();
 
     // --- Keel ---
-    const keelStart = bodyBot + 2;
-    const keelEnd = fy + 42;
-
-    // Keel wire
     ctx.beginPath();
-    ctx.moveTo(0, keelStart);
-    ctx.lineTo(0, keelEnd);
+    ctx.moveTo(0, fy + 21);
+    ctx.lineTo(0, fy + 32);
     ctx.strokeStyle = '#5C4D2F';
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 1.2;
     ctx.lineCap = 'round';
     ctx.stroke();
 
-    // Keel weight (small dark oval)
     ctx.beginPath();
-    ctx.ellipse(0, keelEnd + 2, 3.5, 2.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, fy + 33, 2.5, 1.8, 0, 0, Math.PI * 2);
     ctx.fillStyle = '#3A3225';
     ctx.fill();
 
-    // --- Fishing line (dashed) ---
+    // Fishing line (dashed)
     ctx.beginPath();
-    ctx.setLineDash([3, 4]);
-    ctx.moveTo(0, keelEnd + 4);
-    ctx.lineTo(0, keelEnd + 30);
-    ctx.strokeStyle = 'rgba(100,100,100,0.2)';
-    ctx.lineWidth = 0.8;
+    ctx.setLineDash([2, 3]);
+    ctx.moveTo(0, fy + 35);
+    ctx.lineTo(0, fy + 50);
+    ctx.strokeStyle = 'rgba(100,100,100,0.15)';
+    ctx.lineWidth = 0.6;
     ctx.stroke();
     ctx.setLineDash([]);
 
