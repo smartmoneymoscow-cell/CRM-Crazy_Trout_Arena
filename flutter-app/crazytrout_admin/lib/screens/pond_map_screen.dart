@@ -1011,82 +1011,95 @@ class FiltersDropdown extends StatefulWidget {
 class _FiltersDropdownState extends State<FiltersDropdown> {
   bool _isOpen = false;
   final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _entry;
-  final GlobalKey _buttonKey = GlobalKey();
-
-  @override
-  void dispose() {
-    _entry = null;
-    super.dispose();
-  }
 
   void _toggle() {
-    if (_isOpen) {
-      _close();
-    } else {
-      _open();
-    }
+    setState(() => _isOpen = !_isOpen);
   }
 
-  void _open() {
-    // Получаем размер кнопки для позиционирования и ограничения ширины.
-    final box = _buttonKey.currentContext!.findRenderObject() as RenderBox;
-    final btnSize = box.size;
+  void _close() {
+    if (mounted && _isOpen) setState(() => _isOpen = false);
+  }
 
-    // Глобальная Y-координата нижнего края кнопки.
-    final btnBottomY = box.localToGlobal(Offset(0, btnSize.height)).dy;
+  @override
+  Widget build(BuildContext context) {
+    // При открытии нижние углы кнопки выпрямляются (требование 6) —
+    // визуально кнопка и список читаются как единая форма.
+    const pill = BorderRadius.all(Radius.circular(999));
+    final radius = _isOpen
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(999),
+            topRight: Radius.circular(999),
+            bottomLeft: Radius.circular(0),
+            bottomRight: Radius.circular(0),
+          )
+        : pill;
 
-    // Размеры экрана для расчёта maxDropdownHeight.
-    final mq = MediaQuery.of(context);
-    final screenH = mq.size.height;
-    final bottomPadding = mq.padding.bottom;
-
-    // Максимальная высота дропдауна: от нижнего края кнопки до верхнего края
-    // нижнего меню (с запасом 8px). Гарантирует: список НЕ перекрывает
-    // нижнее меню (требование 4).
-    final maxH = screenH - btnBottomY - bottomPadding;
-
-    _entry = OverlayEntry(builder: (ctx) {
-      return Stack(children: [
-        // Прозрачный фон для закрытия по тапу вне (требование: тап снаружи = закрыть).
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: _close,
-          ),
+    // Требование 8: рендерим ВНУТРИ Scaffold.body через Stack,
+    // НЕ через OverlayEntry — чтобы нижнее меню перекрывало список (п.4).
+    // Требование 9: без maxHeight за вычетом нижнего меню — контент полной высоты.
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: Stack(children: [
+        // Кнопка — первый ребёнок Stack → приоритет hit test (получает тапы).
+        GestureDetector(
+          onTap: _toggle,
+          child: Container(
+            width: 120,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: radius,
+            ),
+            child: Row(children: [
+              const Icon(Icons.filter_list, size: 13, color: _ember),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  filterButtonLabels[widget.value]!,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink),
+              ),
+            ),
+          ]),
         ),
-        // CompositedTransformFollower — строго под кнопкой, gap = 0
-        // (требования 5 и 7: нет зазора, не смещается вверх).
-        CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0, btnSize.height), // gap = 0, ровно под кнопкой
-          child: Material(
-            color: Colors.transparent,
-            child: SizedBox(
-              width: btnSize.width, // ширина == ширина кнопки
-              child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: maxH > 0 ? maxH : 0, // не перекрывает нижнее меню
-                ),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(14),
-                    bottomRight: Radius.circular(14),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x22000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 6),
+        // Список пунктов — через CompositedTransformFollower, строго под кнопкой.
+        if (_isOpen) ...[
+          // Тап-за-пределами: закрывает dropdown.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _close,
+            child: const SizedBox.expand(),
+          ),
+          // Позиционирование под кнопкой (требования 1, 5, 7).
+          // Используем LayoutBuilder для получения высоты кнопки.
+          Builder(
+            builder: (ctx) {
+              final btnBox = _layerLink.leader?.findRenderObject() as RenderBox?;
+              final btnH = btnBox?.size.height ?? 0;
+              return CompositedTransformFollower(
+                link: _layerLink,
+                showWhenUnlinked: false,
+                offset: Offset(0, btnH), // строго под кнопкой, gap = 0
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: 120,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(14),
+                        bottomRight: Radius.circular(14),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x22000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
+                    clipBehavior: Clip.antiAlias,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: filterOptions.entries.map((e) {
@@ -1114,64 +1127,11 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
-        ),
-      ]);
-    });
-
-    Overlay.of(context).insert(_entry!);
-    setState(() => _isOpen = true);
-  }
-
-  void _close() {
-    final entry = _entry;
-    _entry = null;
-    if (mounted) setState(() => _isOpen = false);
-    if (mounted) entry?.remove();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // При открытии нижние углы кнопки выпрямляются (требование 6) —
-    // визуально кнопка и список читаются как единая форма.
-    const pill = BorderRadius.all(Radius.circular(999));
-    final radius = _isOpen
-        ? const BorderRadius.only(
-            topLeft: Radius.circular(999),
-            topRight: Radius.circular(999),
-            bottomLeft: Radius.circular(0),
-            bottomRight: Radius.circular(0),
-          )
-        : pill;
-
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: GestureDetector(
-        key: _buttonKey,
-        onTap: _toggle,
-        child: Container(
-          width: 120,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: radius,
-          ),
-          child: Row(children: [
-            const Icon(Icons.filter_list, size: 13, color: _ember),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                filterButtonLabels[widget.value]!,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink),
-              ),
-            ),
-          ]),
-        ),
-      ),
+        ],
+      ]),
     );
   }
 }
