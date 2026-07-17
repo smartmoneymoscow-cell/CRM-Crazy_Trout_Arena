@@ -1168,6 +1168,19 @@ class _PondMapScreenState extends State<PondMapScreen> {
           const SizedBox(height: 8),
           _buildFeed(scheds),
         ]),
+        // Слой 2: dropdown overlay — поверх всего контента, под нижним меню.
+        if (_isFilterOpen)
+          Positioned(
+            top: _filterBtnTop,
+            left: _filterBtnLeft,
+            child: _buildDropdown(),
+          ),
+      ])),
+    );
+  }
+
+  void _toggleFilter() {
+    if (_isFilterOpen) {
       setState(() => _isFilterOpen = false);
     } else {
       setState(() => _isFilterOpen = true);
@@ -1214,81 +1227,27 @@ class _PondMapScreenState extends State<PondMapScreen> {
     ]);
   }
 
-  void _closeFilter() {
-    _removeDropdown();
-  }
+  void _closeFilter() { if (mounted && _isFilterOpen) setState(() => _isFilterOpen = false); }
 
-  void _openDropdown() {
-    _overlayEntry = OverlayEntry(
-      builder: (context) {
-        final mq = MediaQuery.of(context);
-        final btnY = _getButtonGlobalBottom();
-        final maxH = calcMaxDropdownHeight(
-          btnBottomY: btnY,
-          screenH: mq.size.height,
-          bottomPadding: mq.padding.bottom,
-        );
-        return Stack(children: [
-          // Tap-to-close: ловит тап вне dropdown.
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: _closeFilter,
-            ),
-          ),
-          // Dropdown — привязан к кнопке через LayerLink.
-          CompositedTransformFollower(
-            link: _layerLink,
-            showWhenUnlinked: false,
-            offset: const Offset(0, kDropdownGap),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {},
-              child: _buildDropdown(maxH),
-            ),
-          ),
-        ]);
-      },
-    );
-    Overlay.of(context).insert(_overlayEntry!);
-    setState(() => _isFilterOpen = true);
-  }
-
-  void _removeDropdown() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    if (mounted && _isFilterOpen) setState(() => _isFilterOpen = false);
-  }
-
-  double _getButtonGlobalBottom() {
-    final ctx = _filterKey.currentContext;
-    if (ctx == null) return 0;
-    final box = ctx.findRenderObject() as RenderBox?;
-    if (box == null || !box.attached) return 0;
-    return box.localToGlobal(Offset.zero).dy + box.size.height;
-  }
 
   Widget _buildFilterRow(int free, int occupied) {
-    return CompositedTransformTarget(
-      key: _filterKey,
-      link: _layerLink,
-      child: Row(children: [
-        FiltersDropdown(
-          value: filter,
-          onChange: (v) => setState(() => filter = v),
-          isOpen: _isFilterOpen,
-          onToggle: _toggleFilter,
-        ),
+    return Row(children: [
+      FiltersDropdown(
+        key: _filterBtnKey,
+        value: filter,
+        onChange: (v) => setState(() => filter = v),
+        isOpen: _isFilterOpen,
+        onToggle: _toggleFilter,
+      ),
         const Spacer(),
         _legend(_green, 'Свободно $free'),
         const SizedBox(width: 12),
         _legend(_orange, 'Занято $occupied'),
-      ]),
-    );
+    ]);
   }
 
-  /// Строит dropdown-меню фильтров. Рендерится через OverlayEntry + CompositedTransformFollower.
-  Widget _buildDropdown([double? maxHOverride]) {
+  /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).
+  Widget _buildDropdown() {
     final mq = MediaQuery.of(context);
     // Ограничение высоты: от кнопки фильтров до нижнего меню.
     final stackH = mq.size.height - mq.padding.top - mq.padding.bottom;
@@ -1326,7 +1285,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
                 return InkWell(
                   onTap: () {
                     setState(() => filter = e.key);
-                    _removeDropdown();
+                    _closeFilter();
                   },
                   child: Container(
                     width: double.infinity,
