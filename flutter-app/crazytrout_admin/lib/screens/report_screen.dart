@@ -824,7 +824,7 @@ class _FishStatsContentState extends State<_FishStatsContent> {
   // Размеры рыб в отчёте — пропорции из dropdown чека, уменьшены на 25%.
   // Каждая рыба имеет свой размер, не единый квадрат.
   static const Map<String, double> _imageHeight = {
-    'Осётр': 33,
+    'Осётр': 45,
     'Амур': 30,
     'Форель': 27,
     'Карп': 27,
