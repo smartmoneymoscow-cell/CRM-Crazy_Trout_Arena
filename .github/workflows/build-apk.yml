@@ -117,8 +117,10 @@ jobs:
       - name: Генерация иконки приложения из логотипа
         run: dart run flutter_launcher_icons
 
+      - name: Анализ кода (flutter analyze)
+        run: flutter analyze --fatal-infos
+
       - name: Запуск тестов
-        continue-on-error: true
         run: flutter test
 
       # --target-platform android-arm64 режет только движок Flutter и Dart-код,
@@ -179,8 +181,10 @@ jobs:
       - name: Генерация иконки приложения из логотипа
         run: dart run flutter_launcher_icons
 
+      - name: Анализ кода (flutter analyze)
+        run: flutter analyze --fatal-infos
+
       - name: Запуск тестов
-        continue-on-error: true
         run: flutter test
 
       - name: Сборка iOS без кодирования (no-codesign)
