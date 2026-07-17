@@ -248,7 +248,7 @@ class _FloatPainter extends CustomPainter {
     canvas.drawPath(
       wavePath,
       Paint()
-        ..color = const Color(0xFF2A6A7E).withValues(alpha: 0.3)
+        ..color = const Color(0xFF2A6A7E).withOpacity(0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0,
     );
@@ -259,7 +259,7 @@ class _FloatPainter extends CustomPainter {
     fillPath.close();
     canvas.drawPath(
       fillPath,
-      Paint()..color = const Color(0xFF2A6A7E).withValues(alpha: 0.08),
+      Paint()..color = const Color(0xFF2A6A7E).withOpacity(0.08),
     );
 
     // === Float ===
@@ -304,7 +304,7 @@ class _FloatPainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(center: const Offset(0, 4), width: 40, height: 36),
       Paint()
-        ..color = Colors.black.withValues(alpha: 0.08)
+        ..color = Colors.black.withOpacity(0.08)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
@@ -318,7 +318,7 @@ class _FloatPainter extends CustomPainter {
     // Glossy highlight
     canvas.drawOval(
       Rect.fromCenter(center: const Offset(-4, -20), width: 8, height: 14),
-      Paint()..color = Colors.white.withValues(alpha: 0.32),
+      Paint()..color = Colors.white.withOpacity(0.32),
     );
 
     // Dividing line
@@ -326,7 +326,7 @@ class _FloatPainter extends CustomPainter {
       const Offset(-20, 2),
       const Offset(20, 2),
       Paint()
-        ..color = const Color(0xFF8C8576).withValues(alpha: 0.4)
+        ..color = const Color(0xFF8C8576).withOpacity(0.4)
         ..strokeWidth = 1,
     );
 

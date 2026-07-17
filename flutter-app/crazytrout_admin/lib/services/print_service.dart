@@ -359,7 +359,7 @@ class PrintService {
       }
 
       final device = chosen.device;
-      await device.connect(timeout: const Duration(seconds: 8));
+      await device.connect(timeout: const Duration(seconds: 8), license: null);
 
       if (connectPreloader?._cancelled == true) {
         await device.disconnect();

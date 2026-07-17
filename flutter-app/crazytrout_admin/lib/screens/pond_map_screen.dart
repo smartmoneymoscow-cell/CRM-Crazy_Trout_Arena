@@ -1227,23 +1227,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
     ]);
   }
 
-  void _closeFilter() { if (mounted && _isFilterOpen) setState(() => _isFilterOpen = false); }
-
-
-  Widget _buildFilterRow(int free, int occupied) {
-    return Row(children: [
-      FiltersDropdown(
-        key: _filterBtnKey,
-        value: filter,
-        onChange: (v) => setState(() => filter = v),
-        isOpen: _isFilterOpen,
-        onToggle: _toggleFilter,
-      ),
-        const Spacer(),
-        _legend(_green, 'Свободно $free'),
-        const SizedBox(width: 12),
-        _legend(_orange, 'Занято $occupied'),
-    ]);
   }
 
   /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).

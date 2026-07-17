@@ -805,7 +805,6 @@ class _ChecksScreenState extends State<ChecksScreen> {
                 ),
             ],
           ),
-          ),
           Expanded(
             child: items.isEmpty
                 ? const _EmptyState()
