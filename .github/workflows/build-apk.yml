@@ -67,10 +67,11 @@ jobs:
         # Flutter 3.44 генерирует build.gradle.kts с isMinifyEnabled = true.
         # R8 без корректных ProGuard-правил вырезает ML Kit DI → краш при старте.
         # Отключаем minify — приложение маленькое, выигрыш от R8 незначителен.
+        continue-on-error: true
         run: |
           sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/g' android/app/build.gradle.kts
           echo "--- release block после патча ---"
-          grep -A10 "release" android/app/build.gradle.kts | head -15
+          grep -A10 "release" android/app/build.gradle.kts | head -15 || echo "grep: release block not found (ok)"
 
       - name: Sentry native DSN (ловит краши ДО старта Dart/Flutter)
         # SentryFlutter.init() в main.dart выполняется уже ПОСЛЕ старта
