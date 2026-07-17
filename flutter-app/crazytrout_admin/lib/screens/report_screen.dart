@@ -13,31 +13,10 @@ import '../data/revenue_dynamics_data.dart';
 import '../data/demo_receipts.dart';
 import '../data/demo_data.dart' as app_data show kDemoClients, kSpecies, kSpeciesImage, kSpeciesImageHeight, kSpeciesImageHeightDefault;
 import '../models/client.dart';
+import '../theme/app_theme.dart';
+import '../data/pond_stats.dart';
 import 'pond_map_filter_config.dart' show kBottomNavHeight;
 
-// ============================================================================
-// Экран «Отчёт» — отчёт по прибыли и убыткам.
-//
-// Верхнее меню фильтров: Период (dropdown) + Календарь (date range picker)
-// + 3 слота под иконки.
-//
-// Вкладки: Финансы (заглушка), Клиенты (лента оплат), Рыба (таблица).
-// ============================================================================
-
-// ─── Цветовые константы ─────────────────────────────────────────────────────
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _fill = Color(0xFFF3EEE4);
-const _orange = Color(0xFFE8912B);
-const _ember = Color(0xFF886F11);
-const _hairline = Color(0xFFEFE8D8);
-const _hairline2 = Color(0xFFE7E0D1);
-const _outline = Color(0xFFDDD3BC);
-const _muted = Color(0xFF8C8576);
-const _muted2 = Color(0xFF9C9484);
-const _selected = Color(0xFFEFD9AC);
-
-// ─── Фильтр «Период» ───────────────────────────────────────────────────────
 enum _PeriodFilter { today, week, month, quarter, all }
 
 extension on _PeriodFilter {
@@ -66,312 +45,6 @@ DateTimeRange? _periodToDateRange(_PeriodFilter? period) {
 }
 
 // ─── Уровни клиентов ────────────────────────────────────────────────────────
-enum LevelKey { premium, standard, basic }
-
-class LevelStyle {
-  final String label, letter;
-  final Color color, medalTop, medalMid, medalBottom, letterColor, ring;
-  const LevelStyle({
-    required this.label,
-    required this.letter,
-    required this.color,
-    required this.medalTop,
-    required this.medalMid,
-    required this.medalBottom,
-    required this.letterColor,
-    required this.ring,
-  });
-}
-
-const _levels = <LevelKey, LevelStyle>{
-  LevelKey.premium: LevelStyle(
-    label: 'Премиум',
-    letter: 'П',
-    color: Color(0xFFB8862E),
-    medalTop: Color(0xFFFFE18A),
-    medalMid: Color(0xFFE0A62E),
-    medalBottom: Color(0xFFAD7A16),
-    letterColor: Color(0xFF4A3300),
-    ring: Color(0xFFB8862E),
-  ),
-  LevelKey.standard: LevelStyle(
-    label: 'Стандарт',
-    letter: 'С',
-    color: Color(0xFF8B94A0),
-    medalTop: Color(0xFFF2F5F8),
-    medalMid: Color(0xFFC9D1D9),
-    medalBottom: Color(0xFF98A2AD),
-    letterColor: Color(0xFF2E3438),
-    ring: Color(0xFF8B94A0),
-  ),
-  LevelKey.basic: LevelStyle(
-    label: 'Базовый',
-    letter: 'Б',
-    color: Color(0xFF8C5C34),
-    medalTop: Color(0xFFE3B98B),
-    medalMid: Color(0xFFC08A54),
-    medalBottom: Color(0xFF8C5C34),
-    letterColor: Color(0xFFFFFFFF),
-    ring: Color(0xFF8C5C34),
-  ),
-};
-
-// ─── Модели данных для карточки клиента ──────────────────────────────────────
-class BestCatch {
-  final String species, weight, date;
-  final int sector;
-  const BestCatch({
-    required this.species,
-    required this.weight,
-    required this.sector,
-    required this.date,
-  });
-}
-
-class _PondStats {
-  final Color color;
-  final LevelKey level;
-  final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final String firstVisit, lastVisit, email;
-  final BestCatch bestCatch;
-  final int? currentSector;
-  const _PondStats({
-    required this.color,
-    required this.level,
-    required this.points,
-    required this.pointsNext,
-    required this.visits,
-    required this.ltvK,
-    required this.fish,
-    required this.totalWeight,
-    required this.firstVisit,
-    required this.lastVisit,
-    required this.email,
-    required this.bestCatch,
-    this.currentSector,
-  });
-}
-
-const Map<int, _PondStats> _pondStatsById = {
-  1: _PondStats(
-    color: Color(0xFFE89829),
-    level: LevelKey.premium,
-    points: 1280,
-    pointsNext: 1500,
-    visits: 42,
-    ltvK: 120,
-    fish: 96,
-    totalWeight: 215,
-    firstVisit: '14.03.2023',
-    lastVisit: '15.07.2026',
-    email: 'ivanov@mail.ru',
-    currentSector: 7,
-    bestCatch:
-        BestCatch(species: 'Осётр', weight: '6.2 кг', sector: 7, date: '02.07.2026'),
-  ),
-  2: _PondStats(
-    color: Color(0xFF3FA66B),
-    level: LevelKey.standard,
-    points: 640,
-    pointsNext: 1000,
-    visits: 18,
-    ltvK: 54,
-    fish: 31,
-    totalWeight: 78,
-    firstVisit: '02.08.2024',
-    lastVisit: '15.07.2026',
-    email: 'koshkin@mail.ru',
-    currentSector: 4,
-    bestCatch:
-        BestCatch(species: 'Карп', weight: '3.4 кг', sector: 4, date: '28.06.2026'),
-  ),
-  3: _PondStats(
-    color: Color(0xFF2A6A7E),
-    level: LevelKey.premium,
-    points: 1410,
-    pointsNext: 1500,
-    visits: 55,
-    ltvK: 1200,
-    fish: 122,
-    totalWeight: 289,
-    firstVisit: '27.01.2022',
-    lastVisit: '14.07.2026',
-    email: 'petrov@mail.ru',
-    currentSector: 2,
-    bestCatch:
-        BestCatch(species: 'Осётр', weight: '7.8 кг', sector: 2, date: '19.06.2026'),
-  ),
-  5: _PondStats(
-    color: Color(0xFF886F11),
-    level: LevelKey.standard,
-    points: 780,
-    pointsNext: 1000,
-    visits: 21,
-    ltvK: 68,
-    fish: 40,
-    totalWeight: 103,
-    firstVisit: '11.11.2023',
-    lastVisit: '13.07.2026',
-    email: 'laguta@mail.ru',
-    currentSector: 5,
-    bestCatch:
-        BestCatch(species: 'Амур', weight: '4.9 кг', sector: 5, date: '30.06.2026'),
-  ),
-  6: _PondStats(
-    color: Color(0xFFB8862E),
-    level: LevelKey.premium,
-    points: 1500,
-    pointsNext: 1500,
-    visits: 68,
-    ltvK: 2400,
-    fish: 150,
-    totalWeight: 365,
-    firstVisit: '03.06.2021',
-    lastVisit: '15.07.2026',
-    email: 'orlov@mail.ru',
-    currentSector: 1,
-    bestCatch:
-        BestCatch(species: 'Осётр', weight: '8.4 кг', sector: 1, date: '24.06.2026'),
-  ),
-  7: _PondStats(
-    color: Color(0xFF6B7280),
-    level: LevelKey.basic,
-    points: 260,
-    pointsNext: 500,
-    visits: 7,
-    ltvK: 15,
-    fish: 12,
-    totalWeight: 22,
-    firstVisit: '09.02.2026',
-    lastVisit: '10.07.2026',
-    email: 'sidorov@mail.ru',
-    currentSector: 10,
-    bestCatch:
-        BestCatch(species: 'Линь', weight: '1.6 кг', sector: 10, date: '11.06.2026'),
-  ),
-  8: _PondStats(
-    color: Color(0xFF9C5A3C),
-    level: LevelKey.standard,
-    points: 520,
-    pointsNext: 1000,
-    visits: 14,
-    ltvK: 46,
-    fish: 27,
-    totalWeight: 61,
-    firstVisit: '18.01.2025',
-    lastVisit: '12.07.2026',
-    email: 'shchukin@mail.ru',
-    currentSector: 8,
-    bestCatch:
-        BestCatch(species: 'Щука', weight: '4.1 кг', sector: 8, date: '15.06.2026'),
-  ),
-  100: _PondStats(
-    color: Color(0xFF8C5C34),
-    level: LevelKey.basic,
-    points: 40,
-    pointsNext: 500,
-    visits: 1,
-    ltvK: 1,
-    fish: 2,
-    totalWeight: 3,
-    firstVisit: '10.07.2026',
-    lastVisit: '10.07.2026',
-    email: 'guest@crazytroutarena.ru',
-    currentSector: 3,
-    bestCatch:
-        BestCatch(species: 'Карп', weight: '0.9 кг', sector: 3, date: '10.07.2026'),
-  ),
-};
-
-class _FullClient {
-  final int id;
-  final String name, phone, email, tariff, firstVisit, lastVisit;
-  final Color color;
-  final LevelKey level;
-  final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final BestCatch bestCatch;
-  final int? currentSector;
-  final String? avatarAsset;
-  const _FullClient({
-    required this.id,
-    required this.name,
-    required this.phone,
-    required this.email,
-    required this.color,
-    required this.level,
-    required this.tariff,
-    required this.points,
-    required this.pointsNext,
-    required this.visits,
-    required this.ltvK,
-    required this.fish,
-    required this.totalWeight,
-    required this.firstVisit,
-    required this.lastVisit,
-    required this.bestCatch,
-    this.currentSector,
-    this.avatarAsset,
-  });
-}
-
-final List<_FullClient> _fullClients = app_data.kDemoClients.map((c) {
-  final s = _pondStatsById[c.id] ??
-      const _PondStats(
-        color: Color(0xFF8B94A0),
-        level: LevelKey.basic,
-        points: 0,
-        pointsNext: 500,
-        visits: 0,
-        ltvK: 0,
-        fish: 0,
-        totalWeight: 0,
-        firstVisit: '—',
-        lastVisit: '—',
-        email: '—',
-        bestCatch: BestCatch(species: '—', weight: '—', sector: 0, date: '—'),
-      );
-  return _FullClient(
-    id: c.id,
-    name: c.name,
-    phone: c.phone,
-    email: s.email,
-    tariff: c.tariffLabel,
-    avatarAsset: c.avatarAsset,
-    color: s.color,
-    level: s.level,
-    points: s.points,
-    pointsNext: s.pointsNext,
-    visits: s.visits,
-    ltvK: s.ltvK,
-    fish: s.fish,
-    totalWeight: s.totalWeight,
-    firstVisit: s.firstVisit,
-    lastVisit: _lastVisitFromReceipts[c.id] ?? s.lastVisit,
-    bestCatch: s.bestCatch,
-    currentSector: s.currentSector,
-  );
-}).toList();
-
-_FullClient? _findFullClient(int id) {
-  for (final c in _fullClients) {
-    if (c.id == id) return c;
-  }
-  return null;
-}
-
-String formatLtv(int k) {
-  if (k >= 1000) {
-    final v = k / 1000.0;
-    final rounded = (v * 10).round() / 10.0;
-    final str = rounded == rounded.roundToDouble()
-        ? rounded.toStringAsFixed(0)
-        : rounded.toStringAsFixed(1);
-    return '${str.replaceAll('.', ',')} млн';
-  }
-  return '$k тыс.';
-}
-
-// ─── Демо-данные ленты оплат ─────────────────────────────────────────────────
 class _ClientPaymentEntry {
   final Client client;
   final DateTime date;
@@ -391,7 +64,7 @@ List<_ClientPaymentEntry> _buildPaymentFeed() {
   final entries = <_ClientPaymentEntry>[];
   for (final r in kDemoReceipts) {
     if (r.isGuest || r.client == null) continue;
-    final stats = _pondStatsById[r.client!.id];
+    final stats = kPondStatsById[r.client!.id];
     entries.add(_ClientPaymentEntry(
       client: r.client!,
       date: r.date,
@@ -491,7 +164,7 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _paper,
+      color: kPaper,
       child: Column(
         children: [
           // ── Заголовок ──
@@ -507,7 +180,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: _ink),
+                    color: kInk),
               ),
             ),
           ),
@@ -681,7 +354,7 @@ class _ClientStatsContent extends StatelessWidget {
           child: Text(
             'Нет оплат по заданным условиям',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: _muted2),
+            style: TextStyle(fontSize: 14, color: kMuted2),
           ),
         ),
       );
@@ -724,7 +397,7 @@ class _ClientPaymentRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 2),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _hairline2)),
+        border: Border(bottom: BorderSide(color: kHairline2)),
       ),
       child: Row(
         children: [
@@ -746,13 +419,13 @@ class _ClientPaymentRow extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.w700,
-                      color: _ink),
+                      color: kInk),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   _fmtDate(entry.date),
                   style:
-                      const TextStyle(fontSize: 12.5, color: _muted2),
+                      const TextStyle(fontSize: 12.5, color: kMuted2),
                 ),
               ],
             ),
@@ -776,7 +449,7 @@ class _ClientPaymentRow extends StatelessWidget {
               Text(
                 'LT ${entry.visits} / LTV ${formatLtv(entry.ltvK)}',
                 style:
-                    const TextStyle(fontSize: 11.5, color: _muted2),
+                    const TextStyle(fontSize: 11.5, color: kMuted2),
               ),
             ],
           ),
@@ -803,7 +476,7 @@ class _Avatar extends StatelessWidget {
         height: size,
         decoration: const BoxDecoration(
             color: Color(0xFFF1ECE0), shape: BoxShape.circle),
-        child: const Icon(Icons.person_outline, color: _muted2, size: 22),
+        child: const Icon(Icons.person_outline, color: kMuted2, size: 22),
       );
     }
     final c = client!;
@@ -840,12 +513,12 @@ class _Avatar extends StatelessWidget {
 // _ClientCard — полная карточка клиента (из чеков)
 // ============================================================================
 class _ClientCard extends StatelessWidget {
-  final _FullClient client;
+  final FullClient client;
   const _ClientCard({required this.client});
 
   @override
   Widget build(BuildContext context) {
-    final l = _levels[client.level]!;
+    final l = kLevelStyles[client.level]!;
     final initials = client.name
         .split(' ')
         .map((p) => p.isEmpty ? '' : p[0])
@@ -859,7 +532,7 @@ class _ClientCard extends StatelessWidget {
         margin: const EdgeInsets.all(20),
         constraints: const BoxConstraints(maxWidth: 340),
         decoration: BoxDecoration(
-          color: _paper,
+          color: kPaper,
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
@@ -882,7 +555,7 @@ class _ClientCard extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [l.color, _ink],
+                      colors: [l.color, kInk],
                     ),
                   ),
                   child: Stack(
@@ -1010,7 +683,7 @@ class _ClientCard extends StatelessWidget {
                                   style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800,
-                                      color: _ink)),
+                                      color: kInk)),
                             ],
                           ),
                         ],
@@ -1024,7 +697,7 @@ class _ClientCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _hairline),
+                          border: Border.all(color: kHairline),
                         ),
                         child: Column(
                           crossAxisAlignment:
@@ -1099,7 +772,7 @@ class _ClientCard extends StatelessWidget {
                           children: [
                             const Icon(
                                 Icons.emoji_events_outlined,
-                                color: _ember,
+                                color: kEmber,
                                 size: 20),
                             const SizedBox(width: 10),
                             Expanded(
@@ -1120,7 +793,7 @@ class _ClientCard extends StatelessWidget {
                                           fontSize: 13.5,
                                           fontWeight:
                                               FontWeight.w700,
-                                          color: _ink)),
+                                          color: kInk)),
                                 ],
                               ),
                             ),
@@ -1139,7 +812,7 @@ class _ClientCard extends StatelessWidget {
                                     style: const TextStyle(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
-                                        color: _ink)),
+                                        color: kInk)),
                               ],
                             ),
                           ],
@@ -1157,10 +830,10 @@ class _ClientCard extends StatelessWidget {
   }
 
   static Widget _iconRow(IconData icon, String text) => Row(children: [
-        Icon(icon, size: 15, color: _ember),
+        Icon(icon, size: 15, color: kEmber),
         const SizedBox(width: 8),
         Text(text,
-            style: const TextStyle(fontSize: 13, color: _ink)),
+            style: const TextStyle(fontSize: 13, color: kInk)),
       ]);
 
   static Widget _statBlock(String label, String value) => Container(
@@ -1169,7 +842,7 @@ class _ClientCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _hairline),
+          border: Border.all(color: kHairline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1191,7 +864,7 @@ class _ClientCard extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
-                      color: _ink)),
+                      color: kInk)),
             ),
           ],
         ),
@@ -1205,7 +878,7 @@ class _LevelBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = _levels[level]!;
+    final l = kLevelStyles[level]!;
     const size = 18.0;
     final medal = _Medal(style: l, size: size);
     return Container(
@@ -2002,18 +1675,18 @@ class _IconSlot extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: active ? _orange : _fill,
+          color: active ? kOrange : kFill,
           borderRadius: BorderRadius.circular(12),
         ),
         child: assetPath != null
             ? Padding(
                 padding: const EdgeInsets.all(10),
                 child: Image.asset(assetPath!,
-                    color: active ? Colors.white : _ink,
+                    color: active ? Colors.white : kInk,
                     fit: BoxFit.contain),
               )
             : Icon(icon,
-                size: 20, color: active ? Colors.white : _ink),
+                size: 20, color: active ? Colors.white : kInk),
       ),
     );
   }
@@ -2099,7 +1772,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(_borderRadius),
-                  border: Border.all(color: _outline),
+                  border: Border.all(color: kOutline),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.12),
@@ -2132,7 +1805,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                                 const EdgeInsets.symmetric(horizontal: 14),
                             alignment: Alignment.centerLeft,
                             color: isSelected
-                                ? _selected.withOpacity(0.4)
+                                ? kSelected.withOpacity(0.4)
                                 : null,
                             child: Text(
                               item.label,
@@ -2142,8 +1815,8 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                                     ? FontWeight.w700
                                     : FontWeight.w400,
                                 color: item.enabled
-                                    ? _ink
-                                    : _muted2,
+                                    ? kInk
+                                    : kMuted2,
                               ),
                             ),
                           ),
@@ -2181,7 +1854,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
           height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: _fill,
+            color: kFill,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(_open ? 0 : _borderRadius),
               topRight: Radius.circular(_open ? 0 : _borderRadius),
@@ -2189,7 +1862,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
               bottomRight: Radius.circular(_open ? 0 : _borderRadius),
             ),
             border: Border.all(
-                color: _open ? _orange : _hairline),
+                color: _open ? kOrange : kHairline),
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -2208,7 +1881,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                     fontWeight: widget.value != null
                         ? FontWeight.w600
                         : FontWeight.w400,
-                    color: widget.value != null ? _ink : _muted2,
+                    color: widget.value != null ? kInk : kMuted2,
                   ),
                 ),
               ),
@@ -2217,7 +1890,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                     ? Icons.keyboard_arrow_up
                     : Icons.keyboard_arrow_down,
                 size: 20,
-                color: _muted2,
+                color: kMuted2,
               ),
               ],
               ),
@@ -2230,7 +1903,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _orange,
+                      color: kOrange,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -2263,13 +1936,13 @@ class _CalendarChip extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: _fill,
+              color: kFill,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.calendar_today_outlined,
               size: 20,
-              color: _ink,
+              color: kInk,
             ),
           ),
           // Оранжевая точка-индикатор (требование 9)
@@ -2281,7 +1954,7 @@ class _CalendarChip extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: _orange,
+                  color: kOrange,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -2381,7 +2054,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
     }
 
     return Dialog(
-      backgroundColor: _paper,
+      backgroundColor: kPaper,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20)),
       insetPadding:
@@ -2397,7 +2070,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                 IconButton(
                   icon: const Icon(Icons.chevron_left, size: 22),
                   onPressed: _prev,
-                  color: _ink,
+                  color: kInk,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
                       minWidth: 36, minHeight: 36),
@@ -2409,13 +2082,13 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                     style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: _ink),
+                        color: kInk),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.chevron_right, size: 22),
                   onPressed: _next,
-                  color: _ink,
+                  color: kInk,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
                       minWidth: 36, minHeight: 36),
@@ -2432,7 +2105,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                             style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: _muted2)),
+                                color: kMuted2)),
                       ))
                   .toList(),
             ),
@@ -2456,7 +2129,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                     },
                     child: const Text('Сбросить',
                         style: TextStyle(
-                            color: _muted2,
+                            color: kMuted2,
                             fontWeight: FontWeight.w600)),
                   ),
                 ),
@@ -2464,7 +2137,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _orange,
+                      backgroundColor: kOrange,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -2523,7 +2196,7 @@ class _DayCell extends StatelessWidget {
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? _orange : null,
+          color: selected ? kOrange : null,
           borderRadius: BorderRadius.horizontal(
             left: isStart ? const Radius.circular(8) : Radius.zero,
             right: isEnd ? const Radius.circular(8) : Radius.zero,
@@ -2535,7 +2208,7 @@ class _DayCell extends StatelessWidget {
             fontSize: 14,
             fontWeight:
                 selected ? FontWeight.w700 : FontWeight.w400,
-            color: selected ? Colors.white : _ink,
+            color: selected ? Colors.white : kInk,
           ),
         ),
       ),

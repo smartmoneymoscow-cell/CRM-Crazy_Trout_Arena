@@ -1,15 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../data/sales_decomposition.dart';
+import '../theme/app_theme.dart';
 
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _fill = Color(0xFFF3EEE4);
-const _orange = Color(0xFFE8912B);
-const _hairline2 = Color(0xFFE7E0D1);
-const _muted = Color(0xFF8C8576);
-const _muted2 = Color(0xFF9C9484);
-const _white = Color(0xFFFFFFFF);
 
 const _segColors = <Color>[
   Color(0xFFE8912B), Color(0xFF6B4226), Color(0xFF9C5A3C),
@@ -34,13 +27,13 @@ class FinancePieChart extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: _paper, borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _hairline2, width: 0.5),
+        color: kPaper, borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: kHairline2, width: 0.5),
       ),
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Структура выручки',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _ink)),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
         const SizedBox(height: 16),
         Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Flexible(child: Column(
@@ -68,8 +61,8 @@ class FinancePieChart extends StatelessWidget {
               Column(mainAxisSize: MainAxisSize.min, children: [
                 Text('${_fmtAmount(data.total)} ₽',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _ink, letterSpacing: -0.3)),
-                const Text('всего', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: _muted2)),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: kInk, letterSpacing: -0.3)),
+                const Text('всего', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: kMuted2)),
               ]),
             ],
           )),
@@ -128,7 +121,7 @@ class _DonutPainter extends CustomPainter {
         canvas.drawLine(
           center + Offset(math.cos(sepAngle) * (radius - strokeWidth / 2 - 1), math.sin(sepAngle) * (radius - strokeWidth / 2 - 1)),
           center + Offset(math.cos(sepAngle) * (radius + strokeWidth / 2 + 1), math.sin(sepAngle) * (radius + strokeWidth / 2 + 1)),
-          Paint()..color = _white..strokeWidth = 2.5..strokeCap = StrokeCap.round);
+          Paint()..color = kWhite..strokeWidth = 2.5..strokeCap = StrokeCap.round);
       }
       startAngle += sweep;
     }
@@ -152,12 +145,12 @@ class _LegendRow extends StatelessWidget {
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
       const SizedBox(width: 8),
       Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _ink))),
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: kInk))),
       Text(pct, textAlign: TextAlign.right,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _muted)),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kMuted)),
       const SizedBox(width: 8),
       Text(amount, textAlign: TextAlign.right, maxLines: 1, softWrap: false,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _ink)),
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kInk)),
     ]);
   }
 }

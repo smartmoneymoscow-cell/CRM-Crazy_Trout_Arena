@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../data/demo_finance_stats.dart';
 import '../utils/format.dart';
+import '../theme/app_theme.dart';
 
 // ============================================================================
 // FinanceDashboardCard — карточка «Выручка / Маржинальная прибыль /
@@ -21,12 +22,9 @@ import '../utils/format.dart';
 // ============================================================================
 
 const _cream = Color(0xFFF3EFE7);
-const _orange = Color(0xFFE08A35);
 const _textLight = Color(0xFFEFE9DF);
 const _statLight = Color(0xFFF8F5EF);
 const _statGreen = Color(0xFFF0F7F2);
-const _delta = Color(0xFF4F9D75);
-const _deltaLabel = Color(0xFF8B8579);
 
 class FinanceDashboardCard extends StatelessWidget {
   final FinanceStats stats;
@@ -141,7 +139,7 @@ class _RevenueCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_orange.withOpacity(0.20), _orange.withOpacity(0.0)],
+                  colors: [kOrange.withOpacity(0.20), kOrange.withOpacity(0.0)],
                   stops: const [0.0, 0.7],
                 ),
               ),
@@ -168,7 +166,7 @@ class _RevenueCard extends StatelessWidget {
                     Text(
                       money(stats.revenue),
                       style: const TextStyle(
-                        color: _orange,
+                        color: kOrange,
                         fontSize: 21,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
@@ -178,7 +176,7 @@ class _RevenueCard extends StatelessWidget {
                     Text(
                       '${isUp ? '+' : ''}${_fmtPct(stats.revenueDeltaPct)}%',
                       style: TextStyle(
-                        color: isUp ? _delta : const Color(0xFFE15C4D),
+                        color: isUp ? kDelta : const Color(0xFFE15C4D),
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -186,7 +184,7 @@ class _RevenueCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     const Text(
                       'к прошлому периоду',
-                      style: TextStyle(color: _deltaLabel, fontSize: 10.5),
+                      style: TextStyle(color: kDeltaLabel, fontSize: 10.5),
                     ),
                   ],
                 ),
@@ -323,7 +321,7 @@ class _SparklinePainter extends CustomPainter {
     if (points.length < 2) return;
 
     final paint = Paint()
-      ..color = _orange
+      ..color = kOrange
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.6
       ..strokeCap = StrokeCap.round

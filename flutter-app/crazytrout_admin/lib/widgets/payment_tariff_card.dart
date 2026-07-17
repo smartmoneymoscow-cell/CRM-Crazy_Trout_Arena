@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../data/payment_tariff_stats.dart';
 import '../utils/format.dart';
+import '../theme/app_theme.dart';
 
 // ============================================================================
 // PaymentTariffCard — две столбчатые диаграммы на одной строке:
@@ -20,13 +21,6 @@ import '../utils/format.dart';
 // ============================================================================
 
 // ── Цвета приложения ──
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _fill = Color(0xFFF3EEE4);
-const _orange = Color(0xFFE8912B);
-const _hairline2 = Color(0xFFE7E0D1);
-const _muted = Color(0xFF8C8576);
-const _muted2 = Color(0xFF9C9484);
 
 // ── Палитра столбцов (оплата) ──
 const _barColors = <Color>[
@@ -65,9 +59,9 @@ class PaymentTariffCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: _paper,
+        color: kPaper,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _hairline2, width: 0.5),
+        border: Border.all(color: kHairline2, width: 0.5),
       ),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       child: Row(
@@ -109,7 +103,7 @@ class _PaymentBars extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: _ink,
+            color: kInk,
           ),
         ),
         const SizedBox(height: 14),
@@ -157,7 +151,7 @@ class _BarRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
-                color: _ink,
+                color: kInk,
               ),
             ),
             Text(
@@ -165,7 +159,7 @@ class _BarRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: _ink,
+                color: kInk,
               ),
             ),
           ],
@@ -179,7 +173,7 @@ class _BarRow extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) => Stack(
                 children: [
-                  Container(color: _fill),
+                  Container(color: kFill),
                   Container(
                     width: constraints.maxWidth * fraction.clamp(0.0, 1.0),
                     decoration: BoxDecoration(
@@ -217,7 +211,7 @@ class _TariffBars extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: _ink,
+            color: kInk,
           ),
         ),
         const SizedBox(height: 14),
@@ -268,7 +262,7 @@ class _TariffBarRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
-                color: _ink,
+                color: kInk,
               ),
             ),
             Text(
@@ -276,7 +270,7 @@ class _TariffBarRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: _ink,
+                color: kInk,
               ),
             ),
           ],
@@ -289,7 +283,7 @@ class _TariffBarRow extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) => Stack(
                 children: [
-                  Container(color: _fill),
+                  Container(color: kFill),
                   Container(
                     width: constraints.maxWidth * fraction.clamp(0.0, 1.0),
                     decoration: BoxDecoration(

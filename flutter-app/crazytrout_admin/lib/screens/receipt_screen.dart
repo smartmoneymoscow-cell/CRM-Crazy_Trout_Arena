@@ -12,8 +12,8 @@ import '../utils/permission_helper.dart' deferred as perm_helper;
 import 'qr_scan_route.dart' deferred as qr_route;
 import '../utils/qr_lookup.dart';
 import '../utils/format.dart';
+import '../theme/app_theme.dart';
 
-const _ink = Color(0xFF14130F);
 
 class ReceiptScreen extends StatefulWidget {
   const ReceiptScreen({super.key});
@@ -195,7 +195,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           const Padding(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
             child: Center(child: Text('Выставление чека',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kInk))),
           ),
         _card(
           title: 'Клиент',

@@ -207,6 +207,49 @@ jobs:
     needs: [build-android, build-ios]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Нужна вся история для генерации changelog
+
+      - name: Генерация changelog из коммитов
+        id: changelog
+        run: |
+          TAG='${{ github.ref_name }}'
+          PREV_TAG=$(git tag --sort=-v:refname | grep '^v' | sed -n '2p')
+          echo "Текущий: $TAG, Предыдущий: ${PREV_TAG:-нет}"
+
+          if [ -z "$PREV_TAG" ]; then
+            RANGE="HEAD"
+          else
+            RANGE="${PREV_TAG}..HEAD"
+          fi
+
+          # Группируем коммиты по типу
+          FEATS=$(git log "$RANGE" --pretty=format:'- %s (%h)' --grep='^feat' 2>/dev/null || true)
+          FIXES=$(git log "$RANGE" --pretty=format:'- %s (%h)' --grep='^fix' 2>/dev/null || true)
+          OTHER=$(git log "$RANGE" --pretty=format:'- %s (%h)' --invert-grep --grep='^feat' --grep='^fix' --grep='^Merge' 2>/dev/null || true)
+
+          {
+            echo "body<<CHANGELOG_EOF"
+            if [ -n "$FEATS" ]; then
+              echo "## ✨ Добавлено"
+              echo "$FEATS"
+              echo ""
+            fi
+            if [ -n "$FIXES" ]; then
+              echo "## 🐛 Исправлено"
+              echo "$FIXES"
+              echo ""
+            fi
+            if [ -n "$OTHER" ]; then
+              echo "## 📦 Прочее"
+              echo "$OTHER"
+              echo ""
+            fi
+            echo "**Полный diff:** [\`${PREV_TAG:-initial}...${TAG}\`](https://github.com/${{ github.repository }}/compare/${PREV_TAG:-HEAD}...${TAG})"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Скачивание APK
         uses: actions/download-artifact@v4
         with:
@@ -223,6 +266,7 @@ jobs:
       - name: Создание GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          body: ${{ steps.changelog.outputs.body }}
           # Wildcard вместо точного имени файла: если IPA не скачался
           # (iOS job упал), softprops просто не найдёт файлов по маске
           # и не уронит релиз из-за отсутствующего пути.

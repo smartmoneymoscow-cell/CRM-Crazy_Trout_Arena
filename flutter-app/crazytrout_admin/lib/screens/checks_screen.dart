@@ -1,372 +1,14 @@
 import 'package:flutter/material.dart';
-
 import '../data/demo_receipts.dart';
 import '../data/demo_data.dart' as app_data show kDemoClients;
 import '../models/client.dart';
 import '../models/receipt_history.dart';
 import '../services/print_route.dart' deferred as print_route;
 import '../models/receipt.dart' as receipt_model;
+import '../theme/app_theme.dart';
+import '../data/pond_stats.dart';
 import 'pond_map_filter_config.dart' show kBottomNavHeight;
 
-// ============================================================================
-// Экран «Чеки» — история выставленных чеков.
-//
-// Открывается по нажатию иконки «Чеки» в нижнем меню (см. home_shell.dart).
-// Компонует:
-//   • Поисковую строку (имя / телефон / сумма / дата),
-//   • Три чипа-фильтра: «Период» (dropdown), «Календарь» (иконка → date range),
-//     «Тип» (dropdown: С ФН / Без ФН),
-//   • Ленту чеков,
-//   • Экран деталей чека с превью и кнопкой AirPrint.
-//
-// Данные — из lib/data/demo_receipts.dart. В production заменяется на выборку
-// из backend.
-// ============================================================================
-
-// ─── Цветовые константы ─────────────────────────────────────────────────────
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _fill = Color(0xFFF3EEE4);
-const _orange = Color(0xFFE8912B);
-const _ember = Color(0xFF886F11);
-const _hairline = Color(0xFFEFE8D8);
-const _hairline2 = Color(0xFFE7E0D1);
-const _outline = Color(0xFFDDD3BC);
-const _muted = Color(0xFF8C8576);
-const _muted2 = Color(0xFF9C9484);
-const _selected = Color(0xFFEFD9AC);
-
-// ─── Уровни клиентов (перенесено из карты пруда) ────────────────────────────
-enum LevelKey { premium, standard, basic }
-
-class LevelStyle {
-  final String label, letter;
-  final Color color, medalTop, medalMid, medalBottom, letterColor, ring;
-  const LevelStyle({
-    required this.label,
-    required this.letter,
-    required this.color,
-    required this.medalTop,
-    required this.medalMid,
-    required this.medalBottom,
-    required this.letterColor,
-    required this.ring,
-  });
-}
-
-const _levels = <LevelKey, LevelStyle>{
-  LevelKey.premium: LevelStyle(
-    label: 'Премиум',
-    letter: 'П',
-    color: Color(0xFFB8862E),
-    medalTop: Color(0xFFFFE18A),
-    medalMid: Color(0xFFE0A62E),
-    medalBottom: Color(0xFFAD7A16),
-    letterColor: Color(0xFF4A3300),
-    ring: Color(0xFFB8862E),
-  ),
-  LevelKey.standard: LevelStyle(
-    label: 'Стандарт',
-    letter: 'С',
-    color: Color(0xFF8B94A0),
-    medalTop: Color(0xFFF2F5F8),
-    medalMid: Color(0xFFC9D1D9),
-    medalBottom: Color(0xFF98A2AD),
-    letterColor: Color(0xFF2E3438),
-    ring: Color(0xFF8B94A0),
-  ),
-  LevelKey.basic: LevelStyle(
-    label: 'Базовый',
-    letter: 'Б',
-    color: Color(0xFF8C5C34),
-    medalTop: Color(0xFFE3B98B),
-    medalMid: Color(0xFFC08A54),
-    medalBottom: Color(0xFF8C5C34),
-    letterColor: Color(0xFFFFFFFF),
-    ring: Color(0xFF8C5C34),
-  ),
-};
-
-// ─── BestCatch, _PondStats, _FullClient ──────────────────────────────────────
-class BestCatch {
-  final String species, weight, date;
-  final int sector;
-  const BestCatch({
-    required this.species,
-    required this.weight,
-    required this.sector,
-    required this.date,
-  });
-}
-
-class _PondStats {
-  final Color color;
-  final LevelKey level;
-  final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final String firstVisit, lastVisit, email;
-  final BestCatch bestCatch;
-  final int? currentSector;
-  const _PondStats({
-    required this.color,
-    required this.level,
-    required this.points,
-    required this.pointsNext,
-    required this.visits,
-    required this.ltvK,
-    required this.fish,
-    required this.totalWeight,
-    required this.firstVisit,
-    required this.lastVisit,
-    required this.email,
-    required this.bestCatch,
-    this.currentSector,
-  });
-}
-
-const Map<int, _PondStats> _pondStatsById = {
-  1: _PondStats(
-    color: Color(0xFFE89829),
-    level: LevelKey.premium,
-    points: 1280,
-    pointsNext: 1500,
-    visits: 42,
-    ltvK: 120,
-    fish: 96,
-    totalWeight: 215,
-    firstVisit: '14.03.2023',
-    lastVisit: '15.07.2026',
-    email: 'ivanov@mail.ru',
-    currentSector: 7,
-    bestCatch:
-        BestCatch(species: 'Осётр', weight: '6.2 кг', sector: 7, date: '02.07.2026'),
-  ),
-  2: _PondStats(
-    color: Color(0xFF3FA66B),
-    level: LevelKey.standard,
-    points: 640,
-    pointsNext: 1000,
-    visits: 18,
-    ltvK: 54,
-    fish: 31,
-    totalWeight: 78,
-    firstVisit: '02.08.2024',
-    lastVisit: '15.07.2026',
-    email: 'koshkin@mail.ru',
-    currentSector: 4,
-    bestCatch:
-        BestCatch(species: 'Карп', weight: '3.4 кг', sector: 4, date: '28.06.2026'),
-  ),
-  3: _PondStats(
-    color: Color(0xFF2A6A7E),
-    level: LevelKey.premium,
-    points: 1410,
-    pointsNext: 1500,
-    visits: 55,
-    ltvK: 1200,
-    fish: 122,
-    totalWeight: 289,
-    firstVisit: '27.01.2022',
-    lastVisit: '14.07.2026',
-    email: 'petrov@mail.ru',
-    currentSector: 2,
-    bestCatch:
-        BestCatch(species: 'Осётр', weight: '7.8 кг', sector: 2, date: '19.06.2026'),
-  ),
-  5: _PondStats(
-    color: Color(0xFF886F11),
-    level: LevelKey.standard,
-    points: 780,
-    pointsNext: 1000,
-    visits: 21,
-    ltvK: 68,
-    fish: 40,
-    totalWeight: 103,
-    firstVisit: '11.11.2023',
-    lastVisit: '13.07.2026',
-    email: 'laguta@mail.ru',
-    currentSector: 5,
-    bestCatch:
-        BestCatch(species: 'Амур', weight: '4.9 кг', sector: 5, date: '30.06.2026'),
-  ),
-  6: _PondStats(
-    color: Color(0xFFB8862E),
-    level: LevelKey.premium,
-    points: 1500,
-    pointsNext: 1500,
-    visits: 68,
-    ltvK: 2400,
-    fish: 150,
-    totalWeight: 365,
-    firstVisit: '03.06.2021',
-    lastVisit: '15.07.2026',
-    email: 'orlov@mail.ru',
-    currentSector: 1,
-    bestCatch:
-        BestCatch(species: 'Осётр', weight: '8.4 кг', sector: 1, date: '24.06.2026'),
-  ),
-  7: _PondStats(
-    color: Color(0xFF6B7280),
-    level: LevelKey.basic,
-    points: 260,
-    pointsNext: 500,
-    visits: 7,
-    ltvK: 15,
-    fish: 12,
-    totalWeight: 22,
-    firstVisit: '09.02.2026',
-    lastVisit: '10.07.2026',
-    email: 'sidorov@mail.ru',
-    currentSector: 10,
-    bestCatch:
-        BestCatch(species: 'Линь', weight: '1.6 кг', sector: 10, date: '11.06.2026'),
-  ),
-  8: _PondStats(
-    color: Color(0xFF9C5A3C),
-    level: LevelKey.standard,
-    points: 520,
-    pointsNext: 1000,
-    visits: 14,
-    ltvK: 46,
-    fish: 27,
-    totalWeight: 61,
-    firstVisit: '18.01.2025',
-    lastVisit: '12.07.2026',
-    email: 'shchukin@mail.ru',
-    currentSector: 8,
-    bestCatch:
-        BestCatch(species: 'Щука', weight: '4.1 кг', sector: 8, date: '15.06.2026'),
-  ),
-  100: _PondStats(
-    color: Color(0xFF8C5C34),
-    level: LevelKey.basic,
-    points: 40,
-    pointsNext: 500,
-    visits: 1,
-    ltvK: 1,
-    fish: 2,
-    totalWeight: 3,
-    firstVisit: '10.07.2026',
-    lastVisit: '10.07.2026',
-    email: 'guest@crazytroutarena.ru',
-    currentSector: 3,
-    bestCatch:
-        BestCatch(species: 'Карп', weight: '0.9 кг', sector: 3, date: '10.07.2026'),
-  ),
-};
-
-/// Полная модель клиента для карточки (объединяет данные из models/client.dart
-/// и статистику из карты пруда).
-class _FullClient {
-  final int id;
-  final String name, phone, email, tariff, firstVisit, lastVisit;
-  final Color color;
-  final LevelKey level;
-  final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final BestCatch bestCatch;
-  final int? currentSector;
-  final String? avatarAsset;
-  const _FullClient({
-    required this.id,
-    required this.name,
-    required this.phone,
-    required this.email,
-    required this.color,
-    required this.level,
-    required this.tariff,
-    required this.points,
-    required this.pointsNext,
-    required this.visits,
-    required this.ltvK,
-    required this.fish,
-    required this.totalWeight,
-    required this.firstVisit,
-    required this.lastVisit,
-    required this.bestCatch,
-    this.currentSector,
-    this.avatarAsset,
-  });
-}
-
-/// Собираем полных клиентов из общего источника + статистика карты.
-final List<_FullClient> _fullClients = app_data.kDemoClients.map((c) {
-  final s = _pondStatsById[c.id] ??
-      const _PondStats(
-        color: Color(0xFF8B94A0),
-        level: LevelKey.basic,
-        points: 0,
-        pointsNext: 500,
-        visits: 0,
-        ltvK: 0,
-        fish: 0,
-        totalWeight: 0,
-        firstVisit: '—',
-        lastVisit: '—',
-        email: '—',
-        bestCatch: BestCatch(species: '—', weight: '—', sector: 0, date: '—'),
-      );
-  return _FullClient(
-    id: c.id,
-    name: c.name,
-    phone: c.phone,
-    email: s.email,
-    tariff: c.tariffLabel,
-    avatarAsset: c.avatarAsset,
-    color: s.color,
-    level: s.level,
-    points: s.points,
-    pointsNext: s.pointsNext,
-    visits: s.visits,
-    ltvK: s.ltvK,
-    fish: s.fish,
-    totalWeight: s.totalWeight,
-    firstVisit: s.firstVisit,
-    lastVisit: s.lastVisit,
-    bestCatch: s.bestCatch,
-    currentSector: s.currentSector,
-  );
-}).toList();
-
-/// Поиск полного клиента по id.
-_FullClient? _findFullClient(int id) {
-  for (final c in _fullClients) {
-    if (c.id == id) return c;
-  }
-  return null;
-}
-
-String formatLtv(int k) {
-  if (k >= 1000) {
-    final v = k / 1000.0;
-    final rounded = (v * 10).round() / 10.0;
-    final str = rounded == rounded.roundToDouble()
-        ? rounded.toStringAsFixed(0)
-        : rounded.toStringAsFixed(1);
-    return '${str.replaceAll('.', ',')} млн';
-  }
-  return '$k тыс.';
-}
-
-// ─── Фильтры ────────────────────────────────────────────────────────────────
-enum _PeriodFilter { today, week, month, quarter, all }
-enum _TypeFilter { fiscal, nonfiscal }
-
-extension on _PeriodFilter {
-  String get label => switch (this) {
-        _PeriodFilter.today => 'За сегодня',
-        _PeriodFilter.week => 'За неделю',
-        _PeriodFilter.month => 'За месяц',
-        _PeriodFilter.quarter => 'За квартал',
-        _PeriodFilter.all => 'За все время',
-      };
-}
-
-extension on _TypeFilter {
-  String get label => this == _TypeFilter.fiscal ? 'С ФН' : 'Без ФН';
-}
-
-// ============================================================================
-// ChecksScreen
-// ============================================================================
 class ChecksScreen extends StatefulWidget {
   const ChecksScreen({super.key});
 
@@ -452,7 +94,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
     if (_filterPayments.isNotEmpty && !_filterPayments.contains(r.paymentLabel)) return false;
     // Первый раз на пруду
     if (_filterFirstTime && !r.isGuest) {
-      final stats = r.client != null ? _pondStatsById[r.client!.id] : null;
+      final stats = r.client != null ? kPondStatsById[r.client!.id] : null;
       if (stats == null || stats.visits > 1) return false;
     }
     return true;
@@ -479,15 +121,15 @@ class _ChecksScreenState extends State<ChecksScreen> {
         break;
       case 'visits':
         cmp = (a, b) {
-          final av = a.client != null ? (_pondStatsById[a.client!.id]?.visits ?? 0) : 0;
-          final bv = b.client != null ? (_pondStatsById[b.client!.id]?.visits ?? 0) : 0;
+          final av = a.client != null ? (kPondStatsById[a.client!.id]?.visits ?? 0) : 0;
+          final bv = b.client != null ? (kPondStatsById[b.client!.id]?.visits ?? 0) : 0;
           return av.compareTo(bv);
         };
         break;
       case 'ltv':
         cmp = (a, b) {
-          final av = a.client != null ? (_pondStatsById[a.client!.id]?.ltvK ?? 0) : 0;
-          final bv = b.client != null ? (_pondStatsById[b.client!.id]?.ltvK ?? 0) : 0;
+          final av = a.client != null ? (kPondStatsById[a.client!.id]?.ltvK ?? 0) : 0;
+          final bv = b.client != null ? (kPondStatsById[b.client!.id]?.ltvK ?? 0) : 0;
           return av.compareTo(bv);
         };
         break;
@@ -532,7 +174,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: _paper,
+          backgroundColor: kPaper,
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -542,7 +184,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Center(child: Text('Фильтры',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _ink))),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: kInk))),
                   const SizedBox(height: 20),
 
                   // ── Тип чека ──
@@ -592,12 +234,12 @@ class _ChecksScreenState extends State<ChecksScreen> {
                       SizedBox(width: 24, height: 24, child: Checkbox(
                         value: tmpFirstTime,
                         onChanged: (v) => setDialogState(() => tmpFirstTime = v ?? false),
-                        activeColor: _orange,
+                        activeColor: kOrange,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       )),
                       const SizedBox(width: 10),
                       const Text('Первый раз на пруду',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _ink)),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: kInk)),
                     ]),
                   ),
                   const SizedBox(height: 24),
@@ -614,8 +256,8 @@ class _ChecksScreenState extends State<ChecksScreen> {
                         });
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: _muted,
-                        side: const BorderSide(color: _outline),
+                        foregroundColor: kMuted,
+                        side: const BorderSide(color: kOutline),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         minimumSize: const Size(0, 44),
                       ),
@@ -633,7 +275,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
                         Navigator.pop(ctx);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _orange,
+                        backgroundColor: kOrange,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
@@ -652,7 +294,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
   }
 
   Widget _filterSectionTitle(String text) => Text(text,
-    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _muted));
+    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kMuted));
 
   Widget _filterChip(String label, bool selected, VoidCallback onTap) {
     return GestureDetector(
@@ -660,14 +302,14 @@ class _ChecksScreenState extends State<ChecksScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? _selected : _fill,
+          color: selected ? kSelected : kFill,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: selected ? _orange : _hairline2, width: selected ? 1.5 : 0.5),
+          border: Border.all(color: selected ? kOrange : kHairline2, width: selected ? 1.5 : 0.5),
         ),
         child: Text(label, style: TextStyle(
           fontSize: 13,
           fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          color: selected ? _ink : _muted,
+          color: selected ? kInk : kMuted,
         )),
       ),
     );
@@ -700,7 +342,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
     final clientHits = _clientSuggestions;
 
     return Container(
-      color: _paper,
+      color: kPaper,
       child: Column(
         children: [
           const Padding(
@@ -708,7 +350,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
             child: Center(
               child: Text('Чеки',
                   style: TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.w700, color: _ink)),
+                      fontSize: 24, fontWeight: FontWeight.w700, color: kInk)),
             ),
           ),
           Padding(
@@ -793,17 +435,16 @@ class _ChecksScreenState extends State<ChecksScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.filter_alt_off_outlined, size: 14, color: _muted2),
+                        Icon(Icons.filter_alt_off_outlined, size: 14, color: kMuted2),
                         const SizedBox(width: 4),
                         Text('Сбросить фильтры',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                            color: _muted2, decoration: TextDecoration.underline)),
+                            color: kMuted2, decoration: TextDecoration.underline)),
                       ],
                     ),
                   ),
                 ),
             ],
-          ),
           ),
           Expanded(
             child: items.isEmpty
@@ -906,7 +547,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                 child: Container(
                   constraints: BoxConstraints(maxHeight: maxH > 0 ? maxH : 0),
                   decoration: BoxDecoration(
-                    color: _fill,
+                    color: kFill,
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(_borderRadius),
                       bottomRight: Radius.circular(_borderRadius),
@@ -940,7 +581,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                           padding:
                               const EdgeInsets.symmetric(horizontal: 12),
                           color: selected
-                              ? _selected
+                              ? kSelected
                               : Colors.transparent,
                           child: Align(
                             alignment: Alignment.centerLeft,
@@ -954,8 +595,8 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                                         ? FontWeight.w700
                                         : FontWeight.w400,
                                 color: enabled
-                                    ? (item.isReset ? _muted2 : _ink)
-                                    : _hairline,
+                                    ? (item.isReset ? kMuted2 : kInk)
+                                    : kHairline,
                               ),
                             ),
                           ),
@@ -1014,7 +655,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
           key: _fieldKey,
           onTap: _toggle,
           child: Ink(
-            decoration: BoxDecoration(color: _fill, borderRadius: radius),
+            decoration: BoxDecoration(color: kFill, borderRadius: radius),
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
@@ -1027,7 +668,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                       fontSize: 14,
                       fontWeight:
                           active ? FontWeight.w700 : FontWeight.w400,
-                      color: active ? _ink : _muted2,
+                      color: active ? kInk : kMuted2,
                     ),
                   ),
                 ),
@@ -1039,7 +680,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                           ? Icons.keyboard_arrow_up_rounded
                           : Icons.keyboard_arrow_down_rounded,
                       size: 20,
-                      color: _muted2,
+                      color: kMuted2,
                     ),
                     if (widget.active)
                       const Positioned(
@@ -1050,7 +691,7 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
                           height: 7,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                                color: _orange, shape: BoxShape.circle),
+                                color: kOrange, shape: BoxShape.circle),
                           ),
                         ),
                       ),
@@ -1079,22 +720,22 @@ class _SearchField extends StatelessWidget {
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-          color: _fill, borderRadius: BorderRadius.circular(14)),
+          color: kFill, borderRadius: BorderRadius.circular(14)),
       child: Row(
         children: [
-          const Icon(Icons.search, size: 18, color: _muted2),
+          const Icon(Icons.search, size: 18, color: kMuted2),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              cursorColor: _orange,
-              style: const TextStyle(fontSize: 14.5, color: _ink),
+              cursorColor: kOrange,
+              style: const TextStyle(fontSize: 14.5, color: kInk),
               decoration: const InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
                 hintText: 'Имя, сумма, телефон, дата',
-                hintStyle: TextStyle(color: _muted2, fontSize: 14.5),
+                hintStyle: TextStyle(color: kMuted2, fontSize: 14.5),
               ),
             ),
           ),
@@ -1104,7 +745,7 @@ class _SearchField extends StatelessWidget {
                 controller.clear();
                 onChanged('');
               },
-              child: const Icon(Icons.close, size: 18, color: _muted2),
+              child: const Icon(Icons.close, size: 18, color: kMuted2),
             ),
         ],
       ),
@@ -1123,7 +764,7 @@ class _ClientSuggestions extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _hairline),
+        border: Border.all(color: kHairline),
       ),
       child: Column(
         children: [
@@ -1145,11 +786,11 @@ class _ClientSuggestions extends StatelessWidget {
                               style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: _ink)),
+                                  color: kInk)),
                           const SizedBox(height: 2),
                           Text(clients[i].phone,
                               style: const TextStyle(
-                                  fontSize: 12, color: _muted2)),
+                                  fontSize: 12, color: kMuted2)),
                         ],
                       ),
                     ),
@@ -1158,7 +799,7 @@ class _ClientSuggestions extends StatelessWidget {
               ),
             ),
             if (i < clients.length - 1)
-              const Divider(height: 1, color: _hairline2),
+              const Divider(height: 1, color: kHairline2),
           ],
         ],
       ),
@@ -1180,12 +821,12 @@ class _CalendarChip extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-            color: _fill, borderRadius: BorderRadius.circular(12)),
+            color: kFill, borderRadius: BorderRadius.circular(12)),
         child: Stack(
           alignment: Alignment.center,
           children: [
             Icon(Icons.calendar_today_outlined,
-                size: 19, color: active ? _orange : _ink),
+                size: 19, color: active ? kOrange : kInk),
             if (active)
               const Positioned(
                 top: 7,
@@ -1195,7 +836,7 @@ class _CalendarChip extends StatelessWidget {
                   height: 7,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                        color: _orange, shape: BoxShape.circle),
+                        color: kOrange, shape: BoxShape.circle),
                   ),
                 ),
               ),
@@ -1222,12 +863,12 @@ class _FiscalFilterChip extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-            color: _fill, borderRadius: BorderRadius.circular(12)),
+            color: kFill, borderRadius: BorderRadius.circular(12)),
         child: Stack(
           alignment: Alignment.center,
           children: [
             Icon(Icons.receipt_long_outlined,
-                size: 19, color: active ? _orange : _ink),
+                size: 19, color: active ? kOrange : kInk),
             if (active)
               const Positioned(
                 top: 7,
@@ -1237,7 +878,7 @@ class _FiscalFilterChip extends StatelessWidget {
                   height: 7,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                        color: _orange, shape: BoxShape.circle),
+                        color: kOrange, shape: BoxShape.circle),
                   ),
                 ),
               ),
@@ -1321,7 +962,7 @@ class _SortChipState extends State<_SortChip> {
               child: Container(
                 width: 220,
                 decoration: BoxDecoration(
-                  color: _paper,
+                  color: kPaper,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: const [
                     BoxShadow(color: Color(0x22000000), blurRadius: 10, offset: Offset(0, 6)),
@@ -1336,17 +977,17 @@ class _SortChipState extends State<_SortChip> {
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Порядок', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _muted)),
+                          child: Text('Порядок', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: kMuted)),
                         ),
                       ),
                       _radioTile('desc', 'По убыванию', _tmpDesc, setOverlayState),
                       _radioTile('asc', 'По возрастанию', !_tmpDesc, setOverlayState),
-                      const Divider(height: 1, color: _hairline2),
+                      const Divider(height: 1, color: kHairline2),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Сортировать по', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _muted)),
+                          child: Text('Сортировать по', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: kMuted)),
                         ),
                       ),
                       for (final e in _sortLabels.entries)
@@ -1363,7 +1004,7 @@ class _SortChipState extends State<_SortChip> {
                               _close();
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _orange,
+                              backgroundColor: kOrange,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               elevation: 0,
@@ -1402,12 +1043,12 @@ class _SortChipState extends State<_SortChip> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(children: [
           Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off,
-            size: 18, color: selected ? _orange : _muted2),
+            size: 18, color: selected ? kOrange : kMuted2),
           const SizedBox(width: 10),
           Text(label, style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected ? _ink : _muted,
+            color: selected ? kInk : kMuted,
           )),
         ]),
       ),
@@ -1423,12 +1064,12 @@ class _SortChipState extends State<_SortChip> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(children: [
           Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off,
-            size: 18, color: selected ? _orange : _muted2),
+            size: 18, color: selected ? kOrange : kMuted2),
           const SizedBox(width: 10),
           Text(label, style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected ? _ink : _muted,
+            color: selected ? kInk : kMuted,
           )),
         ]),
       ),
@@ -1447,11 +1088,11 @@ class _SortChipState extends State<_SortChip> {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-              color: _fill, borderRadius: BorderRadius.circular(12)),
+              color: kFill, borderRadius: BorderRadius.circular(12)),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Icon(Icons.sort_rounded, size: 19, color: _ink),
+              const Icon(Icons.sort_rounded, size: 19, color: kInk),
               if (widget.active)
                 const Positioned(
                   top: 7,
@@ -1461,7 +1102,7 @@ class _SortChipState extends State<_SortChip> {
                     height: 7,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                          color: _orange, shape: BoxShape.circle),
+                          color: kOrange, shape: BoxShape.circle),
                     ),
                   ),
                 ),
@@ -1486,7 +1127,7 @@ class _ReceiptRow extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(vertical: 13, horizontal: 2),
         decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: _hairline2)),
+          border: Border(bottom: BorderSide(color: kHairline2)),
         ),
         child: Row(
           children: [
@@ -1504,13 +1145,13 @@ class _ReceiptRow extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w700,
-                        color: _ink),
+                        color: kInk),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _fmtDateTime(item.date),
                     style: const TextStyle(
-                        fontSize: 12.5, color: _muted2),
+                        fontSize: 12.5, color: kMuted2),
                   ),
                 ],
               ),
@@ -1530,7 +1171,7 @@ class _ReceiptRow extends StatelessWidget {
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: item.fiscal ? const Color(0xFFE8D5B5) : _hairline,
+                  color: item.fiscal ? const Color(0xFFE8D5B5) : kHairline,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1538,7 +1179,7 @@ class _ReceiptRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
-                    color: item.fiscal ? _ink : _muted2,
+                    color: item.fiscal ? kInk : kMuted2,
                   ),
                 ),
               ),
@@ -1559,7 +1200,7 @@ class _EmptyState extends StatelessWidget {
           child: Text(
             'Нет чеков по заданным условиям',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: _muted2),
+            style: TextStyle(fontSize: 14, color: kMuted2),
           ),
         ),
       );
@@ -1579,7 +1220,7 @@ class _Avatar extends StatelessWidget {
         height: size,
         decoration: const BoxDecoration(
             color: Color(0xFFF1ECE0), shape: BoxShape.circle),
-        child: const Icon(Icons.person_outline, color: _muted2, size: 22),
+        child: const Icon(Icons.person_outline, color: kMuted2, size: 22),
       );
     }
     final c = client!;
@@ -1622,21 +1263,21 @@ class _ChecksDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _paper,
+      backgroundColor: kPaper,
       appBar: AppBar(
-        backgroundColor: _paper,
-        surfaceTintColor: _paper,
+        backgroundColor: kPaper,
+        surfaceTintColor: kPaper,
         elevation: 0,
         leading: IconButton(
           icon:
-              const Icon(Icons.arrow_back_ios_new, size: 20, color: _ink),
+              const Icon(Icons.arrow_back_ios_new, size: 20, color: kInk),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text('Чек',
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: _ink)),
+                color: kInk)),
       ),
       body: SafeArea(
         top: false,
@@ -1675,9 +1316,9 @@ class _ChecksDetailScreen extends StatelessWidget {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: _ink,
+                foregroundColor: kInk,
                 padding: const EdgeInsets.symmetric(vertical: 15),
-                side: const BorderSide(color: _outline),
+                side: const BorderSide(color: kOutline),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
@@ -1732,7 +1373,7 @@ class _ReceiptCard extends StatelessWidget {
           const EdgeInsets.symmetric(vertical: 20, horizontal: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: _hairline),
+        border: Border.all(color: kHairline),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1744,11 +1385,11 @@ class _ReceiptCard extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.3,
-                  color: _ink)),
+                  color: kInk)),
           Text(
             r.fiscal ? 'КАССОВЫЙ ЧЕК (Приход)' : 'ЧЕК (без ФН)',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: _muted2),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: kMuted2),
           ),
           const _CardDivider(),
           _small('Продавец: ИП Сидоров А.В.'),
@@ -1785,7 +1426,7 @@ class _ReceiptCard extends StatelessWidget {
 
   Widget _small(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Text(text, style: const TextStyle(fontSize: 11, color: _muted2)),
+        child: Text(text, style: const TextStyle(fontSize: 11, color: kMuted2)),
       );
 
   Widget _row(String l, String v, {bool bigTotal = false}) => Padding(
@@ -1797,7 +1438,7 @@ class _ReceiptCard extends StatelessWidget {
               child: Text(l,
                   style: TextStyle(
                     fontSize: bigTotal ? 17 : 13.5,
-                    color: _ink,
+                    color: kInk,
                     fontWeight: bigTotal
                         ? FontWeight.w700
                         : FontWeight.w400,
@@ -1808,7 +1449,7 @@ class _ReceiptCard extends StatelessWidget {
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   fontSize: bigTotal ? 19 : 13.5,
-                  color: _ink,
+                  color: kInk,
                   fontWeight: FontWeight.w700,
                 )),
           ],
@@ -1821,7 +1462,7 @@ class _CardDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
       height: 1,
-      color: _hairline2,
+      color: kHairline2,
       margin: const EdgeInsets.symmetric(vertical: 12));
 }
 
@@ -1843,11 +1484,11 @@ class _ClientPill extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: _fill,
+            color: kFill,
             borderRadius: BorderRadius.circular(14)),
         child: const Text('Гость (без анкеты)',
             textAlign: TextAlign.center,
-            style: TextStyle(color: _muted2, fontSize: 13)),
+            style: TextStyle(color: kMuted2, fontSize: 13)),
       );
     }
     return InkWell(
@@ -1857,7 +1498,7 @@ class _ClientPill extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-            color: _fill,
+            color: kFill,
             borderRadius: BorderRadius.circular(14)),
         child: Row(
           children: [
@@ -1873,19 +1514,19 @@ class _ClientPill extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: _ink)),
+                          color: kInk)),
                   const SizedBox(height: 1),
                   Text(
                       '${client!.phone} · ${client!.tariffLabel}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 12, color: _muted2)),
+                          fontSize: 12, color: kMuted2)),
                 ],
               ),
             ),
             const Icon(Icons.chevron_right,
-                color: _muted2, size: 22),
+                color: kMuted2, size: 22),
           ],
         ),
       ),
@@ -1897,12 +1538,12 @@ class _ClientPill extends StatelessWidget {
 // Полная карточка клиента (перенесена 1-в-1 из карты пруда)
 // ============================================================================
 class _ClientCard extends StatelessWidget {
-  final _FullClient client;
+  final FullClient client;
   const _ClientCard({required this.client});
 
   @override
   Widget build(BuildContext context) {
-    final l = _levels[client.level]!;
+    final l = kLevelStyles[client.level]!;
     final initials = client.name
         .split(' ')
         .map((p) => p.isEmpty ? '' : p[0])
@@ -1916,7 +1557,7 @@ class _ClientCard extends StatelessWidget {
         margin: const EdgeInsets.all(20),
         constraints: const BoxConstraints(maxWidth: 340),
         decoration: BoxDecoration(
-          color: _paper,
+          color: kPaper,
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
@@ -1940,7 +1581,7 @@ class _ClientCard extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [l.color, _ink],
+                      colors: [l.color, kInk],
                     ),
                   ),
                   child: Stack(
@@ -2068,7 +1709,7 @@ class _ClientCard extends StatelessWidget {
                                   style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800,
-                                      color: _ink)),
+                                      color: kInk)),
                             ],
                           ),
                         ],
@@ -2082,7 +1723,7 @@ class _ClientCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _hairline),
+                          border: Border.all(color: kHairline),
                         ),
                         child: Column(
                           crossAxisAlignment:
@@ -2157,7 +1798,7 @@ class _ClientCard extends StatelessWidget {
                           children: [
                             const Icon(
                                 Icons.emoji_events_outlined,
-                                color: _ember,
+                                color: kEmber,
                                 size: 20),
                             const SizedBox(width: 10),
                             Expanded(
@@ -2178,7 +1819,7 @@ class _ClientCard extends StatelessWidget {
                                           fontSize: 13.5,
                                           fontWeight:
                                               FontWeight.w700,
-                                          color: _ink)),
+                                          color: kInk)),
                                 ],
                               ),
                             ),
@@ -2197,7 +1838,7 @@ class _ClientCard extends StatelessWidget {
                                     style: const TextStyle(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
-                                        color: _ink)),
+                                        color: kInk)),
                               ],
                             ),
                           ],
@@ -2215,10 +1856,10 @@ class _ClientCard extends StatelessWidget {
   }
 
   static Widget _iconRow(IconData icon, String text) => Row(children: [
-        Icon(icon, size: 15, color: _ember),
+        Icon(icon, size: 15, color: kEmber),
         const SizedBox(width: 8),
         Text(text,
-            style: const TextStyle(fontSize: 13, color: _ink)),
+            style: const TextStyle(fontSize: 13, color: kInk)),
       ]);
 
   static Widget _statBlock(String label, String value) => Container(
@@ -2227,7 +1868,7 @@ class _ClientCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _hairline),
+          border: Border.all(color: kHairline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2249,7 +1890,7 @@ class _ClientCard extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
-                      color: _ink)),
+                      color: kInk)),
             ),
           ],
         ),
@@ -2263,7 +1904,7 @@ class _LevelBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = _levels[level]!;
+    final l = kLevelStyles[level]!;
     const size = 18.0;
     final medal = _Medal(style: l, size: size);
     return Container(
@@ -2350,7 +1991,7 @@ class _ClientProfileFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: _paper,
+      backgroundColor: kPaper,
       insetPadding:
           const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
       shape: RoundedRectangleBorder(
@@ -2472,7 +2113,7 @@ class _ClientProfileFallback extends StatelessWidget {
           Expanded(
               child: Text(text,
                   style:
-                      const TextStyle(fontSize: 13, color: _ink))),
+                      const TextStyle(fontSize: 13, color: kInk))),
         ],
       );
 }
@@ -2578,7 +2219,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
         width: 300,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _paper,
+          color: kPaper,
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
             BoxShadow(
@@ -2602,7 +2243,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                     style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
-                        color: _ink)),
+                        color: kInk)),
                 _navButton(Icons.chevron_right, () => setState(() {
                       cursor = DateTime(
                           cursor.year, cursor.month + 1, 1);
@@ -2618,7 +2259,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                               style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: _muted2)))))
+                                  color: kMuted2)))))
                   .toList(),
             ),
             const SizedBox(height: 6),
@@ -2646,7 +2287,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: inRange
-                          ? _selected.withOpacity(0.55)
+                          ? kSelected.withOpacity(0.55)
                           : Colors.transparent,
                       borderRadius: BorderRadius.horizontal(
                         left: isStart
@@ -2664,7 +2305,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: (isStart || isEnd)
-                            ? _orange
+                            ? kOrange
                             : Colors.transparent,
                         shape: BoxShape.circle,
                       ),
@@ -2676,7 +2317,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                                 : FontWeight.w500,
                             color: (isStart || isEnd)
                                 ? Colors.white
-                                : _ink,
+                                : kInk,
                           )),
                     ),
                   ),
@@ -2692,7 +2333,7 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                       : '${_fmtDateShort(start!)} — ${_fmtDateShort(end!)}',
               textAlign: TextAlign.center,
               style:
-                  const TextStyle(fontSize: 11.5, color: _muted2),
+                  const TextStyle(fontSize: 11.5, color: kMuted2),
             ),
             const SizedBox(height: 12),
             Row(children: [
@@ -2706,8 +2347,8 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                     });
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _muted,
-                    side: const BorderSide(color: _outline),
+                    foregroundColor: kMuted,
+                    side: const BorderSide(color: kOutline),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                     padding:
@@ -2730,9 +2371,9 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
                               start: start!,
                               end: end ?? start!)),
                   style: FilledButton.styleFrom(
-                    backgroundColor: _orange,
+                    backgroundColor: kOrange,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: _hairline,
+                    disabledBackgroundColor: kHairline,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                     padding:
@@ -2763,9 +2404,9 @@ class _RangeCalendarPickerState extends State<_RangeCalendarPicker> {
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: _hairline),
+            border: Border.all(color: kHairline),
           ),
-          child: Icon(icon, size: 15, color: _ink),
+          child: Icon(icon, size: 15, color: kInk),
         ),
       );
 }

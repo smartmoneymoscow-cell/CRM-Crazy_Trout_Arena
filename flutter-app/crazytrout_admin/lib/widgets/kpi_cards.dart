@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/finance_kpi_stats.dart';
+import '../theme/app_theme.dart';
 
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _orange = Color(0xFFE8912B);
-const _hairline2 = Color(0xFFE7E0D1);
-const _muted = Color(0xFF8C8576);
-const _muted2 = Color(0xFF9C9484);
 const _green = Color(0xFF4F9D75);
 const _greenLight = Color(0xFFE8F5EE);
 
@@ -22,7 +17,7 @@ class KpiCards extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(child: _KpiCard(
-              icon: Icons.receipt_long_outlined, iconColor: _orange,
+              icon: Icons.receipt_long_outlined, iconColor: kOrange,
               title: 'Средний чек',
               value: '${_fmtMoney(stats.avgCheck.round())} ₽',
               subtitle: '${stats.paymentsCount} оплат',
@@ -56,7 +51,7 @@ class KpiCards extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _KpiCard(
-          icon: Icons.star_rounded, iconColor: _orange,
+          icon: Icons.star_rounded, iconColor: kOrange,
           title: 'Оценка сервиса',
           value: stats.avgRating.toStringAsFixed(1).replaceAll('.', ','),
           subtitle: '${stats.reviewsCount} отзывов',
@@ -114,9 +109,9 @@ class _KpiCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _paper,
+        color: kPaper,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _hairline2, width: 0.5),
+        border: Border.all(color: kHairline2, width: 0.5),
       ),
       child: wide ? _buildWide() : _buildCompact(),
     );
@@ -133,15 +128,15 @@ class _KpiCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _muted))),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: kMuted))),
         ]),
         const SizedBox(height: 12),
         Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _ink, letterSpacing: -0.3)),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: kInk, letterSpacing: -0.3)),
         const SizedBox(height: 6),
         Row(children: [
           if (subtitle != null) Expanded(child: Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, color: _muted2))),
+            style: const TextStyle(fontSize: 11, color: kMuted2))),
           if (delta != null) Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(color: deltaPositive ? _greenLight : const Color(0xFFFDEAEA), borderRadius: BorderRadius.circular(6)),
@@ -162,17 +157,17 @@ class _KpiCard extends StatelessWidget {
       ),
       const SizedBox(width: 14),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _muted)),
+        Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: kMuted)),
         const SizedBox(height: 4),
         Row(children: [
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink, letterSpacing: -0.3)),
+          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kInk, letterSpacing: -0.3)),
           if (stars != null) ...[
             const SizedBox(width: 12),
             Expanded(child: _StarRating(rating: stars!, size: 22)),
           ],
         ]),
         if (subtitle != null) ...[const SizedBox(height: 4),
-          Text(subtitle!, style: const TextStyle(fontSize: 11, color: _muted2))],
+          Text(subtitle!, style: const TextStyle(fontSize: 11, color: kMuted2))],
       ])),
     ]);
   }
@@ -189,7 +184,7 @@ class _StarRating extends StatelessWidget {
       final filled = rating - i;
       return Padding(padding: const EdgeInsets.only(right: 2), child: Icon(
         filled >= 0.75 ? Icons.star_rounded : filled >= 0.25 ? Icons.star_half_rounded : Icons.star_border_rounded,
-        size: size, color: filled > 0 ? _orange : _muted2,
+        size: size, color: filled > 0 ? kOrange : kMuted2,
       ));
     }));
   }

@@ -1,12 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../data/revenue_dynamics_data.dart';
+import '../theme/app_theme.dart';
 
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _fill = Color(0xFFF3EEE4);
-const _hairline2 = Color(0xFFE7E0D1);
-const _muted2 = Color(0xFF9C9484);
 
 class RevenueDynamicsChart extends StatefulWidget {
   final RevenueDynamicsData data;
@@ -44,13 +40,13 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: _paper, borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _hairline2, width: 0.5),
+        color: kPaper, borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: kHairline2, width: 0.5),
       ),
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Динамика показателей',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _ink)),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
         const SizedBox(height: 16),
         Row(children: [
           _legendDot(const Color(0xFFE8912B), 'Выручка'),
@@ -70,12 +66,12 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
         SizedBox(height: 20, child: Row(
           children: _points.map((d) => Expanded(
             child: Text(d.label, textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 10, color: _muted2)),
+              style: const TextStyle(fontSize: 10, color: kMuted2)),
           )).toList(),
         )),
         const SizedBox(height: 16),
         Center(child: Container(
-          decoration: BoxDecoration(color: _fill, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: kFill, borderRadius: BorderRadius.circular(10)),
           padding: const EdgeInsets.all(3),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             _toggleBtn('По месяцам', _monthly, () => setState(() => _monthly = true)),
@@ -89,7 +85,7 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
   Widget _legendDot(Color color, String label) => Row(children: [
     Container(width: 8, height: 8, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
     const SizedBox(width: 5),
-    Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: _ink)),
+    Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: kInk)),
   ]);
 
   Widget _toggleBtn(String label, bool active, VoidCallback onTap) => GestureDetector(
@@ -103,7 +99,7 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
       ),
       child: Text(label, style: TextStyle(fontSize: 12,
         fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-        color: active ? _ink : _muted2)),
+        color: active ? kInk : kMuted2)),
     ),
   );
 }

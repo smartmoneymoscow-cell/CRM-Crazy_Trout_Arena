@@ -32,6 +32,8 @@ import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart' as app_data show kDemoClients;
 import 'pond_map_filter_config.dart';
+import '../theme/app_theme.dart';
+import '../data/pond_stats.dart';
 
 // ─────────────────────────── Растровые ассеты (встроены base64, без pubspec) ───────────────────────────
 // Реальные фото-текстуры деревьев (вид сверху, прозрачный фон, без белой каймы —
@@ -51,14 +53,8 @@ const String kTreeExtra2B64 =
 const String kGrassTileB64 =
     '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';
 
-
 // ─────────────────────────── Design tokens ───────────────────────────
-const _ink = Color(0xFF14130F);
-const _paper = Color(0xFFFBF6EC);
-const _orange = Color(0xFFE89829);
-const _ember = Color(0xFF886F11);
 const _green = Color(0xFF3FA66B);
-const _hairline = Color(0xFFE3DCC9);
 
 const _monthsShort = [
   'янв', 'фев', 'мар', 'апр', 'май', 'июн',
@@ -76,128 +72,19 @@ const _blocks = [[5, 8], [8, 11], [11, 14], [14, 17], [17, 20], [20, 22]];
 String _fmt(int h) => '${h.toString().padLeft(2, '0')}:00';
 
 // ─────────────────────────── Модель клиента / уровня ───────────────────────────
-enum LevelKey { premium, standard, basic }
-
-class LevelStyle {
-  final String label, letter;
-  final Color color, medalTop, medalMid, medalBottom, letterColor, ring;
-  const LevelStyle({
-    required this.label, required this.letter, required this.color,
-    required this.medalTop, required this.medalMid, required this.medalBottom,
-    required this.letterColor, required this.ring,
-  });
-}
-
-// Правка — цвета медалей приведены 1-в-1 к версии pond-map-preview-2.
-const _levels = <LevelKey, LevelStyle>{
-  LevelKey.premium: LevelStyle(
-    label: 'Премиум', letter: 'П', color: Color(0xFFB8862E),
-    medalTop: Color(0xFFFFE18A), medalMid: Color(0xFFE0A62E), medalBottom: Color(0xFFAD7A16),
-    letterColor: Color(0xFF4A3300), ring: Color(0xFFB8862E),
-  ),
-  LevelKey.standard: LevelStyle(
-    label: 'Стандарт', letter: 'С', color: Color(0xFF8B94A0),
-    medalTop: Color(0xFFF2F5F8), medalMid: Color(0xFFC9D1D9), medalBottom: Color(0xFF98A2AD),
-    letterColor: Color(0xFF2E3438), ring: Color(0xFF8B94A0),
-  ),
-  LevelKey.basic: LevelStyle(
-    label: 'Базовый', letter: 'Б', color: Color(0xFF8C5C34),
-    medalTop: Color(0xFFE3B98B), medalMid: Color(0xFFC08A54), medalBottom: Color(0xFF8C5C34),
-    letterColor: Color(0xFFFFFFFF), ring: Color(0xFF8C5C34),
-  ),
-};
-
-class Client {
-  final int id;
-  final String name, phone, email, tariff, firstVisit;
-  final Color color;
-  final LevelKey level;
-  final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final BestCatch bestCatch;
-  final int? currentSector;
-  /// Путь к фото-аватару (assets/avatars/...) — тот же самый, что уже
-  /// используется на странице выставления чека. null = показывать инициалы
-  /// на цветном фоне (как раньше).
-  final String? avatarAsset;
-  const Client({
-    required this.id, required this.name, required this.phone, required this.email,
-    required this.color, required this.level, required this.tariff,
-    required this.points, required this.pointsNext, required this.visits, required this.ltvK,
-    required this.fish, required this.totalWeight, required this.firstVisit,
-    required this.bestCatch, this.currentSector, this.avatarAsset,
-  });
-}
-
-class BestCatch {
-  final String species, weight, date;
-  final int sector;
-  const BestCatch({required this.species, required this.weight, required this.sector, required this.date});
-}
-
 /// Статистика, специфичная для карты пруда (баллы, уровень, LTV, лучший
 /// улов и т.п.) — этого нет в общей модели клиента приложения, поэтому
 /// хранится отдельно и подмешивается по id. Имя/телефон/тариф/аватар
 /// берутся из [app_data.kDemoClients] — единого источника правды, который
 /// уже используется на странице выставления чека.
-class _PondStats {
-  final Color color;
-  final LevelKey level;
-  final int points, pointsNext, visits, ltvK, fish, totalWeight;
-  final String firstVisit, email;
-  final BestCatch bestCatch;
-  final int? currentSector;
-  const _PondStats({
-    required this.color, required this.level, required this.points, required this.pointsNext,
-    required this.visits, required this.ltvK, required this.fish, required this.totalWeight,
-    required this.firstVisit, required this.email, required this.bestCatch, this.currentSector,
-  });
-}
-
-const Map<int, _PondStats> _pondStatsById = {
-  1: _PondStats(color: Color(0xFFE89829), level: LevelKey.premium,
-    points: 1280, pointsNext: 1500, visits: 42, ltvK: 120, fish: 96, totalWeight: 215,
-    firstVisit: '14.03.2023', email: 'ivanov@mail.ru', currentSector: 7,
-    bestCatch: BestCatch(species: 'Осётр', weight: '6.2 кг', sector: 7, date: '02.07.2026')),
-  2: _PondStats(color: Color(0xFF3FA66B), level: LevelKey.standard,
-    points: 640, pointsNext: 1000, visits: 18, ltvK: 54, fish: 31, totalWeight: 78,
-    firstVisit: '02.08.2024', email: 'koshkin@mail.ru', currentSector: 4,
-    bestCatch: BestCatch(species: 'Карп', weight: '3.4 кг', sector: 4, date: '28.06.2026')),
-  3: _PondStats(color: Color(0xFF2A6A7E), level: LevelKey.premium,
-    points: 1410, pointsNext: 1500, visits: 55, ltvK: 1200, fish: 122, totalWeight: 289,
-    firstVisit: '27.01.2022', email: 'petrov@mail.ru', currentSector: 2,
-    bestCatch: BestCatch(species: 'Осётр', weight: '7.8 кг', sector: 2, date: '19.06.2026')),
-  5: _PondStats(color: Color(0xFF886F11), level: LevelKey.standard,
-    points: 780, pointsNext: 1000, visits: 21, ltvK: 68, fish: 40, totalWeight: 103,
-    firstVisit: '11.11.2023', email: 'laguta@mail.ru', currentSector: 5,
-    bestCatch: BestCatch(species: 'Амур', weight: '4.9 кг', sector: 5, date: '30.06.2026')),
-  6: _PondStats(color: Color(0xFFB8862E), level: LevelKey.premium,
-    points: 1500, pointsNext: 1500, visits: 68, ltvK: 2400, fish: 150, totalWeight: 365,
-    firstVisit: '03.06.2021', email: 'orlov@mail.ru', currentSector: 1,
-    bestCatch: BestCatch(species: 'Осётр', weight: '8.4 кг', sector: 1, date: '24.06.2026')),
-  7: _PondStats(color: Color(0xFF6B7280), level: LevelKey.basic,
-    points: 260, pointsNext: 500, visits: 7, ltvK: 15, fish: 12, totalWeight: 22,
-    firstVisit: '09.02.2026', email: 'sidorov@mail.ru', currentSector: 10,
-    bestCatch: BestCatch(species: 'Линь', weight: '1.6 кг', sector: 10, date: '11.06.2026')),
-  // Новые клиенты (появились в приложении позже исходного макета карты) —
-  // правдоподобные значения по аналогии с остальными.
-  8: _PondStats(color: Color(0xFF9C5A3C), level: LevelKey.standard,
-    points: 520, pointsNext: 1000, visits: 14, ltvK: 46, fish: 27, totalWeight: 61,
-    firstVisit: '18.01.2025', email: 'shchukin@mail.ru', currentSector: 8,
-    bestCatch: BestCatch(species: 'Щука', weight: '4.1 кг', sector: 8, date: '15.06.2026')),
-  100: _PondStats(color: Color(0xFF8C5C34), level: LevelKey.basic,
-    points: 40, pointsNext: 500, visits: 1, ltvK: 1, fish: 2, totalWeight: 3,
-    firstVisit: '10.07.2026', email: 'guest@crazytroutarena.ru', currentSector: 3,
-    bestCatch: BestCatch(species: 'Карп', weight: '0.9 кг', sector: 3, date: '10.07.2026')),
-};
-
 // Клиенты собираются из общего источника приложения (app_data.kDemoClients —
 // тот же список, что и на странице выставления чека), а карт-специфичная
-// статистика подмешивается по id из _pondStatsById. Если для нового клиента
-// ещё нет записи в _pondStatsById — используется безопасный дефолт, а не
+// статистика подмешивается по id из kPondStatsById. Если для нового клиента
+// ещё нет записи в kPondStatsById — используется безопасный дефолт, а не
 // падение/пропуск клиента.
 final List<Client> _clients = app_data.kDemoClients.map((c) {
-  final s = _pondStatsById[c.id] ??
-      const _PondStats(
+  final s = kPondStatsById[c.id] ??
+      const PondStats(
         color: Color(0xFF8B94A0), level: LevelKey.basic,
         points: 0, pointsNext: 500, visits: 0, ltvK: 0, fish: 0, totalWeight: 0,
         firstVisit: '—', email: '—',
@@ -393,7 +280,6 @@ class _PondPainter extends CustomPainter {
       );
       canvas.drawRect(fullRect, Paint()..shader = tileShader);
       canvas.restore();
-      canvas.restore();
     }
     canvas.saveLayer(fullRect, Paint()..color = Colors.white.withOpacity(0.35));
     canvas.drawRRect(
@@ -518,7 +404,7 @@ class _PondPainter extends CustomPainter {
     for (final n in _sectorOrder) {
       final p = _markerPos[n]!;
       final occupied = statusByNumber[n] == 'occupied';
-      final color = occupied ? _orange : _green;
+      final color = occupied ? kOrange : _green;
       final isSelected = selected == n;
       final scale = isSelected ? 1.18 : 1.0;
 
@@ -755,7 +641,7 @@ class LevelBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = _levels[level]!;
+    final l = kLevelStyles[level]!;
     final size = sizeOverride ?? (compact ? 16.0 : 18.0);
     final medal = _Medal(style: l, size: size);
     if (compact) return medal;
@@ -829,7 +715,7 @@ class _ClientCard extends StatelessWidget {
   const _ClientCard({required this.client});
   @override
   Widget build(BuildContext context) {
-    final l = _levels[client.level]!;
+    final l = kLevelStyles[client.level]!;
     final initials = client.name.split(' ').map((p) => p.isEmpty ? '' : p[0]).take(2).join();
     final pct = ((client.points / client.pointsNext) * 100).clamp(0, 100).round();
 
@@ -838,7 +724,7 @@ class _ClientCard extends StatelessWidget {
         margin: const EdgeInsets.all(20),
         constraints: const BoxConstraints(maxWidth: 340),
         decoration: BoxDecoration(
-          color: _paper, borderRadius: BorderRadius.circular(22),
+          color: kPaper, borderRadius: BorderRadius.circular(22),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 60, offset: const Offset(0, 24))],
         ),
         child: ClipRRect(
@@ -848,7 +734,7 @@ class _ClientCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
               decoration: BoxDecoration(gradient: LinearGradient(
-                begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [l.color, _ink])),
+                begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [l.color, kInk])),
               child: Stack(children: [
                 Row(children: [
                   client.avatarAsset != null
@@ -897,7 +783,7 @@ class _ClientCard extends StatelessWidget {
                       style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: Colors.black45, letterSpacing: 0.3)),
                     const SizedBox(height: 2),
                     Text('№ ${client.currentSector}', textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _orange)),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: kOrange)),
                   ]),
               ]),
               const SizedBox(height: 16),
@@ -906,7 +792,7 @@ class _ClientCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _hairline)),
+                  border: Border.all(color: kHairline)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     const Text('БАЛЛЫ ЛОЯЛЬНОСТИ',
@@ -940,19 +826,19 @@ class _ClientCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 decoration: BoxDecoration(color: const Color(0xFFFBEEDA), borderRadius: BorderRadius.circular(14)),
                 child: Row(children: [
-                  const Icon(Icons.emoji_events_outlined, color: _ember, size: 20),
+                  const Icon(Icons.emoji_events_outlined, color: kEmber, size: 20),
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Text('ЛУЧШИЙ УЛОВ',
                       style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.black54, letterSpacing: 0.3)),
                     Text('${client.bestCatch.species} · ${client.bestCatch.weight}',
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: kInk)),
                   ])),
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('СЕКТОР №${client.bestCatch.sector}',
                       style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.black54, letterSpacing: 0.3)),
                     Text(client.bestCatch.date,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: kInk)),
                   ]),
                 ]),
               ),
@@ -964,13 +850,13 @@ class _ClientCard extends StatelessWidget {
   }
 
   static Widget _iconRow(IconData icon, String text) =>
-      Row(children: [Icon(icon, size: 15, color: _ember), const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 13, color: _ink))]);
+      Row(children: [Icon(icon, size: 15, color: kEmber), const SizedBox(width: 8),
+        Text(text, style: const TextStyle(fontSize: 13, color: kInk))]);
 
   static Widget _statBlock(String label, String value) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: _hairline)),
+      border: Border.all(color: kHairline)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(label, textAlign: TextAlign.left,
         style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.black45, letterSpacing: 0.3)),
@@ -980,17 +866,13 @@ class _ClientCard extends StatelessWidget {
         alignment: Alignment.center,
         child: Text(value, textAlign: TextAlign.center,
           maxLines: 1,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: _ink)),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: kInk)),
       ),
     ]),
   );
 }
 
 // ─────────────────────────── Фильтр (Правка 1.2) ───────────────────────────
-
-
-
-
 
 /// Выпадающий список фильтров карты пруда.
 ///
@@ -1042,14 +924,14 @@ class FiltersDropdown extends StatelessWidget {
           border: Border.all(color: const Color(0xFFEFE8D8), width: 0.5),
         ),
         child: Row(children: [
-          const Icon(Icons.filter_list, size: 13, color: _ember),
+          const Icon(Icons.filter_list, size: 13, color: kEmber),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
               filterButtonLabels[value]!,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _ink),
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: kInk),
             ),
           ),
         ]),
@@ -1128,7 +1010,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
           const Padding(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
             child: Center(child: Text('Карта пруда',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink))),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kInk))),
           ),
           Row(children: [
             Expanded(child: _chip(Icons.calendar_today_outlined, 'ДАТА',
@@ -1149,9 +1031,9 @@ class _PondMapScreenState extends State<PondMapScreen> {
           ]),
           const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: _statCard(dark: true, label: 'ЗАГРУЗКА', value: '$load%', valueColor: _orange)),
+            Expanded(child: _statCard(dark: true, label: 'ЗАГРУЗКА', value: '$load%', valueColor: kOrange)),
             const SizedBox(width: 10),
-            Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: _ink)),
+            Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: kInk)),
           ]),
           const SizedBox(height: 12),
           PondMapView(sectorStatuses: statuses, selected: selected,
@@ -1223,10 +1105,9 @@ class _PondMapScreenState extends State<PondMapScreen> {
       const Spacer(),
       _legend(_green, 'Свободно $free'),
       const SizedBox(width: 12),
-      _legend(_orange, 'Занято $occupied'),
+      _legend(kOrange, 'Занято $occupied'),
     ]);
   }
-
 
   /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).
   Widget _buildDropdown() {
@@ -1277,7 +1158,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
                       e.value,
                       style: TextStyle(
                         fontSize: 13,
-                        color: _ink,
+                        color: kInk,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                       ),
                     ),
@@ -1313,13 +1194,13 @@ class _PondMapScreenState extends State<PondMapScreen> {
     if (rows.isEmpty) {
       return Container(padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: _hairline)),
+          border: Border.all(color: kHairline)),
         child: const Text('Нет слотов, подходящих под выбранный фильтр.',
           style: TextStyle(fontSize: 13, color: Colors.black45)));
     }
     return Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _hairline)),
+        border: Border.all(color: kHairline)),
       child: ClipRRect(borderRadius: BorderRadius.circular(18), child: Column(children: rows)),
     );
   }
@@ -1329,11 +1210,11 @@ class _PondMapScreenState extends State<PondMapScreen> {
     color: const Color(0xFFF5EEDC),
     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Text('${_fmt(block[0])}–${_fmt(block[1])}',
-        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: _ink)),
+        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: kInk)),
       Text.rich(TextSpan(children: [
         TextSpan(text: '${total - occ} своб.', style: const TextStyle(color: _green, fontSize: 11, fontWeight: FontWeight.w600)),
         const TextSpan(text: ' · ', style: TextStyle(color: Colors.black45, fontSize: 11)),
-        TextSpan(text: '$occ занято', style: const TextStyle(color: _orange, fontSize: 11, fontWeight: FontWeight.w600)),
+        TextSpan(text: '$occ занято', style: const TextStyle(color: kOrange, fontSize: 11, fontWeight: FontWeight.w600)),
       ])),
     ]),
   );
@@ -1342,15 +1223,15 @@ class _PondMapScreenState extends State<PondMapScreen> {
     final occupied = s.client != null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: _hairline))),
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: kHairline))),
       child: Row(children: [
         SizedBox(width: 46, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(_fmt(block[0]), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: _ink)),
+          Text(_fmt(block[0]), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: kInk)),
           Text(_fmt(block[1]), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black38)),
         ])),
         const SizedBox(width: 10),
         Container(width: 26, height: 26, alignment: Alignment.center,
-          decoration: BoxDecoration(color: occupied ? _orange : _green,
+          decoration: BoxDecoration(color: occupied ? kOrange : _green,
             borderRadius: BorderRadius.circular(8)),
           child: Text('$sector', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800))),
         const SizedBox(width: 10),
@@ -1359,7 +1240,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
               _avatar(s.client!, 32),
               const SizedBox(width: 9),
               Flexible(child: Text(s.client!.name, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _ink))),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kInk))),
               const SizedBox(width: 6),
               LevelBadge(level: s.client!.level, compact: true),
             ]))
@@ -1397,16 +1278,16 @@ class _PondMapScreenState extends State<PondMapScreen> {
         gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
           colors: [Colors.white, Color(0xFFFBF7EC)]),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _hairline),
+        border: Border.all(color: kHairline),
       ),
       child: Row(children: [
         Container(width: 30, height: 30, alignment: Alignment.center,
-          decoration: BoxDecoration(color: _ember.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, size: 15, color: _ember)),
+          decoration: BoxDecoration(color: kEmber.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, size: 15, color: kEmber)),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(caption, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: Colors.black38, letterSpacing: 0.5)),
-          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: _ink)),
+          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: kInk)),
         ])),
         const Icon(Icons.expand_more, size: 13, color: Colors.black38),
       ]),
@@ -1417,9 +1298,9 @@ class _PondMapScreenState extends State<PondMapScreen> {
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: dark ? const [Color(0xFF1F1D18), _ink] : const [Colors.white, Color(0xFFFCFAF4)]),
+        colors: dark ? const [Color(0xFF1F1D18), kInk] : const [Colors.white, Color(0xFFFCFAF4)]),
       borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: dark ? Colors.white10 : _hairline),
+      border: Border.all(color: dark ? Colors.white10 : kHairline),
     ),
     child: Stack(
       children: [
@@ -1434,7 +1315,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_orange.withOpacity(0.20), _orange.withOpacity(0.0)],
+                  colors: [kOrange.withOpacity(0.20), kOrange.withOpacity(0.0)],
                   stops: const [0.0, 0.7],
                 ),
               ),
@@ -1445,10 +1326,10 @@ class _PondMapScreenState extends State<PondMapScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
               Container(width: 22, height: 22, alignment: Alignment.center,
-                decoration: BoxDecoration(color: dark ? Colors.white10 : _ember.withOpacity(0.10),
+                decoration: BoxDecoration(color: dark ? Colors.white10 : kEmber.withOpacity(0.10),
                   borderRadius: BorderRadius.circular(7)),
                 child: Icon(dark ? Icons.bar_chart : Icons.calendar_today_outlined, size: 13,
-                  color: dark ? _orange : _ember)),
+                  color: dark ? kOrange : kEmber)),
               const SizedBox(width: 6),
               Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.5,
                 color: dark ? Colors.white54 : Colors.black45)),
@@ -1464,7 +1345,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
   Widget _legend(Color color, String text) => Row(mainAxisSize: MainAxisSize.min, children: [
     Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
     const SizedBox(width: 6),
-    Text(text, style: const TextStyle(fontSize: 13, color: _ink)),
+    Text(text, style: const TextStyle(fontSize: 13, color: kInk)),
   ]);
 }
 
@@ -1511,7 +1392,7 @@ class _CalendarPickerState extends State<_CalendarPicker> {
         width: 300,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _paper,
+          color: kPaper,
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [BoxShadow(color: Color(0x4D000000), blurRadius: 50, offset: Offset(0, 20))],
         ),
@@ -1521,7 +1402,7 @@ class _CalendarPickerState extends State<_CalendarPicker> {
               cursor = DateTime(cursor.year, cursor.month - 1, 1);
             })),
             Text('${_monthsFull[cursor.month - 1]} ${cursor.year}',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: _ink)),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: kInk)),
             _navButton(Icons.chevron_right, () => setState(() {
               cursor = DateTime(cursor.year, cursor.month + 1, 1);
             })),
@@ -1545,13 +1426,13 @@ class _CalendarPickerState extends State<_CalendarPicker> {
                 child: Container(
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? _orange : Colors.transparent,
+                    color: isSelected ? kOrange : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Text('$d', style: TextStyle(
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    color: isSelected ? Colors.white : _ink,
+                    color: isSelected ? Colors.white : kInk,
                   )),
                 ),
               );
@@ -1560,7 +1441,7 @@ class _CalendarPickerState extends State<_CalendarPicker> {
           const SizedBox(height: 14),
           SizedBox(width: double.infinity, child: FilledButton(
             onPressed: () => Navigator.pop(context, pending),
-            style: FilledButton.styleFrom(backgroundColor: _orange, foregroundColor: Colors.white,
+            style: FilledButton.styleFrom(backgroundColor: kOrange, foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 12)),
             child: const Text('Применить', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)))),
@@ -1577,9 +1458,9 @@ class _CalendarPickerState extends State<_CalendarPicker> {
       decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
-        border: Border.all(color: _hairline),
+        border: Border.all(color: kHairline),
       ),
-      child: Icon(icon, size: 15, color: _ink),
+      child: Icon(icon, size: 15, color: kInk),
     ),
   );
 }
@@ -1604,13 +1485,13 @@ class _TimePickerState extends State<_TimePicker> {
         width: 300,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _paper,
+          color: kPaper,
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [BoxShadow(color: Color(0x4D000000), blurRadius: 50, offset: Offset(0, 20))],
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('Время · рабочие часы 05:00–22:00',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: _ink)),
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: kInk)),
           const SizedBox(height: 12),
           GridView.count(crossAxisCount: 3, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 8, mainAxisSpacing: 8, childAspectRatio: 3.0,
@@ -1621,17 +1502,17 @@ class _TimePickerState extends State<_TimePicker> {
                 onTap: () => setState(() => pending = h),
                 child: Container(alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: sel ? _orange : Colors.white,
+                    color: sel ? kOrange : Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: sel ? _orange : _hairline)),
+                    border: Border.all(color: sel ? kOrange : kHairline)),
                   child: Text(_fmt(h),
                     style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13,
-                      color: sel ? Colors.white : _ink))));
+                      color: sel ? Colors.white : kInk))));
             }).toList()),
           const SizedBox(height: 14),
           SizedBox(width: double.infinity, child: FilledButton(
             onPressed: () => Navigator.pop(context, pending),
-            style: FilledButton.styleFrom(backgroundColor: _orange, foregroundColor: Colors.white,
+            style: FilledButton.styleFrom(backgroundColor: kOrange, foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 12)),
             child: const Text('Применить', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)))),
