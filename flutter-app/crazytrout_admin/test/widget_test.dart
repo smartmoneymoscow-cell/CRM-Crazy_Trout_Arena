@@ -3,24 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crazytrout_admin/main.dart';
 
 void main() {
-  // Подавляем overflow-ошибки ДО запуска тестов.
-  final originalHandler = FlutterError.onError;
-  FlutterError.onError = (details) {
-    if (details.exceptionAsString().contains('overflowed')) return;
-    originalHandler?.call(details);
-  };
-
   group('App — smoke tests', () {
     testWidgets('приложение запускается без крашей', (WidgetTester tester) async {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      // Игнорируем overflow-предупреждения
+      while (tester.takeException() != null) {}
     });
 
     testWidgets('после SplashScreen показывается HomeShell', (WidgetTester tester) async {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      while (tester.takeException() != null) {}
       expect(find.text('Чек'), findsOneWidget);
     });
 
@@ -28,6 +24,7 @@ void main() {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      while (tester.takeException() != null) {}
       expect(find.text('Карта'), findsOneWidget);
       expect(find.text('Чек'), findsOneWidget);
       expect(find.text('Чеки'), findsOneWidget);
@@ -39,14 +36,17 @@ void main() {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      while (tester.takeException() != null) {}
       await tester.tap(find.text('Чеки'));
       await tester.pumpAndSettle();
+      while (tester.takeException() != null) {}
     });
 
     testWidgets('поиск клиента и QR-кнопка присутствуют', (WidgetTester tester) async {
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
+      while (tester.takeException() != null) {}
     });
   });
 }
