@@ -1102,9 +1102,8 @@ class _PondMapScreenState extends State<PondMapScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFEFE9DC),
       body: SafeArea(child: Column(children: [
-        // Заголовок, чипы, стата, карта — скроллится при нехватке места.
-        Flexible(
-          child: SingleChildScrollView(
+        // Заголовок, чипы, стата, карта — фиксированная часть, не скроллится.
+        Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Column(children: [
             const Padding(
@@ -1136,11 +1135,13 @@ class _PondMapScreenState extends State<PondMapScreen> {
               Expanded(child: _statCard(dark: false, label: 'БРОНЕЙ', value: '$occupied / 16', valueColor: _ink)),
             ]),
             const SizedBox(height: 12),
-            PondMapView(sectorStatuses: statuses, selected: selected,
-              onTap: (n) => setState(() => selected = selected == n ? null : n)),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: PondMapView(sectorStatuses: statuses, selected: selected,
+                onTap: (n) => setState(() => selected = selected == n ? null : n)),
+            ),
             const SizedBox(height: 16),
           ]),
-          ),
         ),
         // Строка фильтров + лента броней: Stack — dropdown поверх feed, под нижним меню.
         Expanded(child: Stack(children: [
