@@ -1084,31 +1084,35 @@ class _FiltersDropdownState extends State<FiltersDropdown> {
                   ],
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: ListView(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
-                  children: filterOptions.entries.map((e) {
-                    final isSelected = widget.value == e.key;
-                    return InkWell(
-                      onTap: () {
-                        widget.onChange(e.key);
-                        _close();
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
-                        child: Text(
-                          e.value,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: _ink,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: filterOptions.entries.map((e) {
+                        final isSelected = widget.value == e.key;
+                        return InkWell(
+                          onTap: () {
+                            widget.onChange(e.key);
+                            _close();
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
+                            child: Text(
+                              e.value,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _ink,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ),
