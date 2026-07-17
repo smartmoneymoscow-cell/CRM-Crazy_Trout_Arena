@@ -1,8 +1,8 @@
 // ============================================================================
-// filter_dropdown.dart — Stack-based dropdown для фильтров.
+// filter_dropdown.dart — Overlay-based dropdown для фильтров.
 //
-// Dropdown рендерится ВНУТРИ дерева виджетов (не Overlay), поэтому нижнее
-// меню Scaffold.bottomNavigationBar естественно перекрывает его при скролле.
+// Dropdown рендерится через OverlayEntry + CompositedTransformFollower,
+// поэтому не overflow'ит Stack и не ломает layout Column ниже.
 // ============================================================================
 
 import 'package:flutter/material.dart';
@@ -43,19 +43,60 @@ class FilterDropdown<T> extends StatefulWidget {
 
 class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
   final GlobalKey _fieldKey = GlobalKey();
+  final LayerLink _link = LayerLink();
+  OverlayEntry? _entry;
   bool _open = false;
 
   static const double _borderRadius = 12;
   static const double _itemHeight = 42;
 
+  @override
+  void dispose() {
+    _entry = null;
+    super.dispose();
+  }
+
   void _toggle() => _open ? _close() : _show();
 
   void _show() {
+    final box = _fieldKey.currentContext!.findRenderObject() as RenderBox;
+    final size = box.size;
+
+    _entry = OverlayEntry(
+      builder: (ctx) => Stack(
+        children: [
+          // Клик вне меню — закрыть.
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _close,
+            ),
+          ),
+          CompositedTransformFollower(
+            link: _link,
+            showWhenUnlinked: false,
+            offset: Offset(0, size.height),
+            child: Material(
+              color: Colors.transparent,
+              child: SizedBox(
+                width: size.width,
+                child: _buildDropdownList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(context).insert(_entry!);
     setState(() => _open = true);
   }
 
   void _close() {
+    final entry = _entry;
+    _entry = null;
     if (mounted) setState(() => _open = false);
+    if (mounted) entry?.remove();
   }
 
   @override
@@ -78,66 +119,74 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     }
     final active = widget.value != null;
 
-    // Строим кнопку
-    final button = Container(
-      key: _fieldKey,
-      decoration: BoxDecoration(color: kFill, borderRadius: radius),
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              displayLabel,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                color: active ? kInk : kMuted2,
-              ),
-            ),
-          ),
-          Stack(
-            alignment: Alignment.center,
+    return CompositedTransformTarget(
+      link: _link,
+      child: GestureDetector(
+        onTap: _toggle,
+        child: Container(
+          key: _fieldKey,
+          height: 44,
+          decoration: BoxDecoration(color: kFill, borderRadius: radius),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
             children: [
-              Icon(
-                _open
-                    ? Icons.keyboard_arrow_up_rounded
-                    : Icons.keyboard_arrow_down_rounded,
-                size: 20,
-                color: kMuted2,
-              ),
-              if (widget.active)
-                const Positioned(
-                  top: 0,
-                  right: 0,
-                  child: SizedBox(
-                    width: 7,
-                    height: 7,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                          color: kOrange, shape: BoxShape.circle),
-                    ),
+              Expanded(
+                child: Text(
+                  displayLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                    color: active ? kInk : kMuted2,
                   ),
                 ),
+              ),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    _open
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: kMuted2,
+                  ),
+                  if (widget.active)
+                    const Positioned(
+                      top: 0,
+                      right: 0,
+                      child: SizedBox(
+                        width: 7,
+                        height: 7,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                              color: kOrange, shape: BoxShape.circle),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
+  }
 
-    // Строим список элементов dropdown
+  Widget _buildDropdownList() {
     final mq = MediaQuery.of(context);
     final screenHeight = mq.size.height;
     final padding = mq.padding;
-    // Кнопка ~44px, нижнее меню ~60px, отступы ~20px
-    // Ограничиваем dropdown чтобы не overflow
     final dropdownMaxH = screenHeight - padding.top - padding.bottom - 44 - 60 - 20;
 
-    final dropdownList = Container(
+    return Container(
       constraints: BoxConstraints(maxHeight: dropdownMaxH),
       decoration: BoxDecoration(
         color: kFill,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(_borderRadius),
+          bottomRight: Radius.circular(_borderRadius),
+        ),
         boxShadow: const [
           BoxShadow(
               color: Color(0x22000000),
@@ -146,8 +195,9 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: ListView(
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
         children: widget.items.map((item) {
           final selected = item.value == widget.value && item.value != null;
           final enabled = item.enabled;
@@ -185,39 +235,6 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           );
         }).toList(),
       ),
-    );
-
-    // Оборачиваем в Stack: кнопка + dropdown под ней
-    // Dropdown рендерится в дереве виджетов → нижнее меню Scaffold
-    // естественно перекрывает его (z-order: body < bottomNavigationBar)
-    return SizedBox(
-      height: 44,
-      child: GestureDetector(
-        onTap: _toggle,
-        child: Stack(
-          clipBehavior: Clip.none,
-        children: [
-          // Кнопка фильтра
-          Material(
-            color: Colors.transparent,
-            borderRadius: radius,
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: _toggle,
-              child: button,
-            ),
-          ),
-          // Выпадающий список — строго под кнопкой, без зазора
-          if (_open)
-            Positioned(
-              top: 44, // высота кнопки
-              left: 0,
-              right: 0,
-              child: dropdownList,
-            ),
-        ],
-      ),
-    ),
     );
   }
 }
