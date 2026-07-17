@@ -4,15 +4,10 @@ import 'package:crazytrout_admin/widgets/filter_dropdown.dart';
 
 /// Widget-тесты на FilterDropdown — логика позиционирования.
 ///
-/// Критические баги (регрессии):
-///   1. Снизу нет места, сверху есть → dropdown переворачивается вверх.
-///   2. Нигде нет места → dropdown не открывается.
-///
-/// Требования:
-///   - Dropdown открывается вниз если есть место.
-///   - Dropdown переворачивается вверх если снизу нет места.
-///   - Dropdown не открывается если нигде нет места.
-///   - Выбор элемента вызывает onChanged и закрывает dropdown.
+/// Требования (AGENTS.md):
+///   - Открывать — всегда, независимо от наличия места.
+///   - Открывать всегда под кнопкой только вниз.
+///   - При скролле — не сворачиваться, не сжиматься, скрываться под нижнее меню.
 void main() {
   group('FilterDropdown — позиционирование', () {
     Widget buildApp({
@@ -58,26 +53,25 @@ void main() {
       expect(find.text('Опция B'), findsOneWidget);
     });
 
-    testWidgets('переворачивается вверх когда снизу нет места', (tester) async {
-      // Экран 800px, кнопка на 750px — снизу места нет (30px), сверху есть (750px)
+    testWidgets('всегда открывается вниз даже если места нет', (tester) async {
+      // Экран 800px, кнопка на 750px — снизу места нет (30px)
+      // Dropdown всё равно открывается вниз
       await tester.pumpWidget(buildApp(screenHeight: 800, buttonTop: 720));
       await tester.tap(find.text('Тест'));
       await tester.pumpAndSettle();
 
-      // Dropdown открылся вверх — элементы видны
+      // Dropdown открылся — элементы видны
       expect(find.text('Опция A'), findsOneWidget);
     });
 
-    testWidgets('не открывается когда нигде нет места', (tester) async {
-      // Экран 100px, кнопка на 40px — снизу 60px (меньше одного item ~48px),
-      // сверху 40px (тоже меньше). Dropdown не должен открываться.
+    testWidgets('всегда открывается вниз даже на маленьком экране', (tester) async {
+      // Экран 100px, кнопка на 30px — мало места
       await tester.pumpWidget(buildApp(screenHeight: 100, buttonTop: 30));
       await tester.tap(find.text('Тест'));
       await tester.pumpAndSettle();
 
-      // Dropdown НЕ открылся — элементы списка не видны
-      expect(find.text('Опция A'), findsNothing);
-      expect(find.text('Опция B'), findsNothing);
+      // Dropdown открылся вниз — элементы видны
+      expect(find.text('Опция A'), findsOneWidget);
     });
 
     testWidgets('выбор элемента вызывает onChanged и закрывает', (tester) async {

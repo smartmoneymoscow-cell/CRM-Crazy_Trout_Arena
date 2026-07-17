@@ -62,26 +62,14 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     final box = _fieldKey.currentContext!.findRenderObject() as RenderBox;
     final size = box.size;
     final btnBottomY = box.localToGlobal(Offset(0, size.height)).dy;
-    final btnTopY = box.localToGlobal(Offset.zero).dy;
     final mq = MediaQuery.of(context);
     final screenH = mq.size.height;
     final safeBottom = kBottomNavHeight + mq.padding.bottom + 8;
-    final safeTop = mq.padding.top + 8;
 
     final spaceBelow = screenH - btnBottomY - safeBottom;
-    final spaceAbove = btnTopY - safeTop;
 
-    // 1. Снизу есть место → вниз
-    // 2. Снизу нет, сверху есть → вверх
-    // 3. Нигде нет → не открывать
-    final bool showBelow = spaceBelow >= _itemHeight;
-    final bool showAbove = !showBelow && spaceAbove >= _itemHeight;
-    if (!showBelow && !showAbove) return;
-
-    final maxH = showBelow ? spaceBelow : spaceAbove;
-    final offset = showBelow
-        ? Offset(0, size.height)
-        : Offset(0, -maxH);
+    // Всегда открываем вниз, независимо от наличия места
+    final maxH = spaceBelow > 0 ? spaceBelow : 100; // fallback чтобы не было 0
 
     _entry = OverlayEntry(
       builder: (ctx) => Stack(
@@ -95,7 +83,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           CompositedTransformFollower(
             link: _link,
             showWhenUnlinked: false,
-            offset: offset,
+            offset: Offset(0, size.height),
             child: Material(
               color: Colors.transparent,
               child: SizedBox(
