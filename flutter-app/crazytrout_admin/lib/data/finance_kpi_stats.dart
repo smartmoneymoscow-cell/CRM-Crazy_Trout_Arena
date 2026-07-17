@@ -2,6 +2,7 @@
 // finance_kpi_stats.dart — Агрегация KPI-метрик из демо-чеков.
 // ============================================================================
 
+import 'package:flutter/material.dart';
 import '../data/demo_receipts.dart';
 import '../data/demo_data.dart' as app_data show kDemoClients;
 
@@ -31,8 +32,21 @@ class FinanceKpiStats {
   });
 }
 
-FinanceKpiStats buildFinanceKpiStats() {
-  final nonGuestReceipts = kDemoReceipts.where((r) => !r.isGuest).toList();
+/// Строит KPI-статистику из демо-чеков.
+/// [dateRange] — если задан, фильтрует чеки по дате.
+FinanceKpiStats buildFinanceKpiStats({DateTimeRange? dateRange}) {
+  final nonGuestReceipts = kDemoReceipts.where((r) {
+    if (r.isGuest) return false;
+    // Фильтр по дате
+    if (dateRange != null) {
+      final d = DateTime(r.date.year, r.date.month, r.date.day);
+      final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+      final e = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+      if (d.isBefore(s) || d.isAfter(e)) return false;
+    }
+    return true;
+  }).toList();
+
   final totalRevenue = nonGuestReceipts.fold<double>(0, (s, r) => s + r.total);
   final avgCheck = nonGuestReceipts.isNotEmpty
       ? totalRevenue / nonGuestReceipts.length

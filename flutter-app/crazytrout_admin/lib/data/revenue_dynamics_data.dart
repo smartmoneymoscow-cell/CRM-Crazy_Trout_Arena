@@ -2,6 +2,8 @@
 // revenue_dynamics_data.dart — Агрегация динамики выручки по периодам.
 // ============================================================================
 
+import 'package:flutter/material.dart';
+import '../models/receipt_history.dart';
 import '../data/demo_receipts.dart';
 
 class PeriodPoint {
@@ -25,40 +27,79 @@ class RevenueDynamicsData {
   const RevenueDynamicsData({required this.monthly, required this.weekly});
 }
 
-RevenueDynamicsData buildRevenueDynamicsData() {
+const _monthLabels = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл',
+                       'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+
+/// Строит данные динамики выручки из демо-чеков.
+/// [dateRange] — если задан, фильтрует чеки по дате.
+RevenueDynamicsData buildRevenueDynamicsData({DateTimeRange? dateRange}) {
+  final filtered = dateRange == null
+      ? kDemoReceipts
+      : kDemoReceipts.where((r) {
+          final d = DateTime(r.date.year, r.date.month, r.date.day);
+          final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+          final e = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+          return !d.isBefore(s) && !d.isAfter(e);
+        }).toList();
+
+  // ── Месячная агрегация ──
   final monthMap = <String, double>{};
-  for (final r in kDemoReceipts) {
+  for (final r in filtered) {
     final key = '${r.date.year}-${r.date.month.toString().padLeft(2, '0')}';
     monthMap[key] = (monthMap[key] ?? 0) + r.total;
   }
 
-  final monthLabels = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'];
   final sortedKeys = monthMap.keys.toList()..sort();
   final monthly = <PeriodPoint>[];
-  for (int i = 0; i < sortedKeys.length && i < monthLabels.length; i++) {
-    final k = sortedKeys[i];
+  for (final k in sortedKeys) {
     final rev = monthMap[k] ?? 0;
+    final monthIdx = int.parse(k.split('-')[1]) - 1;
     monthly.add(PeriodPoint(
-      label: monthLabels[i],
+      label: _monthLabels[monthIdx],
       revenue: rev,
       margin: rev * 0.45,
       expenses: rev * 0.55,
     ));
   }
 
-  if (monthly.length < 7) {
-    const mockMonthly = [
-      PeriodPoint(label: 'Янв', revenue: 280000, margin: 126000, expenses: 154000),
-      PeriodPoint(label: 'Фев', revenue: 310000, margin: 139500, expenses: 170500),
-      PeriodPoint(label: 'Мар', revenue: 340000, margin: 153000, expenses: 187000),
-      PeriodPoint(label: 'Апр', revenue: 295000, margin: 132750, expenses: 162250),
-      PeriodPoint(label: 'Май', revenue: 380000, margin: 171000, expenses: 209000),
-      PeriodPoint(label: 'Июн', revenue: 420000, margin: 189000, expenses: 231000),
-      PeriodPoint(label: 'Июл', revenue: 412800, margin: 186240, expenses: 226560),
-    ];
-    return RevenueDynamicsData(monthly: mockMonthly, weekly: _mockWeekly());
+  if (monthly.isEmpty) {
+    return RevenueDynamicsData(
+      monthly: const [
+        PeriodPoint(label: 'Янв', revenue: 280000, margin: 126000, expenses: 154000),
+        PeriodPoint(label: 'Фев', revenue: 310000, margin: 139500, expenses: 170500),
+        PeriodPoint(label: 'Мар', revenue: 340000, margin: 153000, expenses: 187000),
+        PeriodPoint(label: 'Апр', revenue: 295000, margin: 132750, expenses: 162250),
+        PeriodPoint(label: 'Май', revenue: 380000, margin: 171000, expenses: 209000),
+        PeriodPoint(label: 'Июн', revenue: 420000, margin: 189000, expenses: 231000),
+        PeriodPoint(label: 'Июл', revenue: 412800, margin: 186240, expenses: 226560),
+      ],
+      weekly: _mockWeekly(),
+    );
   }
-  return RevenueDynamicsData(monthly: monthly, weekly: _mockWeekly());
+
+  return RevenueDynamicsData(monthly: monthly, weekly: _buildWeekly(filtered));
+}
+
+List<PeriodPoint> _buildWeekly(List<ReceiptHistoryItem> receipts) {
+  // Группируем по неделям месяца
+  final weekMap = <int, double>{};
+  for (final r in receipts) {
+    final weekNum = ((r.date.day - 1) / 7).floor();
+    weekMap[weekNum] = (weekMap[weekNum] ?? 0) + r.total;
+  }
+
+  if (weekMap.isEmpty) return _mockWeekly();
+
+  final sortedWeeks = weekMap.keys.toList()..sort();
+  return sortedWeeks.map((w) {
+    final rev = weekMap[w] ?? 0;
+    return PeriodPoint(
+      label: '${w + 1}',
+      revenue: rev,
+      margin: rev * 0.45,
+      expenses: rev * 0.55,
+    );
+  }).toList();
 }
 
 List<PeriodPoint> _mockWeekly() => const [

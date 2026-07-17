@@ -4,6 +4,7 @@
 // Источник: demo_receipts.dart. В production заменяется на backend.
 // ============================================================================
 
+import 'package:flutter/material.dart';
 import '../data/demo_receipts.dart';
 
 class PaymentBreakdown {
@@ -31,12 +32,22 @@ class PaymentTariffStats {
   });
 }
 
-PaymentTariffStats buildPaymentTariffStats() {
+/// Строит статистику оплат и тарифов из демо-чеков.
+/// [dateRange] — если задан, фильтрует чеки по дате.
+PaymentTariffStats buildPaymentTariffStats({DateTimeRange? dateRange}) {
   final payMap = <String, double>{};
   final tarMap = <String, double>{};
   final tarCount = <String, int>{};
 
   for (final r in kDemoReceipts) {
+    // Фильтр по дате
+    if (dateRange != null) {
+      final d = DateTime(r.date.year, r.date.month, r.date.day);
+      final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+      final e = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+      if (d.isBefore(s) || d.isAfter(e)) continue;
+    }
+
     // Способ оплаты
     payMap[r.paymentLabel] = (payMap[r.paymentLabel] ?? 0) + r.total;
 

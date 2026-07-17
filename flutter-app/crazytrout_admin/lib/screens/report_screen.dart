@@ -49,6 +49,21 @@ extension on _PeriodFilter {
       };
 }
 
+/// Конвертирует _PeriodFilter в DateTimeRange для фильтрации данных.
+DateTimeRange? _periodToDateRange(_PeriodFilter? period) {
+  if (period == null || period == _PeriodFilter.all) return null;
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final start = switch (period) {
+    _PeriodFilter.today => today,
+    _PeriodFilter.week => today.subtract(const Duration(days: 7)),
+    _PeriodFilter.month => today.subtract(const Duration(days: 30)),
+    _PeriodFilter.quarter => today.subtract(const Duration(days: 90)),
+    _PeriodFilter.all => DateTime(0),
+  };
+  return DateTimeRange(start: start, end: today);
+}
+
 // ─── Уровни клиентов ────────────────────────────────────────────────────────
 enum LevelKey { premium, standard, basic }
 
@@ -449,6 +464,14 @@ class _ReportScreenState extends State<ReportScreen> {
     return _dateRange;
   }
 
+  /// DateTimeRange для вкладки «Финансы».
+  DateTimeRange? get _effectiveDateForFinance {
+    if (_lastFilterSource == 'dropdown') {
+      return _periodToDateRange(_period);
+    }
+    return _dateRange;
+  }
+
   Future<void> _openCalendar() async {
     final res = await _showRangeCalendarPicker(context, _dateRange);
     if (!mounted || res == null) return;
@@ -555,7 +578,10 @@ class _ReportScreenState extends State<ReportScreen> {
                     dateRange: _effectiveDateRange,
                   ),
               2 => _FishStatsContent(period: _effectivePeriod, dateRange: _effectiveDateRange),
-              _ => _FinanceContent(periodKey: _period?.name),
+              _ => _FinanceContent(
+                    periodKey: _period?.name,
+                    dateRange: _effectiveDateForFinance,
+                  ),
             },
           ),
         ],
@@ -572,14 +598,15 @@ class _ReportScreenState extends State<ReportScreen> {
 // ============================================================================
 class _FinanceContent extends StatelessWidget {
   final String? periodKey;
-  const _FinanceContent({this.periodKey});
+  final DateTimeRange? dateRange;
+  const _FinanceContent({this.periodKey, this.dateRange});
 
   @override
   Widget build(BuildContext context) {
-    final salesData = buildSalesDecomposition();
-    final paymentData = buildPaymentTariffStats();
-    final kpiData = buildFinanceKpiStats();
-    final dynamicsData = buildRevenueDynamicsData();
+    final salesData = buildSalesDecomposition(dateRange: dateRange);
+    final paymentData = buildPaymentTariffStats(dateRange: dateRange);
+    final kpiData = buildFinanceKpiStats(dateRange: dateRange);
+    final dynamicsData = buildRevenueDynamicsData(dateRange: dateRange);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
       child: Column(

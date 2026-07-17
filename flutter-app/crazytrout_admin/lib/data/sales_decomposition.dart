@@ -6,6 +6,7 @@
 // В production заменяется на выборку из backend.
 // ============================================================================
 
+import 'package:flutter/material.dart';
 import '../data/demo_receipts.dart';
 
 class SalesSegment {
@@ -30,11 +31,20 @@ class SalesDecomposition {
 }
 
 /// Строит декомпозицию из демо-чеков.
-SalesDecomposition buildSalesDecomposition() {
+/// [dateRange] — если задан, фильтрует чеки по дате.
+SalesDecomposition buildSalesDecomposition({DateTimeRange? dateRange}) {
   double entryTotal = 0;
   final fishMap = <String, double>{};
 
   for (final r in kDemoReceipts) {
+    // Фильтр по дате
+    if (dateRange != null) {
+      final d = DateTime(r.date.year, r.date.month, r.date.day);
+      final s = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+      final e = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+      if (d.isBefore(s) || d.isAfter(e)) continue;
+    }
+
     // Вход (тариф)
     entryTotal += r.tariffPrice;
 
