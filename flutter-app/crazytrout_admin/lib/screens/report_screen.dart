@@ -555,7 +555,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     dateRange: _effectiveDateRange,
                   ),
               2 => _FishStatsContent(period: _effectivePeriod, dateRange: _effectiveDateRange),
-              _ => const _FinanceContent(),
+              _ => _FinanceContent(periodKey: _period?.name),
             },
           ),
         ],
@@ -571,7 +571,8 @@ class _ReportScreenState extends State<ReportScreen> {
 // спарклайном, портированный из dashboard_2.html (см. FinanceDashboardCard).
 // ============================================================================
 class _FinanceContent extends StatelessWidget {
-  const _FinanceContent();
+  final String? periodKey;
+  const _FinanceContent({this.periodKey});
 
   @override
   Widget build(BuildContext context) {
@@ -585,13 +586,13 @@ class _FinanceContent extends StatelessWidget {
         children: [
           const FinanceDashboardCard(),
           const SizedBox(height: 14),
-          KpiCards(stats: kpiData),
-          const SizedBox(height: 14),
           FinancePieChart(data: salesData),
+          const SizedBox(height: 14),
+          KpiCards(stats: kpiData),
           const SizedBox(height: 14),
           PaymentTariffCard(stats: paymentData),
           const SizedBox(height: 14),
-          RevenueDynamicsChart(data: dynamicsData),
+          RevenueDynamicsChart(data: dynamicsData, periodKey: periodKey),
         ],
       ),
     );
@@ -2098,8 +2099,11 @@ class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: _fill,
-            borderRadius: BorderRadius.all(
-              Radius.circular(_open ? 0 : _borderRadius),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(_borderRadius),
+              topRight: const Radius.circular(_borderRadius),
+              bottomLeft: Radius.circular(_open ? 0 : _borderRadius),
+              bottomRight: Radius.circular(_open ? 0 : _borderRadius),
             ),
             border: Border.all(
                 color: _open ? _orange : _hairline),

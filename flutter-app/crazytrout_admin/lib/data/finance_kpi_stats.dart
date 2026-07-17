@@ -15,6 +15,7 @@ class FinanceKpiStats {
   final double avgRating;
   final int reviewsCount;
   final double avgFishPerClient;
+  final double avgWeightPerClient;
 
   const FinanceKpiStats({
     required this.avgCheck,
@@ -26,6 +27,7 @@ class FinanceKpiStats {
     required this.avgRating,
     required this.reviewsCount,
     required this.avgFishPerClient,
+    required this.avgWeightPerClient,
   });
 }
 
@@ -72,6 +74,14 @@ FinanceKpiStats buildFinanceKpiStats() {
       ? fishWeights.reduce((a, b) => a + b) / fishWeights.length
       : 0.0;
 
+  const weightMap = <int, double>{
+    1: 215, 2: 78, 3: 289, 5: 103, 6: 365, 7: 22, 8: 61, 100: 3,
+  };
+  final weights = weightMap.values.where((w) => w > 0).toList();
+  final avgWeight = weights.isNotEmpty
+      ? weights.reduce((a, b) => a + b) / weights.length
+      : 0.0;
+
   return FinanceKpiStats(
     avgCheck: avgCheck,
     paymentsCount: nonGuestReceipts.length,
@@ -82,5 +92,6 @@ FinanceKpiStats buildFinanceKpiStats() {
     avgRating: 4.6,
     reviewsCount: 128,
     avgFishPerClient: avgFish,
+    avgWeightPerClient: avgWeight,
   );
 }

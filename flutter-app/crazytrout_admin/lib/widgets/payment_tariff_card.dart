@@ -213,7 +213,7 @@ class _TariffBars extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'По тарифам',
+          'По тарифам (в шт.)',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,

@@ -10,14 +10,33 @@ const _muted2 = Color(0xFF9C9484);
 
 class RevenueDynamicsChart extends StatefulWidget {
   final RevenueDynamicsData data;
-  const RevenueDynamicsChart({super.key, required this.data});
+  /// If non-null, auto-select view mode based on period duration.
+  /// 'quarter' or 'all' → monthly, 'month' → monthly, 'week' → weekly, 'today' → weekly.
+  final String? periodKey;
+  const RevenueDynamicsChart({super.key, required this.data, this.periodKey});
 
   @override
   State<RevenueDynamicsChart> createState() => _RevenueDynamicsChartState();
 }
 
 class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
+  // Default to monthly (which shows quarterly-like aggregated data)
   bool _monthly = true;
+
+  @override
+  void didUpdateWidget(covariant RevenueDynamicsChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-switch based on period if periodKey changed
+    if (widget.periodKey != oldWidget.periodKey && widget.periodKey != null) {
+      final pk = widget.periodKey!;
+      if (pk == 'today' || pk == 'week') {
+        _monthly = false; // show weekly for short periods
+      } else {
+        _monthly = true; // show monthly for month/quarter/all
+      }
+    }
+  }
+
   List<PeriodPoint> get _points => _monthly ? widget.data.monthly : widget.data.weekly;
 
   @override

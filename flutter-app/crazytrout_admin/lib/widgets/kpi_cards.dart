@@ -19,21 +19,20 @@ class KpiCards extends StatelessWidget {
     return Column(
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(child: _KpiCard(
               icon: Icons.receipt_long_outlined, iconColor: _orange,
               title: 'Средний чек',
               value: '${_fmtMoney(stats.avgCheck.round())} ₽',
               subtitle: '${stats.paymentsCount} оплат',
-              delta: '+4,3%', deltaPositive: true,
             )),
             const SizedBox(width: 10),
             Expanded(child: _KpiCard(
               icon: Icons.calendar_month_outlined, iconColor: const Color(0xFF4A7C59),
               title: 'LT / LTV',
               value: '${stats.avgVisits.toStringAsFixed(1)} / ${_formatLtv(stats.avgLtv)}',
-              subtitle: 'среднее на клиента',
-              delta: '+18,3%', deltaPositive: true,
+              subtitle: '${stats.paymentsCount} визитов',
             )),
           ],
         ),
@@ -45,14 +44,13 @@ class KpiCards extends StatelessWidget {
               title: 'Всего клиентов',
               value: '${stats.totalClients}',
               subtitle: '${stats.returnPct.toStringAsFixed(0)}% возвращаются',
-              delta: '+12', deltaPositive: true,
             )),
             const SizedBox(width: 10),
             Expanded(child: _KpiCard(
               icon: Icons.phishing, iconColor: const Color(0xFF4A7C59),
               title: 'Средний улов на клиента',
-              value: '${stats.avgFishPerClient.toStringAsFixed(1).replaceAll('.', ',')} кг',
-              delta: '+9,7%', deltaPositive: true,
+              value: '${stats.avgFishPerClient.toStringAsFixed(1).replaceAll('.', ',')} шт.',
+              subtitle: '${stats.avgWeightPerClient.toStringAsFixed(1).replaceAll('.', ',')} кг',
             )),
           ],
         ),
@@ -168,19 +166,12 @@ class _KpiCard extends StatelessWidget {
         const SizedBox(height: 4),
         Row(children: [
           Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _ink, letterSpacing: -0.3)),
-          if (delta != null) ...[
-            const SizedBox(width: 10),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(color: deltaPositive ? _greenLight : const Color(0xFFFDEAEA), borderRadius: BorderRadius.circular(6)),
-              child: Text(delta!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                color: deltaPositive ? _green : const Color(0xFFC0392B))),
-            ),
-            const SizedBox(width: 6),
-            const Text('к прошлому периоду', style: TextStyle(fontSize: 11, color: _muted2)),
+          if (stars != null) ...[
+            const SizedBox(width: 12),
+            Expanded(child: _StarRating(rating: stars!, size: 22)),
           ],
         ]),
-        if (stars != null) ...[const SizedBox(height: 6), _StarRating(rating: stars!)],
-        if (subtitle != null) ...[const SizedBox(height: 2),
+        if (subtitle != null) ...[const SizedBox(height: 4),
           Text(subtitle!, style: const TextStyle(fontSize: 11, color: _muted2))],
       ])),
     ]);
@@ -189,15 +180,16 @@ class _KpiCard extends StatelessWidget {
 
 class _StarRating extends StatelessWidget {
   final double rating;
-  const _StarRating({required this.rating});
+  final double size;
+  const _StarRating({required this.rating, this.size = 18});
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: List.generate(5, (i) {
+    return Row(mainAxisSize: MainAxisSize.min, children: List.generate(5, (i) {
       final filled = rating - i;
       return Padding(padding: const EdgeInsets.only(right: 2), child: Icon(
         filled >= 0.75 ? Icons.star_rounded : filled >= 0.25 ? Icons.star_half_rounded : Icons.star_border_rounded,
-        size: 18, color: filled > 0 ? _orange : _muted2,
+        size: size, color: filled > 0 ? _orange : _muted2,
       ));
     }));
   }

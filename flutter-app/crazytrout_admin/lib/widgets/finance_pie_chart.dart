@@ -64,10 +64,10 @@ class FinancePieChart extends StatelessWidget {
               CustomPaint(size: const Size(120, 120),
                 painter: _DonutPainter(segments: data.segments, colors: _segColors, total: data.total)),
               Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(_fmtAmount(data.total),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: _ink, letterSpacing: -0.3)),
-                const SizedBox(height: 2),
-                const Text('₽ всего', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: _muted2)),
+                Text('${_fmtAmount(data.total)} ₽',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _ink, letterSpacing: -0.3)),
+                const Text('всего', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: _muted2)),
               ]),
             ],
           )),
@@ -146,14 +146,14 @@ class _LegendRow extends StatelessWidget {
     return Row(children: [
       Container(width: 10, height: 10,
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
-      const SizedBox(width: 10),
-      SizedBox(width: 100, child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
+      const SizedBox(width: 8),
+      Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _ink))),
-      SizedBox(width: 40, child: Text(pct, textAlign: TextAlign.right,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _muted))),
-      const SizedBox(width: 10),
-      Expanded(child: Text(amount, textAlign: TextAlign.right, maxLines: 1, softWrap: false,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _ink))),
+      Text(pct, textAlign: TextAlign.right,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _muted)),
+      const SizedBox(width: 8),
+      Text(amount, textAlign: TextAlign.right, maxLines: 1, softWrap: false,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _ink)),
     ]);
   }
 }
