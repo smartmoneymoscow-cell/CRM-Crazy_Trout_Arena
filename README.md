@@ -1,6 +1,8 @@
 # 🐟 Crazy Trout Arena — CRM
 
-> Нативная кроссплатформенная CRM-система для чек-кассы пруда платной рыбалки.
+> Кроссплатформенная CRM-система для чек-кассы пруда платной рыбалки.
+>
+> **Два приложения:** [Нативное (Flutter)](#-скачать) · [Telegram Mini App](#-telegram-mini-app)
 
 ## 📱 Демонстрационный лендинг
 
@@ -29,6 +31,26 @@
 | **iOS** | [app-release.ipa](https://github.com/smartmoneymoscow-cell/CRM-Crazy_Trout_Arena/releases/latest/download/app-release.ipa) | ~19 MB |
 
 > ⚠️ iOS-сборка без кодирования (no-codesign). Для установки на устройство нужен provisioning profile через Xcode / Apple Developer.
+
+---
+
+## 📲 Telegram Mini App
+
+> Версия CRM, работающая прямо внутри Telegram — без установки приложения.
+
+| Возможность | Описание |
+|-------------|----------|
+| 🧾 **Выставление чеков** | Тарифы, улов, 54-ФЗ, три способа оплаты |
+| 📷 **QR-сканер** | Нативный через Telegram API (`showScanQrPopup`) |
+| 🗺️ **Карта пруда** | 16 секторов, профили клиентов, статистика |
+| 📊 **Финансовый дашборд** | KPI, графики выручки, структура по тарифам/оплате |
+| 📋 **История чеков** | Поиск, фильтры, карточки клиентов |
+| 🖨️ **Печать** | Web Bluetooth (Android) / PassPRNT (iOS) / PDF fallback |
+| 📱 **HapticFeedback** | Тактильная отдача при действиях |
+| 🌙 **Тёмная тема** | Автоматически из настроек Telegram |
+
+📂 **Исходники:** [`telegram-mini-app/`](telegram-mini-app/)
+📖 **Документация:** [`telegram-mini-app/README.md`](telegram-mini-app/README.md)
 
 ---
 

@@ -1,0 +1,25 @@
+{
+  "name": "crazy-trout-arena-mini-app",
+  "version": "0.1.0",
+  "description": "Telegram Mini App для CRM Crazy Trout Arena — чек-касса пруда платной рыбалки",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve . --ssl --port 8443",
+    "start": "npx serve . --port 3000",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@aspect-build/aspect-cli": "^1.0.0",
+    "@point-of-sale/receipt-printer-encoder": "^3.0.0",
+    "jspdf": "^2.5.2",
+    "jsqr": "^1.4.0",
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "terser": "^5.30.0",
+    "clean-css-cli": "^5.6.0"
+  },
+  "author": "smartmoneymoscow-cell",
+  "license": "proprietary"
+}

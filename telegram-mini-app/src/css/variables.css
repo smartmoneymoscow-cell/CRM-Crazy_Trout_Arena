@@ -1,0 +1,83 @@
+/* === CSS Variables — Crazy Trout Arena Design System === */
+
+:root {
+  /* Палитра (идентична Flutter-приложению) */
+  --color-bg-primary:    #FBF6EC;
+  --color-bg-secondary:  #F3EEE4;
+  --color-bg-card:       #FFFFFF;
+  --color-accent:        #E8912B;
+  --color-accent-hover:  #D4811F;
+  --color-accent-light:  rgba(232, 145, 43, 0.12);
+  
+  /* Текст */
+  --color-text-primary:   #2D2D2D;
+  --color-text-secondary: #8E8E8E;
+  --color-text-accent:    #E8912B;
+  --color-text-inverse:   #FFFFFF;
+  
+  /* Семантические цвета */
+  --color-success:  #4CAF50;
+  --color-error:    #E53935;
+  --color-warning:  #FF9800;
+  --color-info:     #2196F3;
+  
+  /* Фон */
+  --color-overlay:  rgba(0, 0, 0, 0.5);
+  
+  /* Типографика */
+  --font-family:    'PT Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-xs:   11px;
+  --font-size-sm:   13px;
+  --font-size-md:   15px;
+  --font-size-lg:   17px;
+  --font-size-xl:   20px;
+  --font-size-xxl:  24px;
+  --font-size-hero: 32px;
+  
+  --font-weight-regular: 400;
+  --font-weight-bold:    700;
+  
+  --line-height-tight:  1.2;
+  --line-height-normal: 1.5;
+  
+  /* Отступы */
+  --spacing-xs:  4px;
+  --spacing-sm:  8px;
+  --spacing-md:  12px;
+  --spacing-lg:  16px;
+  --spacing-xl:  20px;
+  --spacing-xxl: 24px;
+  
+  /* Радиусы */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 50%;
+  
+  /* Тени */
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md:   0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg:   0 4px 16px rgba(0, 0, 0, 0.08);
+  
+  /* Навигация */
+  --nav-height:  60px;
+  --header-height: 48px;
+  
+  /* Безопасные зоны (Telegram Safe Area) */
+  --safe-top:    0px;
+  --safe-bottom: 0px;
+  --safe-left:   0px;
+  --safe-right:  0px;
+}
+
+/* Тёмная тема (Telegram может передать) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-primary:   #1A1A1A;
+    --color-bg-secondary: #2A2A2A;
+    --color-bg-card:      #333333;
+    --color-text-primary: #F0F0F0;
+    --color-text-secondary: #999999;
+  }
+}

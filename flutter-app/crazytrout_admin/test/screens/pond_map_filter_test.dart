@@ -229,4 +229,88 @@ void main() {
         reason: 'Зазор между кнопкой и dropdown должен быть 0');
     });
   });
+
+  group('clipBehavior на кнопке FiltersDropdown', () {
+    testWidgets('кнопка имеет clipBehavior: Clip.antiAlias', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: FiltersDropdown(
+          value: FilterValue.none,
+          onChange: (_) {},
+          isOpen: false,
+          onToggle: () {},
+        )),
+      ));
+
+      final container = tester.widget<Container>(find.byType(Container).first);
+      expect(container.clipBehavior, Clip.antiAlias,
+        reason: 'Container кнопки должен клиппать содержимое по скруглению');
+    });
+
+    testWidgets('кнопка с clipBehavior и при раскрытии', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: FiltersDropdown(
+          value: FilterValue.none,
+          onChange: (_) {},
+          isOpen: true,
+          onToggle: () {},
+        )),
+      ));
+
+      final container = tester.widget<Container>(find.byType(Container).first);
+      expect(container.clipBehavior, Clip.antiAlias,
+        reason: 'Container кнопки должен клиппать содержимое и при раскрытии');
+    });
+  });
+
+  // ─── Регрессионный тест: реальный зазор на экране PondMapScreen ───
+  group('Регрессия: зазор на реальном экране PondMapScreen', () {
+    testWidgets('зазор между кнопкой и dropdown = 0 на реальном экране', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: PondMapScreen()));
+
+      // Открываем dropdown
+      await tester.tap(find.byType(FiltersDropdown));
+      await tester.pump();
+
+      // Находим кнопку
+      final buttonFinder = find.byType(FiltersDropdown);
+      final buttonRect = tester.getRect(buttonFinder);
+
+      // Находим dropdown (контейнер с bottomLeft: 12)
+      final dropdownFinder = find.byWidgetPredicate((w) =>
+        w is Container &&
+        w.decoration is BoxDecoration &&
+        (w.decoration as BoxDecoration).borderRadius is BorderRadius &&
+        ((w.decoration as BoxDecoration).borderRadius as BorderRadius).bottomLeft == const Radius.circular(12),
+      );
+
+      expect(dropdownFinder, findsOneWidget, reason: 'Dropdown должен отображаться');
+
+      final dropdownRect = tester.getRect(dropdownFinder);
+      final gap = dropdownRect.top - buttonRect.bottom;
+
+      expect(gap, equals(0.0),
+        reason: 'Реальный зазор между кнопкой и dropdown на экране = 0 (фактический: $gap)');
+    });
+
+    testWidgets('верхние углы кнопки = 999 при раскрытии на реальном экране', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: PondMapScreen()));
+
+      await tester.tap(find.byType(FiltersDropdown));
+      await tester.pump();
+
+      final button = tester.widget<Container>(
+        find.descendant(
+          of: find.byType(FiltersDropdown),
+          matching: find.byType(Container).first,
+        ),
+      );
+      final decoration = button.decoration as BoxDecoration;
+      final radius = decoration.borderRadius as BorderRadius;
+
+      expect(radius.topLeft, const Radius.circular(999),
+        reason: 'Реальный экран: верхний левый = 999 при раскрытии');
+      expect(radius.topRight, const Radius.circular(999),
+        reason: 'Реальный экран: верхний правый = 999 при раскрытии');
+    });
+  });
 }
