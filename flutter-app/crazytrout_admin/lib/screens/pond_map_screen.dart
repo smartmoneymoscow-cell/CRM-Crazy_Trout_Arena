@@ -842,12 +842,13 @@ class FiltersDropdown extends StatelessWidget {
           )
         : pill;
 
-    return GestureDetector(
-      onTap: onToggle,
-      child: Container(
-        width: kDropdownWidth,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
+    return SizedBox(
+      width: kDropdownWidth,
+      child: GestureDetector(
+        onTap: onToggle,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: radius,
           border: Border.all(color: const Color(0xFFEFE8D8), width: 0.5),
@@ -864,6 +865,7 @@ class FiltersDropdown extends StatelessWidget {
             ),
           ),
         ]),
+      ),
       ),
     );
   }
