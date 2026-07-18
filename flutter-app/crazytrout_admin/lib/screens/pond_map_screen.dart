@@ -31,7 +31,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart' as app_data show kDemoClients;
-import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownGap, kFilterRowHeight, kDropdownVPadding;
+import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding;
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
 import '../data/pond_stats.dart';
@@ -890,8 +890,6 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int? selected;
   FilterValue filter = FilterValue.none;
   bool _isFilterOpen = false;
-  final _filterLink = LayerLink();
-  OverlayEntry? _filterEntry;
 
   List<List<Slot>> get schedules =>
       List.generate(16, (i) => _scheduleFor(date, i + 1));
@@ -957,56 +955,42 @@ class _PondMapScreenState extends State<PondMapScreen> {
   }
 
   void _toggleFilter() {
-    if (_isFilterOpen) {
-      _closeFilter();
-    } else {
-      _isFilterOpen = true;
-      _filterEntry = OverlayEntry(
-        builder: (ctx) => Stack(children: [
-          Positioned.fill(child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: _closeFilter,
-          )),
-          CompositedTransformFollower(
-            link: _filterLink,
-            showWhenUnlinked: false,
-            offset: const Offset(0, kFilterRowHeight + kDropdownGap),
-            child: _buildDropdown(),
-          ),
-        ]),
-      );
-      Overlay.of(context).insert(_filterEntry!);
-    }
-  }
-
-  void _closeFilter() {
-    _filterEntry?.remove();
-    _filterEntry = null;
-    if (mounted) setState(() => _isFilterOpen = false);
+    setState(() => _isFilterOpen = !_isFilterOpen);
   }
 
   Widget _buildFilterRow(int free, int occupied) {
-    return Row(children: [
-      CompositedTransformTarget(
-        link: _filterLink,
-        child: GestureDetector(
-          onTap: _toggleFilter,
-          child: FiltersDropdown(
-            value: filter,
-            onChange: (v) => setState(() => filter = v),
-            isOpen: _isFilterOpen,
-            onToggle: _toggleFilter,
+    return Stack(children: [
+      // Tap-to-close: тап в пустую область закрывает dropdown (правило 6).
+      if (_isFilterOpen)
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => setState(() => _isFilterOpen = false),
           ),
         ),
+      Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: [
+            FiltersDropdown(
+              value: filter,
+              onChange: (v) => setState(() => filter = v),
+              isOpen: _isFilterOpen,
+              onToggle: _toggleFilter,
+            ),
+            const Spacer(),
+            _legend(_green, 'Свободно $free'),
+            const SizedBox(width: 12),
+            _legend(kOrange, 'Занято $occupied'),
+          ]),
+          if (_isFilterOpen) _buildDropdown(),
+        ],
       ),
-      const Spacer(),
-      _legend(_green, 'Свободно $free'),
-      const SizedBox(width: 12),
-      _legend(kOrange, 'Занято $occupied'),
     ]);
   }
 
-  /// Строит dropdown-меню фильтров. Рендерится в слое Stack (поверх feed, под нижним меню).
+  /// Строит dropdown-меню фильтров. Inline в ListView — скроллится со страницей,
+  /// прячется под нижнее меню естественно.
   Widget _buildDropdown() {
     return Material(
       color: Colors.transparent,
@@ -1014,6 +998,10 @@ class _PondMapScreenState extends State<PondMapScreen> {
         width: 120,
         decoration: const BoxDecoration(
           color: Colors.white,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(12),
+            bottomRight: Radius.circular(12),
+          ),
           boxShadow: [
             BoxShadow(
               color: Color(0x22000000),
@@ -1027,28 +1015,30 @@ class _PondMapScreenState extends State<PondMapScreen> {
           padding: const EdgeInsets.symmetric(vertical: kDropdownVPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-              children: filterOptions.entries.map((e) {
-                final isSelected = filter == e.key;
-                return InkWell(
-                  onTap: () {
-                    setState(() => filter = e.key);
-                    _closeFilter();
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
-                    child: Text(
-                      e.value,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: kInk,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                      ),
+            children: filterOptions.entries.map((e) {
+              final isSelected = filter == e.key;
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    filter = e.key;
+                    _isFilterOpen = false;
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  color: isSelected ? const Color(0xFFF5EEDC) : Colors.transparent,
+                  child: Text(
+                    e.value,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: kInk,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                     ),
                   ),
-                );
-              }).toList(),
+                ),
+              );
+            }).toList(),
           ),
         ),
       ),
