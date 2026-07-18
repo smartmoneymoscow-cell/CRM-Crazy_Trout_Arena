@@ -262,7 +262,6 @@ class _ChecksScreenState extends State<ChecksScreen> {
                           _period = null;
                           _dateRange = null;
                         });
-                        Navigator.pop(ctx);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: kMuted,
