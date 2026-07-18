@@ -464,10 +464,8 @@ class _ChecksScreenState extends State<ChecksScreen> {
   }
 }
 
-// ============================================================================
-// _FilterDropdown — Stack-based dropdown (НЕ OverlayEntry — чтобы нижнее
-// меню Scaffold естественно перекрывало dropdown при скролле)
-// ============================================================================
+// ─── Дропдаун периода — используем shared FilterDropdown (Overlay-based) ─────
+import '../widgets/filter_dropdown.dart';
 class _FilterDropdownItem<T> {
   final T? value;
   final String label;
@@ -956,47 +954,45 @@ class _SortChipState extends State<_SortChip> {
                         _fieldTile(e.key, e.value, _tmpField == e.key, setOverlayState),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-                        child: Row(children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 40,
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  setOverlayState(() {
-                                    _tmpField = 'date';
-                                    _tmpDesc = true;
-                                  });
-                                  widget.onFieldChanged('date');
-                                  widget.onDescChanged(true);
-                                  _close();
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: kMuted,
-                                  side: const BorderSide(color: kHairline2),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('Сбросить', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                        child: Column(children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 40,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                widget.onFieldChanged(_tmpField);
+                                widget.onDescChanged(_tmpDesc);
+                                _close();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kOrange,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
                               ),
+                              child: const Text('Применить', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: SizedBox(
-                              height: 40,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  widget.onFieldChanged(_tmpField);
-                                  widget.onDescChanged(_tmpDesc);
-                                  _close();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: kOrange,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  elevation: 0,
-                                ),
-                                child: const Text('Применить', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 40,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setOverlayState(() {
+                                  _tmpField = 'date';
+                                  _tmpDesc = true;
+                                });
+                                widget.onFieldChanged('date');
+                                widget.onDescChanged(true);
+                                _close();
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: kMuted,
+                                side: const BorderSide(color: kHairline2),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
+                              child: const Text('Сбросить', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                             ),
                           ),
                         ]),
