@@ -7,6 +7,7 @@ import '../models/receipt.dart' as receipt_model;
 import '../data/filter_types.dart';
 import '../theme/app_theme.dart';
 import '../data/pond_stats.dart';
+import '../widgets/filter_dropdown.dart';
 
 class ChecksScreen extends StatefulWidget {
   const ChecksScreen({super.key});
@@ -377,19 +378,19 @@ class _ChecksScreenState extends State<ChecksScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _FilterDropdown<PeriodFilter>(
+                      child: FilterDropdown<PeriodFilter>(
                         value: _period,
                         label: 'Период',
                         active: _period != null,
                         items: [
-                          _FilterDropdownItem<PeriodFilter>(
+                          FilterDropdownItem<PeriodFilter>(
                             value: null,
                             label: 'Нет',
                             isReset: true,
                             enabled: true,
                           ),
                           for (final p in PeriodFilter.values)
-                            _FilterDropdownItem<PeriodFilter>(
+                            FilterDropdownItem<PeriodFilter>(
                               value: p,
                               label: p.label,
                             ),
@@ -464,204 +465,9 @@ class _ChecksScreenState extends State<ChecksScreen> {
   }
 }
 
-// ─── Дропдаун периода — используем shared FilterDropdown (Overlay-based) ─────
-import '../widgets/filter_dropdown.dart';
-class _FilterDropdownItem<T> {
-  final T? value;
-  final String label;
-  final bool isReset;
-  final bool enabled;
-  const _FilterDropdownItem({
-    required this.value,
-    required this.label,
-    this.isReset = false,
-    this.enabled = true,
-  });
-}
-
-class _FilterDropdown<T> extends StatefulWidget {
-  final T? value;
-  final String label;
-  final List<_FilterDropdownItem<T>> items;
-  final ValueChanged<T?> onChanged;
-  final bool active;
-
-  const _FilterDropdown({
-    super.key,
-    required this.value,
-    required this.label,
-    required this.items,
-    required this.onChanged,
-    this.active = false,
-  });
-
-  @override
-  State<_FilterDropdown<T>> createState() => _FilterDropdownState<T>();
-}
-
-class _FilterDropdownState<T> extends State<_FilterDropdown<T>> {
-  bool _open = false;
-
-  static const double _borderRadius = 12;
-  static const double _itemHeight = 42;
-
-  void _toggle() => setState(() => _open = !_open);
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.only(
-      topLeft: const Radius.circular(_borderRadius),
-      topRight: const Radius.circular(_borderRadius),
-      bottomLeft: Radius.circular(_open ? 0 : _borderRadius),
-      bottomRight: Radius.circular(_open ? 0 : _borderRadius),
-    );
-
-    String displayLabel = widget.label;
-    if (widget.value != null) {
-      for (final item in widget.items) {
-        if (item.value == widget.value && !item.isReset) {
-          displayLabel = item.label;
-          break;
-        }
-      }
-    }
-    final active = widget.value != null;
-
-    final button = Container(
-      decoration: BoxDecoration(color: kFill, borderRadius: radius),
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              displayLabel,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                color: active ? kInk : kMuted2,
-              ),
-            ),
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Icon(
-                _open
-                    ? Icons.keyboard_arrow_up_rounded
-                    : Icons.keyboard_arrow_down_rounded,
-                size: 20,
-                color: kMuted2,
-              ),
-              if (widget.active)
-                const Positioned(
-                  top: 0,
-                  right: 0,
-                  child: SizedBox(
-                    width: 7,
-                    height: 7,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                          color: kOrange, shape: BoxShape.circle),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-
-    final dropdownList = Container(
-      decoration: const BoxDecoration(
-        color: kFill,
-        boxShadow: [
-          BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 10,
-              offset: Offset(0, 6)),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: widget.items.map((item) {
-          final selected = item.value == widget.value && item.value != null;
-          final enabled = item.enabled;
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: enabled
-                ? () {
-                    widget.onChanged(item.value);
-                    setState(() => _open = false);
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              height: _itemHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              color: selected ? kSelected : Colors.transparent,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  item.label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: item.isReset
-                        ? FontWeight.w400
-                        : selected
-                            ? FontWeight.w700
-                            : FontWeight.w400,
-                    color: enabled
-                        ? (item.isReset ? kMuted2 : kInk)
-                        : kHairline,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-
-    return GestureDetector(
-      onTap: _toggle,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Material(
-            color: Colors.transparent,
-            borderRadius: radius,
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: _toggle,
-              child: button,
-            ),
-          ),
-          if (_open)
-            Positioned(
-              top: 44,
-              left: 0,
-              right: 0,
-              child: dropdownList,
-            ),
-          if (_open)
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () => setState(() => _open = false),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 // ============================================================================
 // Widgets — список
-// ============================================================================
+// ============================================================================1
 class _SearchField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
