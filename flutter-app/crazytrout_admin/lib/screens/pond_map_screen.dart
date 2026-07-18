@@ -848,6 +848,7 @@ class FiltersDropdown extends StatelessWidget {
     return SizedBox(
       width: kDropdownWidth,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           GestureDetector(
             onTap: onToggle,

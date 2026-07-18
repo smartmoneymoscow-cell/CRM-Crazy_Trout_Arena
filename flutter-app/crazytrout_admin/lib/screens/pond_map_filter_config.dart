@@ -72,4 +72,4 @@ const double kDropdownVPadding = 8.0;
 const double kBottomNavHeight = 60.0;
 
 /// Высота строки фильтров (кнопка + padding).
-const double kFilterRowHeight = 36.0;
+const double kFilterRowHeight = 31.0;
