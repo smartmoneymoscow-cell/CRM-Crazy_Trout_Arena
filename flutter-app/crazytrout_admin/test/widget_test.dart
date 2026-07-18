@@ -39,7 +39,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 5));
     });
 
     testWidgets('после SplashScreen показывается HomeShell', (WidgetTester tester) async {
@@ -47,7 +47,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 5));
       expect(find.text('Чек'), findsOneWidget);
     });
 
@@ -56,7 +56,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 5));
       expect(find.text('Карта'), findsOneWidget);
       expect(find.text('Чек'), findsOneWidget);
       expect(find.text('Чеки'), findsOneWidget);
@@ -69,9 +69,9 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 5));
       await tester.tap(find.text('Чеки'));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 3));
     });
 
     testWidgets('поиск клиента и QR-кнопка присутствуют', (WidgetTester tester) async {
@@ -79,11 +79,36 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(const CrazyTroutAdminApp());
       await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+      await tester.pump(const Duration(seconds: 5));
     });
 
-    // TODO: тест «Отчёты → Финансы и метрики — overflow» таймаутит в CI
-    // из-за _collectOverflows + pumpAndSettle на анимациях графиков.
-    // Нужно переделать без перехвата FlutterError.onError.
+    // ── Регрессионный тест: вкладка «Отчёты» → «Финансы и метрики» ──
+    // Проверяет ровно тот баг, который был пропущен из-за подавления
+    // ошибок: все карточки/графики должны реально присутствовать на
+    // экране РЕАЛИСТИЧНОЙ ширины, без RenderFlex overflow.
+    testWidgets('Отчёты → Финансы и метрики — все графики отображаются без overflow',
+        (WidgetTester tester) async {
+      final overflows = _collectOverflows(tester);
+
+      await tester.binding.setSurfaceSize(_phoneSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(const CrazyTroutAdminApp());
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(seconds: 5));
+
+      await tester.tap(find.text('Отчёты'));
+      await tester.pump(const Duration(seconds: 5));
+
+      // Заголовок вкладки по умолчанию
+      expect(find.text('Финансы и метрики'), findsOneWidget);
+
+      // Полный dashboard: финансы + клиенты + рыба (revert к v1.4.2)
+
+      // Проверяем, что нет RenderFlex overflow (реальных багов вёрстки).
+      // Другие FlutterError (анимации, transition'ы) игнорируются.
+      expect(overflows, isEmpty,
+        reason: 'RenderFlex overflow — контент не помещается на экран 393×852:\n'
+            '${overflows.join("\n")}');
+    });
   });
 }

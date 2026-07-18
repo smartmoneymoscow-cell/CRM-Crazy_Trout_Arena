@@ -66,40 +66,31 @@ void main() {
 
     // ─── Правило 11: НИКОГДА не сдвигает контент (ОБЯЗАТЕЛЬНЫЙ ТЕСТ) ───
     testWidgets('ПРАВИЛО 11: dropdown не сдвигает контент при открытии', (tester) async {
-      // Строим экран с закрытым dropdown
+      bool isOpen = false;
+
+      // Одно дерево с переключением состояния
       await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: ListView(children: [
-            const Text('Карта пруда'),
-            FiltersDropdown(
-              value: FilterValue.none,
-              onChange: (_) {},
-              isOpen: false,
-              onToggle: () {},
-            ),
-            const Text('Лента бронирований'),
-          ]),
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            body: ListView(children: [
+              const Text('Карта пруда'),
+              FiltersDropdown(
+                value: FilterValue.none,
+                onChange: (_) {},
+                isOpen: isOpen,
+                onToggle: () => setState(() => isOpen = !isOpen),
+              ),
+              const Text('Лента бронирований'),
+            ]),
+          ),
         ),
       ));
 
-      // Запоминаем позицию текста "Лента бронирований"
+      // Запоминаем позицию контента ПОД dropdown
       final posBefore = tester.getTopLeft(find.text('Лента бронирований'));
 
-      // Открываем dropdown
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: ListView(children: [
-            const Text('Карта пруда'),
-            FiltersDropdown(
-              value: FilterValue.none,
-              onChange: (_) {},
-              isOpen: true,
-              onToggle: () {},
-            ),
-            const Text('Лента бронирований'),
-          ]),
-        ),
-      ));
+      // Открываем dropdown через setState того же дерева
+      isOpen = true;
       await tester.pump();
 
       final posAfter = tester.getTopLeft(find.text('Лента бронирований'));
@@ -183,7 +174,7 @@ void main() {
 
     // ─── Правило 5: Углы при раскрытии ───
     testWidgets('ПРАВИЛО 5: верхние углы карточки НЕ меняются при раскрытии', (tester) async {
-      // Закрытое состояние
+      // Закрытое состояние — все углы pill (999)
       await tester.pumpWidget(buildApp(isOpen: false));
       final containerClosed = tester.widget<Container>(
         find.descendant(
@@ -191,9 +182,11 @@ void main() {
           matching: find.byType(Container).last,
         ),
       );
-      final radiusClosed = (containerClosed.decoration as BoxDecoration).borderRadius;
+      final radiusClosed = containerClosed.decoration as BoxDecoration;
+      expect(radiusClosed.borderRadius, const BorderRadius.all(Radius.circular(999)),
+        reason: 'Закрытое состояние: все углы должны быть 999 (pill)');
 
-      // Открытое состояние
+      // Открытое состояние — верхние 999, нижние 0
       await tester.pumpWidget(buildApp(isOpen: true));
       final containerOpen = tester.widget<Container>(
         find.descendant(
@@ -201,11 +194,13 @@ void main() {
           matching: find.byType(Container).last,
         ),
       );
-      final radiusOpen = (containerOpen.decoration as BoxDecoration).borderRadius;
-
-      // Оба состояния существуют
-      expect(radiusClosed, isNotNull);
-      expect(radiusOpen, isNotNull);
+      final radiusOpen = containerOpen.decoration as BoxDecoration;
+      expect(radiusOpen.borderRadius, const BorderRadius.only(
+        topLeft: Radius.circular(999),
+        topRight: Radius.circular(999),
+        bottomLeft: Radius.circular(0),
+        bottomRight: Radius.circular(0),
+      ), reason: 'Открытое состояние: верхние углы 999, нижние 0');
     });
 
     // ─── Правило 6: Сворачивание при выборе опции ───

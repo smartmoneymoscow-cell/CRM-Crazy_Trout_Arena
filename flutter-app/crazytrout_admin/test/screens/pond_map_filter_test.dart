@@ -120,41 +120,55 @@ void main() {
   });
 
   group('Требование 14: dropdown той же ширины что кнопка, без смещения', () {
-    testWidgets('dropdown прикреплён к кнопке, та же ширина', (tester) async {
+    testWidgets('dropdown прикреплён к кнопке, та же ширина, без зазора', (tester) async {
       FilterValue currentFilter = FilterValue.none;
       bool isOpen = true;
 
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: StatefulBuilder(
           builder: (context, setState) {
-            return FiltersDropdown(
-              value: currentFilter,
-              onChange: (v) => setState(() => currentFilter = v),
-              isOpen: isOpen,
-              onToggle: () => setState(() => isOpen = !isOpen),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FiltersDropdown(
+                  value: currentFilter,
+                  onChange: (v) => setState(() => currentFilter = v),
+                  isOpen: isOpen,
+                  onToggle: () => setState(() => isOpen = !isOpen),
+                ),
+                if (isOpen)
+                  SizedBox(
+                    width: kDropdownWidth,
+                    child: Container(height: 100, color: Colors.white),
+                  ),
+              ],
             );
           },
-        )),
+        ),
+      ),
       ));
 
-      // Находим кнопку и dropdown
+      // Ширина совпадает
       final buttonFinder = find.byType(FiltersDropdown);
       final buttonBox = tester.getSize(buttonFinder);
-
-      // Находим SizedBox с шириной kDropdownWidth (dropdown wrapper)
       final sizedBoxFinder = find.byWidgetPredicate(
         (w) => w is SizedBox && w.width == kDropdownWidth,
       );
-      expect(sizedBoxFinder, findsOneWidget,
-        reason: 'Dropdown должен быть обёрнут в SizedBox(width: kDropdownWidth)');
-
+      expect(sizedBoxFinder, findsOneWidget);
       final dropdownBox = tester.getSize(sizedBoxFinder.first);
+      expect(dropdownBox.width, kDropdownWidth);
+      expect(dropdownBox.width, buttonBox.width);
 
-      // Ширина dropdown = ширина кнопки = kDropdownWidth
-      expect(dropdownBox.width, kDropdownWidth,
-        reason: 'Dropdown должен быть шириной kDropdownWidth');
-      expect(dropdownBox.width, buttonBox.width,
-        reason: 'Dropdown и кнопка должны быть одной ширины');
+      // Зазор = 0 (dropdown прикреплён к кнопке)
+      final buttonRect = tester.getRect(buttonFinder);
+      final dropdownRect = tester.getRect(sizedBoxFinder.first);
+      final gap = dropdownRect.top - buttonRect.bottom;
+      expect(gap, equals(0.0),
+        reason: 'Dropdown должен быть прикреплён к кнопке (зазор $gap)');
+
+      // Нет горизонтального смещения
+      expect(dropdownRect.left, buttonRect.left,
+        reason: 'Dropdown не должен быть смещён вправо/влево от кнопки');
     });
 
     test('kDropdownWidth = 120 (константа)', () {

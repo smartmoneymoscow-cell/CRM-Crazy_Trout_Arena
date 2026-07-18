@@ -979,7 +979,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
   }
 
   Widget _buildFilterRow(int free, int occupied) {
-    return Stack(children: [
+    return Stack(clipBehavior: Clip.none, children: [
       // Tap-to-close: тап в пустую область закрывает dropdown (правило 6).
       if (_isFilterOpen)
         Positioned.fill(
@@ -988,37 +988,40 @@ class _PondMapScreenState extends State<PondMapScreen> {
             onTap: () => setState(() => _isFilterOpen = false),
           ),
         ),
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(children: [
-            FiltersDropdown(
-              value: filter,
-              onChange: (v) => setState(() => filter = v),
-              isOpen: _isFilterOpen,
-              onToggle: _toggleFilter,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Flexible(child: _legend(_green, 'Свободно $free')),
-                  const SizedBox(width: 12),
-                  Flexible(child: _legend(kOrange, 'Занято $occupied')),
-                ],
-              ),
-            ),
-          ]),
-          if (_isFilterOpen) _buildDropdown(),
-        ],
-      ),
+      // Кнопка фильтров + легенда
+      Row(children: [
+        FiltersDropdown(
+          value: filter,
+          onChange: (v) => setState(() => filter = v),
+          isOpen: _isFilterOpen,
+          onToggle: _toggleFilter,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Flexible(child: _legend(_green, 'Свободно $free')),
+              const SizedBox(width: 12),
+              Flexible(child: _legend(kOrange, 'Занято $occupied')),
+            ],
+          ),
+        ),
+      ]),
+      // Dropdown — overlay поверх контента (правило 11, 12).
+      // Positioned ниже кнопки (kFilterRowHeight + kDropdownGap).
+      if (_isFilterOpen)
+        Positioned(
+          top: kFilterRowHeight + kDropdownGap,
+          left: 0,
+          child: _buildDropdown(),
+        ),
     ]);
   }
 
-  /// Строит dropdown-меню фильтров. Inline в ListView — скроллится со страницей,
-  /// прячется под нижнее меню естественно.
+  /// Строит dropdown-меню фильтров. Overlay через Positioned — не двигает контент,
+  /// перекрывает содержимое ниже (правило 11, 12).
   Widget _buildDropdown() {
     return SizedBox(
       width: kDropdownWidth,
