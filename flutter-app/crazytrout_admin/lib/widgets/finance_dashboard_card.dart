@@ -46,7 +46,7 @@ class FinanceDashboardCard extends StatelessWidget {
             children: [
               // ── Левая карточка: выручка + спарклайн ──
               Expanded(
-                flex: 4,
+                flex: 1,
                 child: _RevenueCard(stats: stats),
               ),
 
@@ -60,7 +60,7 @@ class FinanceDashboardCard extends StatelessWidget {
 
               // ── Правая колонка: 2 карточки статистики ──
               Expanded(
-                flex: 5,
+                flex: 1,
                 child: Column(
                   children: [
                     Expanded(
