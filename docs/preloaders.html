@@ -6,106 +6,152 @@
 <title>Crazy Trout Arena — Прелоадеры</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f0f1a;font-family:"PT Sans",-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:48px 20px;color:#fff}
-h1{font-size:28px;font-weight:800;margin-bottom:6px;color:#E8912B}
-.sub{font-size:13px;color:#666;margin-bottom:52px;letter-spacing:1px}
-.row{display:flex;gap:44px;flex-wrap:wrap;justify-content:center}
-.card{display:flex;flex-direction:column;align-items:center}
-.phone{width:280px;height:560px;background:#111;border-radius:44px;padding:10px;box-shadow:0 0 0 2px #222,0 24px 64px rgba(0,0,0,.6);position:relative}
-.phone::after{content:"";position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:100px;height:4px;background:#333;border-radius:2px}
-.screen{width:100%;height:100%;border-radius:36px;overflow:hidden;position:relative}
-.screen video{width:100%;height:100%;object-fit:cover}
-.label{margin-top:18px;font-size:14px;font-weight:700;color:#ccc;text-align:center}
-.label small{display:block;font-size:11px;font-weight:400;color:#555;margin-top:3px}
+body{background:#FBF6EC;font-family:"PT Sans",-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:48px 20px;color:#3a3530}
+h1{font-size:24px;font-weight:800;margin-bottom:6px;color:#E8912B}
+.sub{font-size:13px;color:#8C8576;margin-bottom:48px}
+.row{display:flex;gap:48px;flex-wrap:wrap;justify-content:center}
+.col{display:flex;flex-direction:column;align-items:center}
+.demo-box{width:320px;height:200px;background:#fff;border-radius:18px;border:1px solid #EFE8D8;display:flex;align-items:center;justify-content:center;position:relative}
+.label{margin-top:14px;font-size:13px;font-weight:700;color:#3a3530;text-align:center}
+.label small{display:block;font-size:11px;font-weight:400;color:#8C8576;margin-top:2px}
 
-/* Screen 1: Reel */
-.s1{background:#0d1117}
-.s1 video{border-radius:36px}
-.s1-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:72px;background:linear-gradient(180deg,transparent 40%,rgba(13,17,23,.85) 100%);z-index:2}
-.s1-title{font-size:16px;font-weight:800;color:#FBF6EC;letter-spacing:3px;text-transform:uppercase}
-.s1-dots{display:flex;gap:6px;margin-top:14px}
-.s1-dots span{width:8px;height:8px;border-radius:50%;background:#E8912B;animation:dot 1.2s ease-in-out infinite}
-.s1-dots span:nth-child(2){animation-delay:.2s}
-.s1-dots span:nth-child(3){animation-delay:.4s}
+/* ═══ Preloader 1: Reel — 80x75 ═══ */
+.pl-reel{width:80px;height:75px;display:flex;flex-direction:column;align-items:center}
+.pl-reel-video{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #E8912B;background:#F3EEE4}
+.pl-reel-text{margin-top:8px;font-size:10px;font-weight:600;color:#8C8576}
+.pl-reel-dots{display:flex;gap:4px;margin-top:4px}
+.pl-reel-dots span{width:5px;height:5px;border-radius:50%;background:#E8912B;animation:dot 1.2s ease-in-out infinite}
+.pl-reel-dots span:nth-child(2){animation-delay:.2s}
+.pl-reel-dots span:nth-child(3){animation-delay:.4s}
 @keyframes dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 
-/* Screen 2: Carp */
-.s2{background:#0a1628}
-.s2 video{border-radius:36px;opacity:.55}
-.s2-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;background:linear-gradient(180deg,rgba(10,22,40,.3) 0%,rgba(10,22,40,.8) 100%)}
-.s2-logo{font-size:34px;font-weight:900;color:#FBF6EC;text-shadow:0 2px 16px rgba(0,0,0,.6)}
-.s2-logo em{font-style:normal;color:#E8912B}
-.s2-bar{margin-top:28px;width:140px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
-.s2-bar-fill{height:100%;background:linear-gradient(90deg,#E8912B,#f5a623);border-radius:2px;animation:bar 2.4s ease-in-out infinite}
+/* ═══ Preloader 2: Carp — 80x75 ═══ */
+.pl-carp{width:80px;height:75px;display:flex;flex-direction:column;align-items:center}
+.pl-carp-video{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #E8912B;background:#F3EEE4}
+.pl-carp-text{margin-top:8px;font-size:10px;font-weight:600;color:#8C8576}
+.pl-carp-bar{margin-top:4px;width:48px;height:2px;background:#EFE8D8;border-radius:1px;overflow:hidden}
+.pl-carp-bar-fill{height:100%;background:#E8912B;border-radius:1px;animation:bar 2s ease-in-out infinite}
 @keyframes bar{0%{width:0}50%{width:100%}100%{width:0}}
-.s2-hint{margin-top:14px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1.5px}
-.bubbles{position:absolute;inset:0;pointer-events:none;z-index:1}
-.b{position:absolute;border-radius:50%;background:rgba(255,255,255,.1);animation:rise 4s ease-in infinite}
-.b:nth-child(1){left:12%;width:6px;height:6px;animation-delay:0s}
-.b:nth-child(2){left:30%;width:8px;height:8px;animation-delay:1s}
-.b:nth-child(3){left:55%;width:5px;height:5px;animation-delay:2s}
-.b:nth-child(4){left:75%;width:10px;height:10px;animation-delay:.5s}
-.b:nth-child(5){left:42%;width:4px;height:4px;animation-delay:3s}
-@keyframes rise{0%{bottom:-10px;opacity:0}20%{opacity:.6}100%{bottom:100%;opacity:0}}
 
-/* Screen 3: Float */
-.s3{background:linear-gradient(180deg,#5b9bd5 0%,#3a7cc0 50%,#1a5a8a 100%)}
-.s3 video{border-radius:36px}
-.s3-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:64px;z-index:2;background:linear-gradient(180deg,transparent 30%,rgba(26,90,138,.7) 100%)}
-.s3-text{font-size:15px;font-weight:800;color:#fff;letter-spacing:3px;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.3)}
-.s3-sub{margin-top:6px;font-size:11px;color:rgba(255,255,255,.5);letter-spacing:1px}
-.waves{position:absolute;bottom:0;left:0;width:200%;height:80px;z-index:1}
-.wave{position:absolute;bottom:0;left:0;width:200%;height:60px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath d='M0,60 C200,20 400,100 600,60 C800,20 1000,100 1200,60 L1200,120 L0,120 Z' fill='%230d3d5c' fill-opacity='.5'/%3E%3C/svg%3E") repeat-x;animation:wav 3s linear infinite}
-.wave:nth-child(2){bottom:-8px;opacity:.5;animation-duration:4s;animation-direction:reverse}
-.wave:nth-child(3){bottom:-16px;opacity:.3;animation-duration:5s}
-@keyframes wav{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.ripple{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:1}
-.rr{width:30px;height:8px;border:1.5px solid rgba(255,255,255,.25);border-radius:50%;position:absolute;left:50%;transform:translateX(-50%);animation:rip 2s ease-out infinite}
-.rr:nth-child(2){animation-delay:.6s}
-.rr:nth-child(3){animation-delay:1.2s}
-@keyframes rip{0%{width:16px;height:5px;opacity:1}100%{width:64px;height:20px;opacity:0}}
+/* ═══ Preloader 3: Float — 80x75 ═══ */
+.pl-float{width:80px;height:75px;display:flex;flex-direction:column;align-items:center}
+.pl-float-video{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #E8912B;background:#F3EEE4}
+.pl-float-text{margin-top:8px;font-size:10px;font-weight:600;color:#8C8576}
+.pl-float-anim{margin-top:3px;display:flex;align-items:flex-end;gap:2px;height:8px}
+.pl-float-bar{width:3px;background:#E8912B;border-radius:1px;animation:wave 1.2s ease-in-out infinite}
+.pl-float-bar:nth-child(1){height:4px;animation-delay:0s}
+.pl-float-bar:nth-child(2){height:8px;animation-delay:.15s}
+.pl-float-bar:nth-child(3){height:5px;animation-delay:.3s}
+.pl-float-bar:nth-child(4){height:7px;animation-delay:.45s}
+.pl-float-bar:nth-child(5){height:3px;animation-delay:.6s}
+@keyframes wave{0%,100%{height:3px}50%{height:8px}}
+
+/* ═══ Phone mockup (context) ═══ */
+.phone{width:200px;height:400px;background:#111;border-radius:30px;padding:8px;box-shadow:0 12px 40px rgba(0,0,0,.2);position:relative;margin-top:32px}
+.phone::after{content:"";position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:60px;height:3px;background:#333;border-radius:2px}
+.phone-screen{width:100%;height:100%;background:#FBF6EC;border-radius:24px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.phone-notch{width:60px;height:16px;background:#111;border-radius:0 0 10px 10px;margin:0 auto}
+.phone-content{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
+.phone-content video{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.phone-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(251,246,236,.7);z-index:2}
 </style>
 </head>
 <body>
 <h1>🐟 Crazy Trout Arena</h1>
-<p class="sub">Три варианта прелоадера</p>
+<p class="sub">Прелоадеры — 80×75 px (как FloatPreloader)</p>
 <div class="row">
 
-<div class="card">
-<div class="phone"><div class="screen s1">
-<video autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
-<div class="s1-overlay">
-<div class="s1-title">ЗАГРУЗКА</div>
-<div class="s1-dots"><span></span><span></span><span></span></div>
+<!-- ═══ Variant 1: Reel ═══ -->
+<div class="col">
+<div class="demo-box">
+  <div class="pl-reel">
+    <video class="pl-reel-video" autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
+    <div class="pl-reel-text">Загрузка…</div>
+    <div class="pl-reel-dots"><span></span><span></span><span></span></div>
+  </div>
 </div>
-</div></div>
-<div class="label">1. Катушка<small>вращающееся видео + точки</small></div>
+<div class="label">1. Катушка<small>видео в круге + пульсирующие точки</small></div>
+<div class="phone">
+  <div class="phone-screen">
+    <div class="phone-notch"></div>
+    <div class="phone-content">
+      <video autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
+    </div>
+    <div class="phone-overlay">
+      <div class="pl-reel">
+        <video class="pl-reel-video" autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
+        <div class="pl-reel-text">Загрузка…</div>
+        <div class="pl-reel-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
-<div class="card">
-<div class="phone"><div class="screen s2">
-<video autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
-<div class="bubbles"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div>
-<div class="s2-overlay">
-<div class="s2-logo">CRAZY <em>TROUT</em></div>
-<div class="s2-bar"><div class="s2-bar-fill"></div></div>
-<div class="s2-hint">загрузка данных...</div>
+<!-- ═══ Variant 2: Carp ═══ -->
+<div class="col">
+<div class="demo-box">
+  <div class="pl-carp">
+    <video class="pl-carp-video" autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
+    <div class="pl-carp-text">Загрузка…</div>
+    <div class="pl-carp-bar"><div class="pl-carp-bar-fill"></div></div>
+  </div>
 </div>
-</div></div>
-<div class="label">2. Рыбы<small>видео карпов + лого + прогресс-бар</small></div>
+<div class="label">2. Карп<small>видео в круге + прогресс-бар</small></div>
+<div class="phone">
+  <div class="phone-screen">
+    <div class="phone-notch"></div>
+    <div class="phone-content">
+      <video autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
+    </div>
+    <div class="phone-overlay">
+      <div class="pl-carp">
+        <video class="pl-carp-video" autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
+        <div class="pl-carp-text">Загрузка…</div>
+        <div class="pl-carp-bar"><div class="pl-carp-bar-fill"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
-<div class="card">
-<div class="phone"><div class="screen s3">
-<video autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
-<div class="waves"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
-<div class="ripple"><div class="rr"></div><div class="rr"></div><div class="rr"></div></div>
-<div class="s3-overlay">
-<div class="s3-text">Crazy Trout</div>
-<div class="s3-sub">ловись, рыбка...</div>
+<!-- ═══ Variant 3: Float ═══ -->
+<div class="col">
+<div class="demo-box">
+  <div class="pl-float">
+    <video class="pl-float-video" autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
+    <div class="pl-float-text">Загрузка…</div>
+    <div class="pl-float-anim">
+      <div class="pl-float-bar"></div>
+      <div class="pl-float-bar"></div>
+      <div class="pl-float-bar"></div>
+      <div class="pl-float-bar"></div>
+      <div class="pl-float-bar"></div>
+    </div>
+  </div>
 </div>
-</div></div>
-<div class="label">3. Поплавок<small>видео поплавка + волны + рябь</small></div>
+<div class="label">3. Поплавок<small>видео в круге + волновой индикатор</small></div>
+<div class="phone">
+  <div class="phone-screen">
+    <div class="phone-notch"></div>
+    <div class="phone-content">
+      <video autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
+    </div>
+    <div class="phone-overlay">
+      <div class="pl-float">
+        <video class="pl-float-video" autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
+        <div class="pl-float-text">Загрузка…</div>
+        <div class="pl-float-anim">
+          <div class="pl-float-bar"></div>
+          <div class="pl-float-bar"></div>
+          <div class="pl-float-bar"></div>
+          <div class="pl-float-bar"></div>
+          <div class="pl-float-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
 </div>
