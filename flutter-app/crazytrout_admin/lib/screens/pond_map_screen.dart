@@ -852,6 +852,7 @@ class FiltersDropdown extends StatelessWidget {
           GestureDetector(
             onTap: onToggle,
             child: Container(
+              clipBehavior: Clip.antiAlias,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
