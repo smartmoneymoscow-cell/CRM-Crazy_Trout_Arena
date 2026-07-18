@@ -56,14 +56,12 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
           _legendDot(const Color(0xFFC0392B), 'Расходы'),
         ]),
         const SizedBox(height: 16),
-        LayoutBuilder(builder: (context, constraints) {
-          return SizedBox(height: 180, child: ClipRect(
-            child: CustomPaint(
-              size: Size(constraints.maxWidth, 180),
-              painter: _ChartPainter(data: _points),
-            ),
-          ));
-        }),
+        SizedBox(height: 180, child: ClipRect(
+          child: CustomPaint(
+            size: Size(MediaQuery.of(context).size.width - 36, 180),
+            painter: _ChartPainter(data: _points),
+          ),
+        )),
         const SizedBox(height: 12),
         SizedBox(height: 20, child: Row(
           children: _points.map((d) => Expanded(
