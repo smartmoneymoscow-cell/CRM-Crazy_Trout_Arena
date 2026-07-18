@@ -31,43 +31,71 @@ class FinancePieChart extends StatelessWidget {
         border: Border.all(color: kHairline2, width: 0.5),
       ),
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Структура выручки',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
-        const SizedBox(height: 16),
-        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Flexible(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (int i = 0; i < data.segments.length; i++) ...[
-                _LegendRow(
-                  color: _segColors[i % _segColors.length],
-                  label: data.segments[i].label,
-                  pct: '${_fmtPct(data.pct(data.segments[i]))}%',
-                  amount: '${_fmtAmount(data.segments[i].amount)} ₽',
-                ),
-                if (i < data.segments.length - 1) const SizedBox(height: 12),
-              ],
-            ],
-          )),
-          const SizedBox(width: 16),
-          SizedBox(width: 120, height: 120, child: Stack(
-            alignment: Alignment.center,
-            children: [
-              ClipRect(
-                child: CustomPaint(size: const Size(120, 120),
-                  painter: _DonutPainter(segments: data.segments, colors: _segColors, total: data.total)),
-              ),
-              Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('${_fmtAmount(data.total)} ₽',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: kInk, letterSpacing: -0.3)),
-                const Text('всего', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: kMuted2)),
-              ]),
-            ],
-          )),
-        ]),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 400;
+        final donutSize = narrow ? 100.0 : 120.0;
+        final donut = _buildDonut(donutSize);
+
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Структура выручки',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
+          const SizedBox(height: 16),
+          if (narrow) ...[
+            Center(child: donut),
+            const SizedBox(height: 14),
+            _buildLegend(constraints.maxWidth - 36),
+          ] else
+            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Flexible(child: _buildLegend(constraints.maxWidth - 36 - 16 - donutSize)),
+              const SizedBox(width: 16),
+              donut,
+            ]),
+        ]);
+      }),
+    );
+  }
+
+  Widget _buildDonut(double size) => SizedBox(width: size, height: size, child: Stack(
+    alignment: Alignment.center,
+    children: [
+      ClipRect(
+        child: CustomPaint(size: Size(size, size),
+          painter: _DonutPainter(segments: data.segments, colors: _segColors, total: data.total)),
+      ),
+      Column(mainAxisSize: MainAxisSize.min, children: [
+        Text('${_fmtAmount(data.total)} ₽',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: size < 110 ? 11 : 13, fontWeight: FontWeight.w800, color: kInk, letterSpacing: -0.3)),
+        Text('всего', style: TextStyle(fontSize: size < 110 ? 8 : 9, fontWeight: FontWeight.w500, color: kMuted2)),
       ]),
+    ],
+  ));
+
+  Widget _buildLegend(double availableWidth) {
+    // Адаптивные flex-пропорции под ширину
+    final int labelFlex, pctFlex, amtFlex;
+    if (availableWidth < 140) {
+      labelFlex = 5; pctFlex = 2; amtFlex = 3;
+    } else {
+      labelFlex = 3; pctFlex = 2; amtFlex = 3;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (int i = 0; i < data.segments.length; i++) ...[
+          _LegendRow(
+            color: _segColors[i % _segColors.length],
+            label: data.segments[i].label,
+            pct: '${_fmtPct(data.pct(data.segments[i]))}%',
+            amount: '${_fmtAmount(data.segments[i].amount)} ₽',
+            labelFlex: labelFlex,
+            pctFlex: pctFlex,
+            amtFlex: amtFlex,
+          ),
+          if (i < data.segments.length - 1) const SizedBox(height: 12),
+        ],
+      ],
     );
   }
 }
@@ -137,7 +165,9 @@ class _LegendRow extends StatelessWidget {
   final String label;
   final String pct;
   final String amount;
-  const _LegendRow({required this.color, required this.label, required this.pct, required this.amount});
+  final int labelFlex, pctFlex, amtFlex;
+  const _LegendRow({required this.color, required this.label, required this.pct, required this.amount,
+    this.labelFlex = 3, this.pctFlex = 2, this.amtFlex = 3});
 
   @override
   Widget build(BuildContext context) {
@@ -145,17 +175,17 @@ class _LegendRow extends StatelessWidget {
       Container(width: 10, height: 10,
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
       const SizedBox(width: 8),
-      Expanded(flex: 3, child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
+      Expanded(flex: labelFlex, child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: kInk))),
       const SizedBox(width: 4),
       Flexible(
-        flex: 2,
+        flex: pctFlex,
         child: Text(pct, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kMuted)),
       ),
       const SizedBox(width: 6),
       Flexible(
-        flex: 3,
+        flex: amtFlex,
         child: Text(amount, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kInk)),
       ),
