@@ -31,7 +31,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart' as app_data show kDemoClients;
-import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap;
+import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap, kFilterRowHeight;
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
 import '../widgets/active_dot.dart';
