@@ -56,6 +56,7 @@ const List<Client> kDemoClients = [
          avatarAsset: 'assets/avatars/avatar_2.jpeg'),
   Client(id: 3, name: 'Сергей Петров', phone: '+7 903 777-44-33', tariffLabel: 'Стандарт',
          avatarAsset: 'assets/avatars/avatar_3.jpeg'),
+  Client(id: 4, name: 'Нина Крюкова', phone: '+7 912 666-33-44', tariffLabel: 'Пенсионер'),
   Client(id: 5, name: 'Дмитрий Лагута', phone: '+7 985 111-22-33', tariffLabel: 'Стандарт',
          avatarAsset: 'assets/avatars/avatar_5.jpeg'),
   Client(id: 6, name: 'Михаил Орлов', phone: '+7 962 888-99-00', tariffLabel: 'Пенсионер',

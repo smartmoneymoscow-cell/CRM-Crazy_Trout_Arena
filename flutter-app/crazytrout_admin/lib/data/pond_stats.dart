@@ -95,6 +95,15 @@ const Map<int, PondStats> kPondStatsById = {
     email: 'petrov@mail.ru', currentSector: 2,
     bestCatch: BestCatch(species: 'Осётр', weight: '7.8 кг', sector: 2, date: '19.06.2026'),
   ),
+  4: PondStats(
+    color: Color(0xFF9C5A3C),
+    level: LevelKey.basic,
+    points: 30, pointsNext: 500, visits: 1, ltvK: 2,
+    fish: 3, totalWeight: 5,
+    firstVisit: '14.07.2026', lastVisit: '14.07.2026',
+    email: 'kryukova@mail.ru',
+    bestCatch: BestCatch(species: 'Линь', weight: '1.1 кг', sector: 9, date: '14.07.2026'),
+  ),
   5: PondStats(
     color: Color(0xFF886F11),
     level: LevelKey.standard,

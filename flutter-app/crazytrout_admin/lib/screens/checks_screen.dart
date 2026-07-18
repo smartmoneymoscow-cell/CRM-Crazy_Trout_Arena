@@ -425,31 +425,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
                     ),
                   ],
                 ),
-                // Кнопка «Сбросить фильтры» — видна когда хотя бы один фильтр активен
-                if (_period != null || _dateRange != null || _type != null || _hasAdvancedFilters)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: GestureDetector(
-                    onTap: () => setState(() {
-                      _period = null;
-                      _dateRange = null;
-                      _type = null;
-                      _filterTariffs = {};
-                      _filterPayments = {};
-                      _filterFirstTime = false;
-                    }),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.filter_alt_off_outlined, size: 14, color: kMuted2),
-                        const SizedBox(width: 4),
-                        Text('Сбросить фильтры',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                            color: kMuted2, decoration: TextDecoration.underline)),
-                      ],
-                    ),
-                  ),
-                ),
+
             ],
           ),
           ),
@@ -630,10 +606,14 @@ class _FiscalFilterChip extends StatelessWidget {
         decoration: BoxDecoration(
             color: kFill, borderRadius: BorderRadius.circular(12)),
         child: Stack(
-          alignment: Alignment.center,
           children: [
-            Icon(Icons.receipt_long_outlined,
-                size: 19, color: active ? kOrange : kInk),
+            Positioned.fill(
+              child: Container(
+                alignment: Alignment.center,
+                child: Icon(Icons.receipt_long_outlined,
+                    size: 19, color: active ? kOrange : kInk),
+              ),
+            ),
             if (active)
               const Positioned(
                 top: 7,
