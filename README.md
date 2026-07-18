@@ -116,6 +116,7 @@ flutter-app/crazytrout_admin/
 │   │   ├── splash_screen.dart           — экран загрузки
 │   │   └── stub_screen.dart             — заглушка для нереализованных разделов
 │   ├── widgets/
+│   │   ├── active_dot.dart              — единый индикатор активного фильтра (оранжевая точка 7×7)
 │   │   ├── app_dropdown_field.dart       — кастомный дропдаун (ширина меню = ширина поля)
 │   │   ├── catch_row_tile.dart           — виджет строки улова
 │   │   ├── segmented_control.dart        — переключатель (оплата, тип чека)
@@ -275,6 +276,20 @@ GitHub Actions автоматически собирает приложение 
 
 | Версия | Дата | Изменения |
 |--------|------|-----------|
+| **v1.4.8** | 18.07.2026 | Единый индикатор ActiveDot на всех экранах — один размер, одна позиция, взаимоисключение период↔календарь |
+| **v1.4.7** | 17.07.2026 | Фикс overflow — _legend Text Flexible+ellipsis, _groupHeader Flexible |
+| **v1.4.6** | 17.07.2026 | Фикс #5: labels above fields in Add Fish popup |
+| **v1.4.5** | 17.07.2026 | Фикс overflow — Y-axis, revenue value, donut center |
+| **v1.4.4** | 17.07.2026 | Фикс expenses pctLabel — «от выручки» на второй строке |
+| **v1.4.3** | 17.07.2026 | Фикс StatCard layout — flatten Column, pctLabel под значением |
+| **v1.4.2** | 18.07.2026 | Фикс Линь в kSpeciesImageHeight, ПРАВИЛО 6 |
+| **v1.4.1** | 17.07.2026 | Фикс Сбросить в диалоге фильтров — сбрасывает реальное состояние |
+| **v1.4.0** | 17.07.2026 | Dropdown фильтров чеков — Stack-based → Overlay-based (фикс transparent бага) |
+| **v1.3.99** | 17.07.2026 | Фикс overflow в таблице улова |
+| **v1.3.98** | 17.07.2026 | Фикс fish tables — smaller images, header separator, narrower |
+| **v1.3.97** | 17.07.2026 | Кнопка Сбросить в dropdown ранжирования чеков |
+| **v1.3.96** | 17.07.2026 | Фикс float — smaller + elongated teardrop body + simpler water |
+| **v1.3.95** | 17.07.2026 | Фикс flutter analyze --no-fatal-infos --no-fatal-warnings |
 | **v1.3.94** | 17.07.2026 | Фикс перекрытия графиков — ClipRect на все CustomPaint |
 | **v1.3.93** | 17.07.2026 | 10 правок Отчёты (фильтры, календарь, графики, лейблы, ClipRect), OverlayEntry dropdown на карте, fallback графиков |
 | **v1.3.92** | 17.07.2026 | Единый скролл карты + border кнопки фильтров, FinanceDashboardCard к фильтру календаря |
