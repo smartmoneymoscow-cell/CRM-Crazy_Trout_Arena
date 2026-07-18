@@ -175,7 +175,7 @@ void main() {
       final buttonRect = tester.getRect(buttonFinder);
       final dropdownRect = tester.getRect(sizedBoxFinder.first);
       final gap = dropdownRect.top - buttonRect.bottom;
-      expect(gap, lessThan(2.0),
+      expect(gap, equals(0.0),
         reason: 'Dropdown должен быть прикреплён к кнопке (зазор $gap < 2px)');
 
       // Нет горизонтального смещения
