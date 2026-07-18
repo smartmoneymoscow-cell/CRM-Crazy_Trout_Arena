@@ -978,10 +978,18 @@ class _PondMapScreenState extends State<PondMapScreen> {
               isOpen: _isFilterOpen,
               onToggle: _toggleFilter,
             ),
-            const Spacer(),
-            _legend(_green, 'Свободно $free'),
-            const SizedBox(width: 12),
-            _legend(kOrange, 'Занято $occupied'),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _legend(_green, 'Свободно $free'),
+                  const SizedBox(width: 12),
+                  _legend(kOrange, 'Занято $occupied'),
+                ],
+              ),
+            ),
           ]),
           if (_isFilterOpen) _buildDropdown(),
         ],

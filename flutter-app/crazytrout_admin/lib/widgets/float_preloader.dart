@@ -31,7 +31,7 @@ class FloatPreloaderState extends State<FloatPreloader> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 80,
-      height: 65,
+      height: 75,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
