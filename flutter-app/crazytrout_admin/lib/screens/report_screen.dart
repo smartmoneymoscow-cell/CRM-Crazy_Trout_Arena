@@ -924,11 +924,13 @@ class _ClientCard extends StatelessWidget {
                               mainAxisAlignment:
                                   MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('БАЛЛЫ ЛОЯЛЬНОСТИ',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black54)),
+                                const Flexible(
+                                  child: Text('БАЛЛЫ ЛОЯЛЬНОСТИ',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black54)),
+                                ),
                                 Text(
                                     '${client.points} / ${client.pointsNext}',
                                     style: TextStyle(

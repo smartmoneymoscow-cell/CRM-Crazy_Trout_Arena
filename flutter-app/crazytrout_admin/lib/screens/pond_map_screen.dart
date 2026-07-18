@@ -984,9 +984,9 @@ class _PondMapScreenState extends State<PondMapScreen> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _legend(_green, 'Свободно $free'),
+                  Flexible(child: _legend(_green, 'Свободно $free')),
                   const SizedBox(width: 12),
-                  _legend(kOrange, 'Занято $occupied'),
+                  Flexible(child: _legend(kOrange, 'Занято $occupied')),
                 ],
               ),
             ),
