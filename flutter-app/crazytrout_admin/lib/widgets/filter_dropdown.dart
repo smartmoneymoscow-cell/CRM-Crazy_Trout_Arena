@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'active_dot.dart';
 
 class FilterDropdownItem<T> {
   final T? value;
@@ -151,19 +152,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
                     size: 20,
                     color: kMuted2,
                   ),
-                  if (widget.active)
-                    const Positioned(
-                      top: 0,
-                      right: 0,
-                      child: SizedBox(
-                        width: 7,
-                        height: 7,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                              color: kOrange, shape: BoxShape.circle),
-                        ),
-                      ),
-                    ),
+              if (widget.active) const ActiveDot(),
                 ],
               ),
             ],

@@ -34,6 +34,7 @@ import '../data/demo_data.dart' as app_data show kDemoClients;
 import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap;
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
+import '../widgets/active_dot.dart';
 import '../data/pond_stats.dart';
 
 // ─────────────────────────── Растровые ассеты (встроены base64, без pubspec) ───────────────────────────
@@ -842,30 +843,47 @@ class FiltersDropdown extends StatelessWidget {
           )
         : pill;
 
+    final active = value != FilterValue.none;
+
     return SizedBox(
       width: kDropdownWidth,
-      child: GestureDetector(
-        onTap: onToggle,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: radius,
-          border: Border.all(color: const Color(0xFFEFE8D8), width: 0.5),
-        ),
-        child: Row(children: [
-          const Icon(Icons.filter_list, size: 13, color: kEmber),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              filterButtonLabels[value]!,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: kInk),
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: onToggle,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: radius,
+                border: Border.all(color: const Color(0xFFEFE8D8), width: 0.5),
+              ),
+              child: Row(children: [
+                const Icon(Icons.filter_list, size: 13, color: kEmber),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    filterButtonLabels[value]!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: kInk),
+                  ),
+                ),
+              ]),
             ),
           ),
-        ]),
-      ),
+          if (active) const Positioned(
+            top: 4,
+            right: 4,
+            child: SizedBox(
+              width: 7,
+              height: 7,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: kOrange, shape: BoxShape.circle),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

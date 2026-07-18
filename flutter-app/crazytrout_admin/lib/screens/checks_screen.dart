@@ -8,6 +8,8 @@ import '../data/filter_types.dart';
 import '../theme/app_theme.dart';
 import '../data/pond_stats.dart';
 import '../widgets/filter_dropdown.dart';
+import '../widgets/active_dot.dart';
+import '../utils/format.dart';
 
 class ChecksScreen extends StatefulWidget {
   const ChecksScreen({super.key});
@@ -143,7 +145,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
     return list;
   }
 
-  // ---------- поисковые подсказки клиентов ----------
+  // ---------- поисковые подсказки клиентов (алфавитный порядок) ----------
   List<Client> get _clientSuggestions {
     if (_query.isEmpty) return const [];
     final q = _query.toLowerCase();
@@ -157,6 +159,24 @@ class _ChecksScreenState extends State<ChecksScreen> {
         res.add(c);
       }
     }
+    res.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return res.take(4).toList();
+  }
+
+  // ---------- поисковые подсказки чеков (по сумме / дате) ----------
+  List<ReceiptHistoryItem> get _receiptSuggestions {
+    if (_query.isEmpty) return const [];
+    final q = _query.replaceAll(RegExp(r'\s'), '');
+    // Ищем только если запрос похож на число (сумму)
+    final asNum = int.tryParse(q);
+    if (asNum == null) return const [];
+    final res = <ReceiptHistoryItem>[];
+    for (final r in kDemoReceipts) {
+      if (r.total.round().toString().contains(asNum.toString())) {
+        res.add(r);
+      }
+    }
+    res.sort((a, b) => b.date.compareTo(a.date));
     return res.take(4).toList();
   }
 
@@ -346,6 +366,7 @@ class _ChecksScreenState extends State<ChecksScreen> {
   Widget build(BuildContext context) {
     final items = _filtered;
     final clientHits = _clientSuggestions;
+    final receiptHits = _receiptSuggestions;
 
     return Container(
       color: kPaper,
@@ -375,6 +396,19 @@ class _ChecksScreenState extends State<ChecksScreen> {
                       setState(() {
                         _searchCtrl.text = c.name;
                         _query = c.name;
+                      });
+                      FocusScope.of(context).unfocus();
+                    },
+                  ),
+                ],
+                if (receiptHits.isNotEmpty && clientHits.isEmpty) ...[
+                  const SizedBox(height: 8),
+                  _ReceiptSuggestions(
+                    receipts: receiptHits,
+                    onPick: (r) {
+                      setState(() {
+                        _searchCtrl.text = r.total.round().toString();
+                        _query = r.total.round().toString();
                       });
                       FocusScope.of(context).unfocus();
                     },
@@ -548,6 +582,72 @@ class _ClientSuggestions extends StatelessWidget {
   }
 }
 
+class _ReceiptSuggestions extends StatelessWidget {
+  final List<ReceiptHistoryItem> receipts;
+  final ValueChanged<ReceiptHistoryItem> onPick;
+  const _ReceiptSuggestions({required this.receipts, required this.onPick});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kHairline),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < receipts.length; i++) ...[
+            InkWell(
+              onTap: () => onPick(receipts[i]),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: kFill,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.receipt_long_outlined,
+                          size: 18, color: kOrange),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(money(receipts[i].total),
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: kInk)),
+                          const SizedBox(height: 2),
+                          Text(
+                              '${_two(receipts[i].date.day)}.${_two(receipts[i].date.month)}.${receipts[i].date.year} · ${receipts[i].displayName}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: kMuted2)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (i < receipts.length - 1)
+              const Divider(height: 1, color: kHairline2),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+String _two(int n) => n.toString().padLeft(2, '0');
+
 class _CalendarChip extends StatelessWidget {
   final bool active;
   final VoidCallback onTap;
@@ -568,19 +668,7 @@ class _CalendarChip extends StatelessWidget {
           children: [
             Icon(Icons.calendar_today_outlined,
                 size: 19, color: active ? kOrange : kInk),
-            if (active)
-              const Positioned(
-                top: 7,
-                right: 7,
-                child: SizedBox(
-                  width: 7,
-                  height: 7,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                        color: kOrange, shape: BoxShape.circle),
-                  ),
-                ),
-              ),
+            if (active) const ActiveDot(),
           ],
         ),
       ),
@@ -614,19 +702,7 @@ class _FiscalFilterChip extends StatelessWidget {
                     size: 19, color: active ? kOrange : kInk),
               ),
             ),
-            if (active)
-              const Positioned(
-                top: 7,
-                right: 7,
-                child: SizedBox(
-                  width: 7,
-                  height: 7,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                        color: kOrange, shape: BoxShape.circle),
-                  ),
-                ),
-              ),
+            if (active) const ActiveDot(),
           ],
         ),
       ),
@@ -870,19 +946,7 @@ class _SortChipState extends State<_SortChip> {
             alignment: Alignment.center,
             children: [
               const Icon(Icons.sort_rounded, size: 19, color: kInk),
-              if (widget.active)
-                const Positioned(
-                  top: 7,
-                  right: 7,
-                  child: SizedBox(
-                    width: 7,
-                    height: 7,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                          color: kOrange, shape: BoxShape.circle),
-                    ),
-                  ),
-                ),
+              if (widget.active) const ActiveDot(),
             ],
           ),
         ),

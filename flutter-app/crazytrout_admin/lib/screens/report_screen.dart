@@ -13,6 +13,8 @@ import '../models/client.dart';
 // Вкладки: Финансы (заглушка), Клиенты (лента оплат), Рыба (таблица).
 // ============================================================================
 
+import '../widgets/active_dot.dart';
+
 // ─── Цветовые константы ─────────────────────────────────────────────────────
 const _ink = Color(0xFF14130F);
 const _paper = Color(0xFFFBF6EC);
@@ -417,7 +419,7 @@ class _ReportScreenState extends State<ReportScreen> {
     if (res.start.year == 2000 && res.end.year == 2000) {
       setState(() => _dateRange = null);
     } else {
-      setState(() => _dateRange = res);
+      setState(() { _dateRange = res; _period = null; });
     }
   }
 
@@ -467,7 +469,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           label: p.label,
                         ),
                     ],
-                    onChanged: (v) => setState(() => _period = v),
+                    onChanged: (v) => setState(() { _period = v; _dateRange = null; }),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1515,18 +1517,23 @@ class _IconSlot extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: active ? _orange : _fill,
+          color: _fill,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: assetPath != null
-            ? Padding(
-                padding: const EdgeInsets.all(10),
-                child: Image.asset(assetPath!,
-                    color: active ? Colors.white : _ink,
-                    fit: BoxFit.contain),
-              )
-            : Icon(icon,
-                size: 20, color: active ? Colors.white : _ink),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            assetPath != null
+                ? Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Image.asset(assetPath!,
+                        color: _ink,
+                        fit: BoxFit.contain),
+                  )
+                : Icon(icon, size: 20, color: _ink),
+            if (active) const ActiveDot(),
+          ],
+        ),
       ),
     );
   }
@@ -1746,13 +1753,19 @@ class _CalendarChip extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: active ? _orange : _fill,
+          color: _fill,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          Icons.calendar_today_outlined,
-          size: 20,
-          color: active ? Colors.white : _ink,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 20,
+              color: active ? _orange : _ink,
+            ),
+            if (active) const ActiveDot(),
+          ],
         ),
       ),
     );
