@@ -3,131 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crazy Trout Arena — Прелоадеры</title>
+<title>Прелоадеры</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#FBF6EC;font-family:"PT Sans",-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:48px 20px;color:#3a3530}
-h1{font-size:22px;font-weight:800;margin-bottom:4px;color:#E8912B}
-.sub{font-size:12px;color:#8C8576;margin-bottom:40px}
-.row{display:flex;gap:64px;flex-wrap:wrap;justify-content:center}
+body{background:#FBF6EC;font-family:"PT Sans",-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;gap:32px}
+.row{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
 .col{display:flex;flex-direction:column;align-items:center}
-.tag{font-size:11px;font-weight:700;color:#E8912B;margin-bottom:12px;letter-spacing:1px}
+.tag{font-size:10px;font-weight:700;color:#E8912B;margin-bottom:8px;letter-spacing:1px}
 
-/* ═══ Контейнер прелоадера — РОВНО 80x75 ═══ */
-.preloader{width:80px;height:75px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-.preloader video{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #E8912B;background:#F3EEE4}
-.preloader .txt{margin-top:8px;font-size:10px;font-weight:600;color:#8C8576}
+.pl{width:80px;height:75px;display:flex;flex-direction:column;align-items:center}
+.pl video{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #E8912B;background:#F3EEE4}
+.pl .t{margin-top:8px;font-size:10px;font-weight:600;color:#8C8576}
 
-/* Точки (катушка) */
-.dots{display:flex;gap:4px;margin-top:4px}
-.dots span{width:5px;height:5px;border-radius:50%;background:#E8912B;animation:dot 1.2s ease-in-out infinite}
-.dots span:nth-child(2){animation-delay:.2s}
-.dots span:nth-child(3){animation-delay:.4s}
+.d{display:flex;gap:4px;margin-top:4px}
+.d span{width:5px;height:5px;border-radius:50%;background:#E8912B;animation:dot 1.2s ease-in-out infinite}
+.d span:nth-child(2){animation-delay:.2s}
+.d span:nth-child(3){animation-delay:.4s}
 @keyframes dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 
-/* Прогресс-бар (карп) */
-.bar{margin-top:4px;width:48px;height:2px;background:#EFE8D8;border-radius:1px;overflow:hidden}
-.bar-fill{height:100%;background:#E8912B;border-radius:1px;animation:bar 2s ease-in-out infinite}
+.b{margin-top:4px;width:48px;height:2px;background:#EFE8D8;border-radius:1px;overflow:hidden}
+.bf{height:100%;background:#E8912B;border-radius:1px;animation:bar 2s ease-in-out infinite}
 @keyframes bar{0%{width:0}50%{width:100%}100%{width:0}}
 
-/* Волны (поплавок) */
-.wav{margin-top:3px;display:flex;align-items:flex-end;gap:2px;height:8px}
-.wav span{width:3px;background:#E8912B;border-radius:1px;animation:wave 1.2s ease-in-out infinite}
-.wav span:nth-child(1){height:4px;animation-delay:0s}
-.wav span:nth-child(2){height:8px;animation-delay:.15s}
-.wav span:nth-child(3){height:5px;animation-delay:.3s}
-.wav span:nth-child(4){height:7px;animation-delay:.45s}
-.wav span:nth-child(5){height:3px;animation-delay:.6s}
+.w{margin-top:3px;display:flex;align-items:flex-end;gap:2px;height:8px}
+.w span{width:3px;background:#E8912B;border-radius:1px;animation:wave 1.2s ease-in-out infinite}
+.w span:nth-child(1){height:4px;animation-delay:0s}
+.w span:nth-child(2){height:8px;animation-delay:.15s}
+.w span:nth-child(3){height:5px;animation-delay:.3s}
+.w span:nth-child(4){height:7px;animation-delay:.45s}
+.w span:nth-child(5){height:3px;animation-delay:.6s}
 @keyframes wave{0%,100%{height:3px}50%{height:8px}}
-
-/* Мокап телефона */
-.phone-wrap{margin-top:24px}
-.phone{width:180px;height:360px;background:#111;border-radius:28px;padding:6px;box-shadow:0 8px 32px rgba(0,0,0,.15);position:relative}
-.phone::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:50px;height:3px;background:#333;border-radius:2px}
-.ph-screen{width:100%;height:100%;background:#FBF6EC;border-radius:22px;overflow:hidden;position:relative;display:flex;flex-direction:column}
-.ph-notch{width:50px;height:14px;background:#111;border-radius:0 0 8px 8px;margin:0 auto}
-.ph-body{flex:1;position:relative;overflow:hidden}
-.ph-body video{width:100%;height:100%;object-fit:cover}
-.ph-overlay{position:absolute;inset:0;background:rgba(251,246,236,.75);display:flex;align-items:center;justify-content:center;z-index:2}
 </style>
 </head>
 <body>
-<h1>🐟 Crazy Trout Arena</h1>
-<p class="sub">Прелоадеры 80×75 px — три варианта</p>
 <div class="row">
 
-<!-- ═══ 1. Катушка ═══ -->
 <div class="col">
-<div class="tag">ВАРИАНТ 1</div>
-<div class="preloader">
-  <video autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
-  <div class="txt">Загрузка…</div>
-  <div class="dots"><span></span><span></span><span></span></div>
-</div>
-<div class="phone-wrap">
-<div class="phone"><div class="ph-screen">
-  <div class="ph-notch"></div>
-  <div class="ph-body">
-    <video autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
-    <div class="ph-overlay">
-      <div class="preloader">
-        <video autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
-        <div class="txt">Загрузка…</div>
-        <div class="dots"><span></span><span></span><span></span></div>
-      </div>
-    </div>
-  </div>
-</div></div>
+<div class="tag">1</div>
+<div class="pl">
+<video autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
+<div class="t">Загрузка…</div>
+<div class="d"><span></span><span></span><span></span></div>
 </div>
 </div>
 
-<!-- ═══ 2. Карп ═══ -->
 <div class="col">
-<div class="tag">ВАРИАНТ 2</div>
-<div class="preloader">
-  <video autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
-  <div class="txt">Загрузка…</div>
-  <div class="bar"><div class="bar-fill"></div></div>
-</div>
-<div class="phone-wrap">
-<div class="phone"><div class="ph-screen">
-  <div class="ph-notch"></div>
-  <div class="ph-body">
-    <video autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
-    <div class="ph-overlay">
-      <div class="preloader">
-        <video autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
-        <div class="txt">Загрузка…</div>
-        <div class="bar"><div class="bar-fill"></div></div>
-      </div>
-    </div>
-  </div>
-</div></div>
+<div class="tag">2</div>
+<div class="pl">
+<video autoplay muted loop playsinline src="preloaders-assets/carp.mp4"></video>
+<div class="t">Загрузка…</div>
+<div class="b"><div class="bf"></div></div>
 </div>
 </div>
 
-<!-- ═══ 3. Поплавок ═══ -->
 <div class="col">
-<div class="tag">ВАРИАНТ 3</div>
-<div class="preloader">
-  <video autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
-  <div class="txt">Загрузка…</div>
-  <div class="wav"><span></span><span></span><span></span><span></span><span></span></div>
-</div>
-<div class="phone-wrap">
-<div class="phone"><div class="ph-screen">
-  <div class="ph-notch"></div>
-  <div class="ph-body">
-    <video autoplay muted loop playsinline src="preloaders-assets/reel.mp4"></video>
-    <div class="ph-overlay">
-      <div class="preloader">
-        <video autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
-        <div class="txt">Загрузка…</div>
-        <div class="wav"><span></span><span></span><span></span><span></span><span></span></div>
-      </div>
-    </div>
-  </div>
-</div></div>
+<div class="tag">3</div>
+<div class="pl">
+<video autoplay muted loop playsinline src="preloaders-assets/float.mp4"></video>
+<div class="t">Загрузка…</div>
+<div class="w"><span></span><span></span><span></span><span></span><span></span></div>
 </div>
 </div>
 
