@@ -3,6 +3,7 @@
 /* --- Общий экран --- */
 .screen {
   padding: var(--spacing-lg);
+  padding-bottom: calc(var(--nav-height) + var(--spacing-lg));
   animation: screen-enter 0.2s ease;
 }
 
