@@ -151,17 +151,19 @@ void main() {
       // Ширина совпадает
       final buttonFinder = find.byType(FiltersDropdown);
       final buttonBox = tester.getSize(buttonFinder);
+      // Находим SizedBox с шириной kDropdownWidth — их 2 (wrapper кнопки + dropdown)
       final sizedBoxFinder = find.byWidgetPredicate(
         (w) => w is SizedBox && w.width == kDropdownWidth,
       );
-      expect(sizedBoxFinder, findsOneWidget);
-      final dropdownBox = tester.getSize(sizedBoxFinder.first);
+      expect(sizedBoxFinder, findsNWidgets(2));
+      // Берём второй (dropdown), т.к. кнопка — первый
+      final dropdownBox = tester.getSize(sizedBoxFinder.last);
       expect(dropdownBox.width, kDropdownWidth);
       expect(dropdownBox.width, buttonBox.width);
 
       // Зазор = 0 (dropdown прикреплён к кнопке)
       final buttonRect = tester.getRect(buttonFinder);
-      final dropdownRect = tester.getRect(sizedBoxFinder.first);
+      final dropdownRect = tester.getRect(sizedBoxFinder.last);
       final gap = dropdownRect.top - buttonRect.bottom;
       expect(gap, equals(0.0),
         reason: 'Dropdown должен быть прикреплён к кнопке (зазор $gap)');
