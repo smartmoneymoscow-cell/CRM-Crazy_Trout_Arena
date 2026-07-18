@@ -254,6 +254,15 @@ class _ChecksScreenState extends State<ChecksScreen> {
                           tmpFirstTime = false;
                           tmpType = null;
                         });
+                        setState(() {
+                          _filterTariffs = {};
+                          _filterPayments = {};
+                          _filterFirstTime = false;
+                          _type = null;
+                          _period = null;
+                          _dateRange = null;
+                        });
+                        Navigator.pop(ctx);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: kMuted,
