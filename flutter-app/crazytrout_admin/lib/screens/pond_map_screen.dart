@@ -31,7 +31,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart' as app_data show kDemoClients;
-import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap, kFilterRowHeight;
+import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap;
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
 import '../widgets/active_dot.dart';
@@ -852,7 +852,6 @@ class FiltersDropdown extends StatelessWidget {
           GestureDetector(
             onTap: onToggle,
             child: Container(
-              clipBehavior: Clip.antiAlias,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -911,6 +910,12 @@ class _PondMapScreenState extends State<PondMapScreen> {
   int? selected;
   FilterValue filter = FilterValue.none;
   bool _isFilterOpen = false;
+
+  // LayerLink привязывает dropdown к РЕАЛЬНОЙ позиции кнопки (её фактической
+  // отрисованной высоте), а не к предполагаемой константе kFilterRowHeight —
+  // именно рассинхронизация константы с реальной высотой кнопки давала
+  // зазор между кнопкой и списком (требование 4/14: gap = 0, без смещения).
+  final LayerLink _filterLink = LayerLink();
 
   List<List<Slot>> get schedules =>
       List.generate(16, (i) => _scheduleFor(date, i + 1));
@@ -989,13 +994,19 @@ class _PondMapScreenState extends State<PondMapScreen> {
             onTap: () => setState(() => _isFilterOpen = false),
           ),
         ),
-      // Кнопка фильтров + легенда
+      // Кнопка фильтров + легенда. CompositedTransformTarget помечает
+      // текущую позицию кнопки для LayerLink — используется вместо
+      // константы kFilterRowHeight, которая не совпадала с реальной
+      // высотой кнопки и создавала зазор (требование 4/14).
       Row(children: [
-        FiltersDropdown(
-          value: filter,
-          onChange: (v) => setState(() => filter = v),
-          isOpen: _isFilterOpen,
-          onToggle: _toggleFilter,
+        CompositedTransformTarget(
+          link: _filterLink,
+          child: FiltersDropdown(
+            value: filter,
+            onChange: (v) => setState(() => filter = v),
+            isOpen: _isFilterOpen,
+            onToggle: _toggleFilter,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -1010,12 +1021,16 @@ class _PondMapScreenState extends State<PondMapScreen> {
           ),
         ),
       ]),
-      // Dropdown — overlay поверх контента (правило 11, 12).
-      // Positioned ниже кнопки (kFilterRowHeight + kDropdownGap).
+      // Dropdown — overlay поверх контента (правило 11, 12). Следует за
+      // РЕАЛЬНОЙ позицией кнопки через LayerLink, без зазора (gap = 0,
+      // kDropdownGap) и без смещения по горизонтали.
       if (_isFilterOpen)
-        Positioned(
-          top: kFilterRowHeight + kDropdownGap,
-          left: 0,
+        CompositedTransformFollower(
+          link: _filterLink,
+          showWhenUnlinked: false,
+          targetAnchor: Alignment.bottomLeft,
+          followerAnchor: Alignment.topLeft,
+          offset: const Offset(0, kDropdownGap),
           child: _buildDropdown(),
         ),
     ]);

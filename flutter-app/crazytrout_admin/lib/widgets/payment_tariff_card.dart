@@ -159,14 +159,17 @@ class _BarRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              money(amount),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: kInk,
+            Flexible(
+              child: Text(
+                money(amount),
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: kInk,
+                ),
               ),
             ),
           ],
@@ -277,14 +280,17 @@ class _TariffBarRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              '$count ($pct%)',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: kInk,
+            Flexible(
+              child: Text(
+                '$count ($pct%)',
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: kInk,
+                ),
               ),
             ),
           ],
