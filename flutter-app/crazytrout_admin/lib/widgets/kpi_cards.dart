@@ -33,6 +33,7 @@ class KpiCards extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(child: _KpiCard(
               icon: Icons.people_outline, iconColor: const Color(0xFF6B4226),

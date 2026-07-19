@@ -330,3 +330,33 @@ void main() {
     });
   });
 }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Тест 12: Все 5 KPI-карточек отображаются на странице
+    // ──────────────────────────────────────────────────────────────────────
+    testWidgets('Все 5 KPI-карточек отображаются (Средний чек, LT/LTV, Клиенты, Улов, Рейтинг)',
+        (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(_phoneSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _goToReports(tester);
+
+      // Скроллим вниз чтобы все KPI-карточки были видимы
+      final scrollView = find.byType(SingleChildScrollView);
+      await tester.drag(scrollView, const Offset(0, -1500));
+      await tester.pumpAndSettle();
+
+      // Проверяем наличие всех 5 KPI-заголовков
+      expect(find.text('Средний чек'), findsOneWidget,
+          reason: 'KPI "Средний чек" отображается');
+      expect(find.text('LT / LTV'), findsOneWidget,
+          reason: 'KPI "LT / LTV" отображается');
+      expect(find.text('Всего клиентов'), findsOneWidget,
+          reason: 'KPI "Всего клиентов" отображается');
+      expect(find.text('Средний улов на клиента'), findsOneWidget,
+          reason: 'KPI "Средний улов на клиента" отображается');
+      expect(find.text('Оценка сервиса'), findsOneWidget,
+          reason: 'KPI "Оценка сервиса" отображается');
+    });
+  });
+}
