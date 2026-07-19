@@ -45,7 +45,15 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
   final GlobalKey _fieldKey = GlobalKey();
   final LayerLink _link = LayerLink();
   OverlayEntry? _entry;
-  bool _open = false;
+  bool _open;
+
+  _FilterDropdownState() : _open = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _open = widget.isOpen;
+  }
 
   static const double _borderRadius = 12;
   static const double _itemHeight = 42;
