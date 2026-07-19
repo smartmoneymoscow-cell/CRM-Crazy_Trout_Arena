@@ -39,6 +39,7 @@ class _RevenueDynamicsChartState extends State<RevenueDynamicsChart> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: kPaper, borderRadius: BorderRadius.circular(18),
         border: Border.all(color: kHairline2, width: 0.5),

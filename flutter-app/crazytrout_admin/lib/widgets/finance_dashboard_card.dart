@@ -34,6 +34,7 @@ class FinanceDashboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: _cream,
         borderRadius: BorderRadius.circular(18),
