@@ -32,24 +32,27 @@ class FinancePieChart extends StatelessWidget {
       ),
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
       child: LayoutBuilder(builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 400;
-        final donutSize = narrow ? 100.0 : 120.0;
+        final w = constraints.maxWidth;
+        // Адаптивный размер диаграммы — уменьшается при узком экране
+        final donutSize = w < 340 ? 80.0 : w < 400 ? 95.0 : 110.0;
         final donut = _buildDonut(donutSize);
+
+        // Легенда: максимальная ширина = общая - диаграмма - отступ - padding
+        final legendMaxW = w - donutSize - 16 - 36;
 
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Структура выручки',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
           const SizedBox(height: 16),
-          if (narrow) ...[
-            Center(child: donut),
-            const SizedBox(height: 14),
-            _buildLegend(constraints.maxWidth - 36),
-          ] else
-            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Flexible(child: _buildLegend(constraints.maxWidth - 36 - 16 - donutSize)),
-              const SizedBox(width: 16),
-              donut,
-            ]),
+          // Всегда Row: легенда слева, диаграмма справа
+          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: legendMaxW),
+              child: _buildLegend(legendMaxW),
+            ),
+            const SizedBox(width: 16),
+            donut,
+          ]),
         ]);
       }),
     );
@@ -75,13 +78,12 @@ class FinancePieChart extends StatelessWidget {
   ));
 
   Widget _buildLegend(double availableWidth) {
-    // Адаптивные flex-пропорции под ширину
-    final int labelFlex, pctFlex, amtFlex;
-    if (availableWidth < 140) {
-      labelFlex = 5; pctFlex = 2; amtFlex = 3;
-    } else {
-      labelFlex = 3; pctFlex = 2; amtFlex = 3;
-    }
+    // label — Flexible (сжимается), pct/amt — фиксированные ширины.
+    // Отступ label→pct = 4px (как pct→amt), не растягивается.
+    const double pctW = 40;  // «100,0%» — достаточно
+    const double amtW = 72;  // «100,0 млн» — 9 символов, font 13 bold ≈ 8px/char
+    const double gap = 4;    // одинаковый отступ между колонками
+    const double dotSpace = 10 + 6; // dot(10) + gap(6)
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,11 +94,11 @@ class FinancePieChart extends StatelessWidget {
             label: data.segments[i].label,
             pct: '${_fmtPct(data.pct(data.segments[i]))}%',
             amount: _fmtAmount(data.segments[i].amount),
-            labelFlex: labelFlex,
-            pctFlex: pctFlex,
-            amtFlex: amtFlex,
+            pctWidth: pctW,
+            amtWidth: amtW,
+            gap: gap,
           ),
-          if (i < data.segments.length - 1) const SizedBox(height: 12),
+          if (i < data.segments.length - 1) const SizedBox(height: 11),
         ],
       ],
     );
@@ -171,30 +173,30 @@ class _LegendRow extends StatelessWidget {
   final String label;
   final String pct;
   final String amount;
-  final int labelFlex, pctFlex, amtFlex;
+  final double pctWidth;
+  final double amtWidth;
+  final double gap;
   const _LegendRow({required this.color, required this.label, required this.pct, required this.amount,
-    this.labelFlex = 3, this.pctFlex = 2, this.amtFlex = 3});
+    this.pctWidth = 40, this.amtWidth = 72, this.gap = 4});
 
   @override
   Widget build(BuildContext context) {
     return Row(children: [
+      // Цветной кружок
       Container(width: 10, height: 10,
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
-      const SizedBox(width: 8),
-      Expanded(flex: labelFlex, child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: kInk))),
-      const SizedBox(width: 4),
-      Flexible(
-        flex: pctFlex,
-        child: Text(pct, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kMuted)),
-      ),
       const SizedBox(width: 6),
-      Flexible(
-        flex: amtFlex,
-        child: Text(amount, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kInk)),
-      ),
+      // Название — Flexible, сжимается при нехватке места
+      Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: kInk))),
+      SizedBox(width: gap),
+      // Процент — фиксированная ширина
+      SizedBox(width: pctWidth, child: Text(pct, textAlign: TextAlign.right, maxLines: 1,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kMuted))),
+      SizedBox(width: gap),
+      // Сумма — фиксированная ширина
+      SizedBox(width: amtWidth, child: Text(amount, textAlign: TextAlign.right, maxLines: 1,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kInk))),
     ]);
   }
 }
