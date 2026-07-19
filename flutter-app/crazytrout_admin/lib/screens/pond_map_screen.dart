@@ -913,6 +913,60 @@ class _PondMapScreenState extends State<PondMapScreen> {
   FilterValue filter = FilterValue.none;
   bool _isFilterOpen = false;
 
+  // LayerLink + OverlayEntry — dropdown в отдельном слое поверх всего контента.
+  // Решает баг: Positioned в Stack внутри ListView → feed рендерится ПОВЕРХ dropdown.
+  final LayerLink _filterLink = LayerLink();
+  OverlayEntry? _filterOverlay;
+
+  void _showFilterOverlay() {
+    _filterOverlay = OverlayEntry(
+      builder: (context) => Stack(children: [
+        // Tap-to-close: тап в пустую область закрывает dropdown (правило 6).
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => setState(() {
+              _isFilterOpen = false;
+              _hideFilterOverlay();
+            }),
+          ),
+        ),
+        // Dropdown — привязан к позиции кнопки через LayerLink.
+        CompositedTransformFollower(
+          link: _filterLink,
+          showWhenUnlinked: false,
+          targetAnchor: Alignment.bottomLeft,
+          followerAnchor: Alignment.topLeft,
+          offset: const Offset(0, kDropdownGap),
+          child: _buildDropdown(),
+        ),
+      ]),
+    );
+    Overlay.of(context).insert(_filterOverlay!);
+  }
+
+  void _hideFilterOverlay() {
+    _filterOverlay?.remove();
+    _filterOverlay = null;
+  }
+
+  void _toggleFilter() {
+    setState(() {
+      _isFilterOpen = !_isFilterOpen;
+      if (_isFilterOpen) {
+        _showFilterOverlay();
+      } else {
+        _hideFilterOverlay();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _hideFilterOverlay();
+    super.dispose();
+  }
+
 
 
   List<List<Slot>> get schedules =>
@@ -978,49 +1032,37 @@ class _PondMapScreenState extends State<PondMapScreen> {
     );
   }
 
-  void _toggleFilter() {
-    setState(() => _isFilterOpen = !_isFilterOpen);
-  }
-
   Widget _buildFilterRow(int free, int occupied) {
-    return Stack(clipBehavior: Clip.none, children: [
-      // Tap-to-close: тап в пустую область закрывает dropdown (правило 6).
-      if (_isFilterOpen)
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () => setState(() => _isFilterOpen = false),
-          ),
-        ),
-      // Кнопка фильтров + легенда
-      Row(children: [
-        FiltersDropdown(
+    // CompositedTransformTarget — отмечает позицию кнопки для OverlayEntry.
+    // Dropdown рендерится в Overlay (выше в _toggleFilter) — поверх всего контента.
+    return Row(children: [
+      CompositedTransformTarget(
+        link: _filterLink,
+        child: FiltersDropdown(
           value: filter,
-          onChange: (v) => setState(() => filter = v),
+          onChange: (v) {
+            setState(() => filter = v);
+            // Обновляем overlay если открыт
+            if (_isFilterOpen) {
+              _filterOverlay?.markNeedsBuild();
+            }
+          },
           isOpen: _isFilterOpen,
           onToggle: _toggleFilter,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Flexible(child: _legend(_green, 'Свободно $free')),
-              const SizedBox(width: 12),
-              Flexible(child: _legend(kOrange, 'Занято $occupied')),
-            ],
-          ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Flexible(child: _legend(_green, 'Свободно $free')),
+            const SizedBox(width: 12),
+            Flexible(child: _legend(kOrange, 'Занято $occupied')),
+          ],
         ),
-      ]),
-      // Dropdown — overlay поверх контента (правило 11, 12).
-      // Positioned ниже кнопки (kFilterRowHeight + kDropdownGap).
-      if (_isFilterOpen)
-        Positioned(
-          top: kFilterRowHeight + kDropdownGap,
-          left: 0,
-          child: _buildDropdown(),
-        ),
+      ),
     ]);
   }
 
