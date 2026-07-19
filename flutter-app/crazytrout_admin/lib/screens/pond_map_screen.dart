@@ -1003,7 +1003,7 @@ class _PondMapScreenState extends State<PondMapScreen> {
             showWhenUnlinked: false,
             targetAnchor: Alignment.bottomLeft,
             followerAnchor: Alignment.topLeft,
-            offset: const Offset(0, -1), // -1: перекрытие с кнопкой (нет зазора)
+            offset: Offset.zero, // нет перекрытия с кнопкой
             child: _buildDropdown(),
           ),
         ],
