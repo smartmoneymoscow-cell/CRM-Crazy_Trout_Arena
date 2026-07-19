@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crazytrout_admin/screens/report_screen.dart';
 import 'package:crazytrout_admin/widgets/payment_tariff_card.dart';
+import 'package:crazytrout_admin/widgets/kpi_cards.dart';
+import 'package:crazytrout_admin/widgets/revenue_dynamics_chart.dart';
 
 const _phoneSize = Size(393, 852);
 

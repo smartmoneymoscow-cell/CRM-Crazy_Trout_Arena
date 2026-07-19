@@ -139,9 +139,11 @@ void main() {
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
       await tester.pumpAndSettle();
 
-      expect(find.text('Выручка'), findsOneWidget);
-      expect(find.text('Маржа'), findsOneWidget);
-      expect(find.text('Расходы'), findsOneWidget);
+      // Ищем легенду внутри RevenueDynamicsChart, т.к. "Выручка" есть и в DashboardCard
+      final chartFinder = find.byType(RevenueDynamicsChart);
+      expect(find.descendant(of: chartFinder, matching: find.text('Выручка')), findsOneWidget);
+      expect(find.descendant(of: chartFinder, matching: find.text('Маржа')), findsOneWidget);
+      expect(find.descendant(of: chartFinder, matching: find.text('Расходы')), findsOneWidget);
     });
 
     testWidgets('отображает toggle "По месяцам" / "По неделям"',
