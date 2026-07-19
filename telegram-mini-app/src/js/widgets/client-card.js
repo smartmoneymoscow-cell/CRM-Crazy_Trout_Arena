@@ -9,7 +9,13 @@ const LEVEL_COLORS = {
   basic:    { color: '#8C5C34', top: '#E3B98B', mid: '#C08A54', bottom: '#8C5C34', letter: '#FFFFFF' },
 };
 
-export function showClientCard(clientId) {
+function formatLtv(ltvK) {
+  if (ltvK >= 1000) return (ltvK / 1000).toFixed(1).replace('.', ',') + ' млн';
+  if (ltvK >= 1) return ltvK.toFixed(1).replace('.', ',') + ' тыс';
+  return ltvK + '';
+}
+
+export function showClientCard(clientId, sectorId) {
   const client = store.getClientById(clientId);
   if (!client) return;
 
@@ -40,8 +46,8 @@ export function showClientCard(clientId) {
         <div style="display:flex;align-items:center;gap:14px;">
           ${store.renderAvatar(client, 60)}
           <div style="flex:1;">
-            <div style="color:#fff;font-size:17px;font-weight:700;">${client.name}</div>
-            <div style="margin-top:4px;">
+            <div style="color:#fff;font-size:17px;font-weight:800;">${client.name}</div>
+            <div style="margin-top:6px;display:flex;align-items:center;">
               <span style="
                 display:inline-flex;align-items:center;justify-content:center;
                 width:28px;height:28px;border-radius:50%;
@@ -60,51 +66,101 @@ export function showClientCard(clientId) {
             <span>${client.points} баллов</span>
             <span>${client.pointsNext} для следующего уровня</span>
           </div>
-          <div style="height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin-top:4px;overflow:hidden;">
-            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${l.top},${l.mid});border-radius:2px;"></div>
+          <div style="height:7px;border-radius:999px;background:rgba(255,255,255,0.15);margin-top:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${l.top},${l.mid});border-radius:999px;"></div>
           </div>
         </div>
+        <!-- Кнопка закрытия в правом верхнем углу -->
+        <button id="client-card-close" style="
+          position:absolute;top:0;right:0;
+          width:28px;height:28px;border-radius:50%;
+          background:rgba(255,255,255,0.18);border:none;
+          display:flex;align-items:center;justify-content:center;
+          cursor:pointer;color:#fff;font-size:16px;
+        ">✕</button>
       </div>
 
-      <!-- Статистика -->
-      <div style="padding:18px 20px;">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;margin-bottom:16px;">
-          <div>
-            <div style="font-size:18px;font-weight:700;color:#E8912B;">${client.visits}</div>
-            <div style="font-size:10px;color:#9C9484;margin-top:2px;">Посещений</div>
+      <!-- Body -->
+      <div style="padding:18px 20px 20px;">
+        <!-- Телефон + Email + Сейчас на секторе -->
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span style="color:#E8912B;font-size:15px;">📞</span>
+              <span style="font-size:13px;color:#2D2D2D;">${client.phone}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="color:#E8912B;font-size:15px;">✉️</span>
+              <span style="font-size:13px;color:#2D2D2D;">${client.email || 'Нет email'}</span>
+            </div>
           </div>
-          <div>
-            <div style="font-size:18px;font-weight:700;color:#E8912B;">${store.formatMoney(ltv)} ₽</div>
-            <div style="font-size:10px;color:#9C9484;margin-top:2px;">LTV</div>
+          ${sectorId ? `
+            <div style="text-align:center;">
+              <div style="font-size:9.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">СЕЙЧАС НА СЕКТОРЕ</div>
+              <div style="font-size:15px;font-weight:800;color:#E8912B;margin-top:2px;">№ ${sectorId}</div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Баллы лояльности (прогресс-бар) -->
+        <div style="
+          padding:12px 14px;
+          background:#fff;border-radius:14px;
+          border:0.5px solid #E7E0D1;
+          margin-bottom:14px;
+        ">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,0.54);">БАЛЛЫ ЛОЯЛЬНОСТИ</span>
+            <span style="font-size:11px;font-weight:700;color:${l.color};">${client.points} / ${client.pointsNext}</span>
           </div>
-          <div>
-            <div style="font-size:18px;font-weight:700;color:#E8912B;">${avgCatch.kg} кг</div>
-            <div style="font-size:10px;color:#9C9484;margin-top:2px;">Ср. улов</div>
+          <div style="height:7px;border-radius:999px;background:#EFE9DC;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${l.color};border-radius:999px;"></div>
           </div>
         </div>
 
-        <!-- Телефон -->
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:0.5px solid #E7E0D1;">
-          <span style="color:#8C8576;font-size:13px;">Телефон</span>
-          <span style="font-size:13px;font-weight:600;">${client.phone}</span>
-        </div>
-        <!-- Тариф -->
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:0.5px solid #E7E0D1;">
-          <span style="color:#8C8576;font-size:13px;">Тариф</span>
-          <span style="font-size:13px;font-weight:600;">${client.tariff === 'standard' ? 'Стандарт' : client.tariff === 'pensioner' ? 'Пенсионер' : 'Гостевой'}</span>
-        </div>
-        <!-- Баллы -->
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:0.5px solid #E7E0D1;">
-          <span style="color:#8C8576;font-size:13px;">Баллы</span>
-          <span style="font-size:13px;font-weight:600;">${client.points} / ${client.pointsNext}</span>
+        <!-- Сетка статов 2×2 -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
+          <div style="padding:9px 11px;background:#fff;border-radius:12px;border:0.5px solid #E7E0D1;">
+            <div style="font-size:10.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">Тариф</div>
+            <div style="font-size:14px;font-weight:800;color:#2D2D2D;margin-top:3px;">${client.tariff === 'standard' ? 'Стандарт' : client.tariff === 'pensioner' ? 'Пенсионер' : 'Гостевой'}</div>
+          </div>
+          <div style="padding:9px 11px;background:#fff;border-radius:12px;border:0.5px solid #E7E0D1;">
+            <div style="font-size:10.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">Посещений / LTV</div>
+            <div style="font-size:14px;font-weight:800;color:#2D2D2D;margin-top:3px;">${client.visits} / ${formatLtv(ltv)} ₽</div>
+          </div>
+          <div style="padding:9px 11px;background:#fff;border-radius:12px;border:0.5px solid #E7E0D1;">
+            <div style="font-size:10.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">Всего поймано рыб</div>
+            <div style="font-size:14px;font-weight:800;color:#2D2D2D;margin-top:3px;">${client.fish || 0} шт. / ${avgCatch.totalWeight || 0} кг.</div>
+          </div>
+          <div style="padding:9px 11px;background:#fff;border-radius:12px;border:0.5px solid #E7E0D1;">
+            <div style="font-size:10.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">Первый визит</div>
+            <div style="font-size:14px;font-weight:800;color:#2D2D2D;margin-top:3px;">${client.firstVisit || 'Н/Д'}</div>
+          </div>
         </div>
 
-        <button class="btn btn-ghost btn-full" style="margin-top:16px;color:#9C9484;">Закрыть</button>
+        <!-- Лучший улов -->
+        ${client.bestCatch ? `
+          <div style="
+            padding:12px 14px;
+            background:#FBEEDA;border-radius:14px;
+            display:flex;align-items:center;gap:10px;
+          ">
+            <span style="color:#E8912B;font-size:20px;">🏆</span>
+            <div style="flex:1;">
+              <div style="font-size:10.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">ЛУЧШИЙ УЛОВ</div>
+              <div style="font-size:13.5px;font-weight:700;color:#2D2D2D;">${client.bestCatch.species} · ${client.bestCatch.weight}</div>
+            </div>
+            <div>
+              <div style="font-size:10.5px;font-weight:700;color:rgba(0,0,0,0.45);letter-spacing:0.3px;">СЕКТОР №${client.bestCatch.sector}</div>
+              <div style="font-size:13.5px;font-weight:700;color:#2D2D2D;">${client.bestCatch.date}</div>
+            </div>
+          </div>
+        ` : ''}
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
-  overlay.querySelector('.btn-ghost')?.addEventListener('click', () => overlay.remove());
+  overlay.querySelector('#client-card-close')?.addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
