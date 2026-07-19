@@ -185,20 +185,26 @@ void main() {
     // ─── Правило 5 + 13: Углы при раскрытии ───
     // Исправлено: кнопка ВСЕГДА имеет pill shape (999) — и при закрытии, и при раскрытии.
     // Баг 1.1: ранее нижние углы менялись (999→0), что визуально искажало верхние.
-    testWidgets('ПРАВИЛО 5+13: кнопка ВСЕГДА pill (999) — углы НЕ меняются', (tester) async {
-      // Закрытое состояние
+    testWidgets('ПРАВИЛО 5+13: верхние углы НЕ меняются, нижние выпрямляются', (tester) async {
+      // Закрытое состояние — все углы pill (999)
       await tester.pumpWidget(buildApp(isOpen: false));
       final closedRadius = _findButtonRadius(tester);
       expect(closedRadius, isNotNull, reason: 'Кнопка не найдена в закрытом состоянии');
       expect(closedRadius, const BorderRadius.all(Radius.circular(999)),
           reason: 'Закрытая кнопка: все углы 999');
 
-      // Открытое состояние — ВСЕ углы остаются 999
+      // Открытое состояние — верхние 999, нижние 0
       await tester.pumpWidget(buildApp(isOpen: true));
       final openRadius = _findButtonRadius(tester);
       expect(openRadius, isNotNull, reason: 'Кнопка не найдена в открытом состоянии');
-      expect(openRadius, const BorderRadius.all(Radius.circular(999)),
-          reason: 'Открытая кнопка: ВСЕ углы 999 (верхние НЕ меняются)');
+      expect(openRadius!.topLeft, const Radius.circular(999),
+          reason: 'Верхний левый угол НЕ меняется');
+      expect(openRadius.topRight, const Radius.circular(999),
+          reason: 'Верхний правый угол НЕ меняется');
+      expect(openRadius.bottomLeft, Radius.zero,
+          reason: 'Нижний левый угол выпрямляется (0)');
+      expect(openRadius.bottomRight, Radius.zero,
+          reason: 'Нижний правый угол выпрямляется (0)');
     });
 
     // ─── Правило 6: Сворачивание при выборе опции ───
@@ -285,13 +291,20 @@ void main() {
     });
 
     // ─── Баг-фикс: кнопка всегда pill, dropdown — квадратные верхние углы ───
-    testWidgets('БАГ-ФИКС: кнопка всегда pill, dropdown квадратные верхние углы', (tester) async {
+    testWidgets('БАГ-ФИКС: кнопка — верхние 999, нижние 0 при открытии', (tester) async {
       await tester.pumpWidget(buildApp(isOpen: true));
 
-      // Кнопка — ВСЕГДА pill (999)
+      // Кнопка — верхние углы 999, нижние 0
       final btnRadius = _findButtonRadius(tester);
-      expect(btnRadius, const BorderRadius.all(Radius.circular(999)),
-          reason: 'Кнопка всегда pill — углы не меняются');
+      expect(btnRadius, isNotNull, reason: 'Кнопка не найдена');
+      expect(btnRadius!.topLeft, const Radius.circular(999),
+          reason: 'Верхний левый угол кнопки не меняется');
+      expect(btnRadius.topRight, const Radius.circular(999),
+          reason: 'Верхний правый угол кнопки не меняется');
+      expect(btnRadius.bottomLeft, Radius.zero,
+          reason: 'Нижний левый угол выпрямляется');
+      expect(btnRadius.bottomRight, Radius.zero,
+          reason: 'Нижний правый угол выпрямляется');
 
       // Dropdown (если в дереве) — верхние 0, нижние 12
       final containers = tester.widgetList<Container>(find.byType(Container));
@@ -311,12 +324,18 @@ void main() {
     });
 
     // ─── Баг-фикс: кнопка имеет borderRadius pill (999) ───
-    testWidgets('БАГ-ФИКС: кнопка имеет borderRadius pill (999) при открытии', (tester) async {
+    testWidgets('БАГ-ФИКС: кнопка — верхние 999, нижние 0 при открытии dropdown', (tester) async {
       await tester.pumpWidget(buildApp(isOpen: true));
       final btnRadius = _findButtonRadius(tester);
       expect(btnRadius, isNotNull, reason: 'Кнопка не найдена');
-      expect(btnRadius, const BorderRadius.all(Radius.circular(999)),
-          reason: 'Кнопка всегда pill — даже при открытии dropdown');
+      expect(btnRadius!.topLeft, const Radius.circular(999),
+          reason: 'Верхний левый угол не меняется');
+      expect(btnRadius.topRight, const Radius.circular(999),
+          reason: 'Верхний правый угол не меняется');
+      expect(btnRadius.bottomLeft, Radius.zero,
+          reason: 'Нижний левый угол выпрямляется');
+      expect(btnRadius.bottomRight, Radius.zero,
+          reason: 'Нижний правый угол выпрямляется');
     });
 
     // ─── Баг-фикс: dropdown через CompositedTransformFollower ───
