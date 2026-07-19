@@ -1,72 +1,17 @@
-// === Screen: Профиль ===
-import { store } from '../core/store.js';
+// === Screen: Профиль (как Flutter StubScreen — заглушка) ===
 import { tg } from '../core/telegram.js';
 
 export function renderProfile() {
-  const user = tg.getUser();
-  const displayName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Администратор';
-  const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  const stats = store.getStats();
-  const totalClients = store.clients.length;
-  const occupiedSectors = store.sectors.filter(s => s.occupied).length;
-
   const el = document.createElement('div');
   el.className = 'screen screen-profile';
   el.innerHTML = `
-    <div class="profile-header">
-      <div class="profile-avatar">
-        ${user?.photo_url ? `<img src="${user.photo_url}" alt="${displayName}" style="width:100%;height:100%;object-fit:cover;">` : initials}
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;">
+      <div style="font-size:40px;color:#BBAF95;margin-bottom:16px;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="#BBAF95"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
       </div>
-      <div class="profile-name">${displayName}</div>
-      <div class="profile-level">
-        <span class="chip selected" style="font-size:11px;padding:4px 10px;">Администратор</span>
-      </div>
-    </div>
-
-    <div class="profile-stats">
-      <div class="stat-item">
-        <div class="stat-value">${stats.totalReceipts}</div>
-        <div class="stat-label">Чеков</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">${totalClients}</div>
-        <div class="stat-label">Клиентов</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">${occupiedSectors}/16</div>
-        <div class="stat-label">Секторов</div>
-      </div>
-    </div>
-
-    <div class="divider" style="margin:24px 0;"></div>
-
-    <div class="card menu-card" id="btn-settings">
-      <span>⚙️</span>
-      <div style="flex:1;">Настройки</div>
-      <span class="menu-arrow">›</span>
-    </div>
-
-    <div class="card menu-card" id="btn-printers">
-      <span>🖨️</span>
-      <div style="flex:1;">Принтеры</div>
-      <span class="menu-arrow">›</span>
-    </div>
-
-    <div class="card menu-card" id="btn-about">
-      <span>ℹ️</span>
-      <div style="flex:1;">О приложении</div>
-      <span class="menu-arrow">›</span>
-    </div>
-
-    <div style="text-align:center;color:var(--kMuted2);font-size:10px;margin-top:20px;">
-      Crazy Trout Arena CRM · Mini App v0.1.0
+      <div style="font-size:18px;font-weight:700;color:var(--kInk);margin-bottom:8px;">Профиль</div>
+      <div style="font-size:13px;color:var(--kMuted2);max-width:240px;">Профиль администратора — раздел в разработке.</div>
     </div>
   `;
-
-  setTimeout(() => {
-    document.getElementById('btn-about')?.addEventListener('click', () => {
-      tg.showPopup('О приложении', 'Crazy Trout Arena CRM\nTelegram Mini App v0.1.0\n\n🐟 Пруд платной рыбалки', [{ type: 'ok' }]);
-    });
-  }, 0);
   return el;
 }

@@ -4,7 +4,7 @@ import { tg } from '../core/telegram.js';
 import { showClientCard } from '../widgets/client-card.js';
 
 const FILTER_OPTIONS = [
-  { value: 'all',       label: 'Все клиенты' },
+  { value: 'none',      label: 'Нет' },
   { value: 'premium',   label: 'Премиум' },
   { value: 'standard',  label: 'Стандарт' },
   { value: 'basic',     label: 'Базовый' },
@@ -19,7 +19,7 @@ const BOOKINGS = [
   { sectorId: 14, clientId: 5,   time: '07:00 – 12:00', date: 'Сегодня' },
 ];
 
-let currentFilter = 'all';
+let currentFilter = 'none';
 
 export function renderPondMap() {
   const occupied = store.sectors.filter(s => s.occupied).length;
@@ -27,7 +27,16 @@ export function renderPondMap() {
   el.className = 'screen screen-pond';
   el.innerHTML = `
     <div class="screen-title">Карта пруда</div>
-    <p style="color:var(--kMuted);margin-bottom:14px;font-size:13px;">16 секторов · ${occupied} занято</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div class="card" style="padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${Math.round(occupied / 16 * 100)}%</div>
+        <div style="font-size:11px;color:var(--kMuted);margin-top:2px;">ЗАГРУЗКА</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${BOOKINGS.length}/16</div>
+        <div style="font-size:11px;color:var(--kMuted);margin-top:2px;">БРОНЕЙ</div>
+      </div>
+    </div>
 
     <!-- Пруд с фильтрами, деревьями и картой -->
     <div class="pond-scene" style="
@@ -121,7 +130,7 @@ function renderSectorGrid() {
 
   grid.innerHTML = store.sectors.map(sector => {
     const client = sector.occupied ? store.getClientById(sector.clientId) : null;
-    const matchesFilter = currentFilter === 'all' || (client && client.level === currentFilter) || !sector.occupied;
+    const matchesFilter = currentFilter === 'none' || (client && client.level === currentFilter) || !sector.occupied;
     if (!matchesFilter && sector.occupied) return '';
     return `
       <div class="sector-cell ${sector.occupied ? 'occupied' : ''}" data-sector="${sector.id}" data-client-id="${sector.clientId || ''}">

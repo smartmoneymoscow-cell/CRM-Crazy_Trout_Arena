@@ -78,6 +78,8 @@ function renderChecksList(filter = '') {
           <div class="check-client">${r.isGuest ? 'Гость' : (client?.name || 'Неизвестен')}</div>
           <div class="check-meta">${r.date} · ${r.tariffLabel}</div>
         </div>
+        <span style="display:inline-flex;padding:2px 6px;font-size:10px;font-weight:700;border-radius:6px;background:${r.fiscal ? 'rgba(232,145,43,0.12)' : 'rgba(140,133,118,0.12)'};color:${r.fiscal ? 'var(--kOrange)' : 'var(--kMuted)'};">${r.fiscal ? 'С ФН' : 'Без ФН'}</span>
+        </div>
         <div class="check-arrow">›</div>
       </div>
     `;

@@ -35,7 +35,7 @@
 
 .btn-outline {
   background: transparent;
-  color: var(--kEmber);
+  color: #8A6D1E;
   border: 1px solid var(--kOutline);
   border-radius: var(--r-lg);
   padding: 14px var(--sp-xl);
@@ -66,7 +66,7 @@
   height: 44px;
 }
 .input:focus {
-  box-shadow: 0 0 0 1.5px var(--kOrange);
+  border-color: var(--kOrange);
 }
 .input::placeholder {
   color: var(--kMuted2);
@@ -188,7 +188,7 @@
 }
 .dropdown-field .dropdown-arrow {
   color: var(--kMuted2);
-  font-size: 18px;
+  font-size: 20px;
   transition: transform 0.15s;
   flex-shrink: 0;
 }
@@ -311,30 +311,29 @@
 .badge-premium {
   background: linear-gradient(135deg, var(--level-premium-top), var(--level-premium-mid), var(--level-premium-bottom));
   color: var(--level-premium-letter);
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   justify-content: center;
   border: 2px solid var(--level-premium-color);
-  box-shadow: 0 2px 6px rgba(184,134,46,0.4);
-  font-size: 12px;
+  font-size: 9px;
 }
 .badge-standard {
   background: linear-gradient(135deg, var(--level-std-top), var(--level-std-mid), var(--level-std-bottom));
   color: var(--level-std-letter);
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   justify-content: center;
   border: 2px solid var(--level-std-color);
-  font-size: 12px;
+  font-size: 9px;
 }
 .badge-basic {
   background: linear-gradient(135deg, var(--level-basic-top), var(--level-basic-mid), var(--level-basic-bottom));
   color: var(--level-basic-letter);
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   justify-content: center;
   border: 2px solid var(--level-basic-color);
-  font-size: 12px;
+  font-size: 9px;
 }
 
 /* ─── Аватар клиента (как Flutter _ClientAvatar / ClientAvatar) ─── */

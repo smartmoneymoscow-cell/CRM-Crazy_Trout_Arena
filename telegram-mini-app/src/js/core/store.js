@@ -22,13 +22,13 @@ const FISH_BREEDS = [
 const DEMO_CLIENTS = [
   { id: 1,   name: 'Иван Иванов',     phone: '+7 925 123-45-67', tariff: 'standard',  level: 'premium',  visits: 42, totalSpent: 31500, points: 850, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_1.jpeg' },
   { id: 2,   name: 'Алексей Кошкин',  phone: '+7 916 555-22-11', tariff: 'standard',  level: 'standard', visits: 15, totalSpent: 11250, points: 320, pointsNext: 500,  avatarAsset: 'src/assets/avatars/avatar_2.jpeg' },
-  { id: 3,   name: 'Сергей Петров',   phone: '+7 903 777-44-33', tariff: 'standard',  level: 'premium',  visits: 28, totalSpent: 21000, points: 700, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_3.jpeg' },
+  { id: 3,   name: 'Сергей Петров',   phone: '+7 903 777-44-33', tariff: 'standard',  level: 'standard', visits: 28, totalSpent: 21000, points: 700, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_3.jpeg' },
   { id: 4,   name: 'Нина Крюкова',    phone: '+7 912 666-33-44', tariff: 'pensioner', level: 'basic',    visits: 8,  totalSpent: 0,     points: 50,  pointsNext: 200,  avatarAsset: null },
   { id: 5,   name: 'Дмитрий Лагута',  phone: '+7 985 111-22-33', tariff: 'standard',  level: 'standard', visits: 12, totalSpent: 9000,  points: 280, pointsNext: 500,  avatarAsset: 'src/assets/avatars/avatar_5.jpeg' },
   { id: 6,   name: 'Михаил Орлов',    phone: '+7 962 888-99-00', tariff: 'pensioner', level: 'basic',    visits: 5,  totalSpent: 0,     points: 30,  pointsNext: 200,  avatarAsset: 'src/assets/avatars/avatar_6.jpeg' },
   { id: 7,   name: 'Олег Сидоров',    phone: '+7 905 222-77-66', tariff: 'standard',  level: 'standard', visits: 18, totalSpent: 13500, points: 400, pointsNext: 500,  avatarAsset: 'src/assets/avatars/avatar_7.jpeg' },
-  { id: 8,   name: 'Виктор Щукин',    phone: '+7 910 444-55-66', tariff: 'standard',  level: 'premium',  visits: 35, totalSpent: 26250, points: 780, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_8.jpeg' },
-  { id: 100, name: 'Уэйд Джереми',    phone: '+7 999 000-00-00', tariff: 'standard',  level: 'premium',  visits: 56, totalSpent: 42000, points: 950, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_100.jpeg' },
+  { id: 8,   name: 'Виктор Щукин',    phone: '+7 910 444-55-66', tariff: 'standard',  level: 'standard', visits: 35, totalSpent: 26250, points: 780, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_8.jpeg' },
+  { id: 100, name: 'Уэйд Джереми',    phone: '+7 999 000-00-00', tariff: 'standard',  level: 'basic',    visits: 56, totalSpent: 42000, points: 950, pointsNext: 1000, avatarAsset: 'src/assets/avatars/avatar_100.jpeg' },
 ];
 
 // ─── Демо-чеки ───
@@ -44,11 +44,12 @@ const DEMO_RECEIPTS = [
 ];
 
 // ─── Секторы (16 штук, как Flutter PondMapScreen) ───
-const SECTORS = Array.from({ length: 16 }, (_, i) => ({
-  id: i + 1,
-  occupied: [2, 5, 7, 10, 14].includes(i + 1),
-  clientId: [null, 1, null, null, 100, null, null, 8, null, null, 3, null, null, null, 5, null][i],
-}));
+// Секторы (как Flutter kPondStatsById: клиент 1→7, 3→2, 5→5, 8→8, 100→3)
+const SECTORS = Array.from({ length: 16 }, (_, i) => {
+  const sectorMap = { 2: 3, 3: 100, 5: 5, 7: 1, 8: 8 };
+  const clientId = sectorMap[i + 1] || null;
+  return { id: i + 1, occupied: !!clientId, clientId };
+});
 
 // ─── Store ───
 class Store {
