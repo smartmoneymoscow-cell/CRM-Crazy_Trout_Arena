@@ -122,17 +122,7 @@ jobs:
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Запуск тестов
-        run: |
-          set +e
-          flutter test 2>&1 | tee test_output.txt
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "=== Упавшие тесты (для аннотаций GitHub) ==="
-            grep -E "\[E\]" test_output.txt | while IFS= read -r line; do
-              echo "::error::$line"
-            done
-          fi
-          exit $EXIT_CODE
+        run: flutter test --reporter github
 
       # --target-platform android-arm64 режет только движок Flutter и Dart-код,
       # но НЕ нативные библиотеки плагинов (например, сканер штрихкодов
@@ -197,17 +187,7 @@ jobs:
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Запуск тестов
-        run: |
-          set +e
-          flutter test 2>&1 | tee test_output.txt
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "=== Упавшие тесты (для аннотаций GitHub) ==="
-            grep -E "\[E\]" test_output.txt | while IFS= read -r line; do
-              echo "::error::$line"
-            done
-          fi
-          exit $EXIT_CODE
+        run: flutter test --reporter github
 
       - name: Сборка iOS без кодирования (no-codesign)
         run: flutter build ios --release --no-codesign
