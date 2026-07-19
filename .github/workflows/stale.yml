@@ -1,0 +1,33 @@
+name: Stale Issues & PRs
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Каждый понедельник в 9:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: stale
+          stale-pr-label: stale
+          stale-issue-message: >
+            Этот issue не обновлялся 30 дней. Помечен как stale.
+            Закроется автоматически через 7 дней без активности.
+          stale-pr-message: >
+            Этот PR не обновлялся 30 дней. Помечен как stale.
+            Закроется автоматически через 7 дней без активности.
+          close-issue-message: >
+            Issue закрыт из-за отсутствия активности.
+          close-pr-message: >
+            PR закрыт из-за отсутствия активности.
+          exempt-issue-labels: pinned,security,bug
+          exempt-pr-labels: pinned,security

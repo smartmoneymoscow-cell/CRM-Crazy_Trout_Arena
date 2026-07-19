@@ -1,0 +1,32 @@
+flutter:
+  - changed-files:
+      - any-glob-to-any-file:
+          - flutter-app/**
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**
+          - .github/labeler.yml
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - docs_old/**
+          - '*.md'
+
+telegram-bot:
+  - changed-files:
+      - any-glob-to-any-file:
+          - telegram-mini-app/**
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - scripts/**
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - flutter-app/crazytrout_admin/test/**

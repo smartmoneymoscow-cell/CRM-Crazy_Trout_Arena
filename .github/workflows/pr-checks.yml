@@ -48,5 +48,18 @@ jobs:
       - name: Анализ кода (flutter analyze)
         run: flutter analyze --fatal-infos
 
-      - name: Запуск тестов
-        run: flutter test
+      - name: Запуск тестов с coverage
+        run: flutter test --coverage
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            TOTAL=$(grep -c "^SF:" coverage/lcov.info || echo 0)
+            LINES=$(grep -c "^DA:" coverage/lcov.info || echo 0)
+            HIT=$(grep "^DA:" coverage/lcov.info | grep -v ",0$" | wc -l)
+            if [ "$LINES" -gt 0 ]; then
+              PCT=$((HIT * 100 / LINES))
+              echo "📊 Coverage: ${PCT}% ($HIT/$LINES lines in $TOTAL files)"
+            fi
+          fi
