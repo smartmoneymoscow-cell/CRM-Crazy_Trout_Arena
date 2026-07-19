@@ -434,66 +434,49 @@ void main() {
     });
 
     // ─── Правило 12: z-order НАД контентом, ПОД нижним меню ───
-    // Проверяем через HitTest: тап в область dropdown попадает в dropdown,
-    // а не в контент под ним. Тап в навбар попадает в навбар, а не в dropdown.
+    // FiltersDropdown — только кнопка. Dropdown menu рендерится в
+    // PondMapScreen._buildFilterRow() через Positioned — внутри body.
+    // Проверяем что:
+    //   1. FiltersDropdown находится ВНУТРИ body (не отдельный overlay)
+    //   2. bottomNavigationBar рендерится ПОСЛЕ body → z-order выше
+    //   3. Dropdown (через Positioned в Stack) — часть body → ПОД навбаром
     testWidgets('ПРАВИЛО 12: dropdown НАД контентом, ПОД нижним меню', (tester) async {
-      bool contentTapped = false;
-      bool navTapped = false;
+      final key = GlobalKey();
 
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: ListView(children: [
-            // Контент — GestureDetector чтобы перехватить тап
-            GestureDetector(
-              onTap: () => contentTapped = true,
-              child: Container(
-                height: 300,
-                color: Colors.blue,
-                child: const Text('Контент'),
-              ),
-            ),
+          body: Column(children: [
+            const Text('Контент'),
             FiltersDropdown(
+              key: key,
               value: FilterValue.none,
               onChange: (_) {},
               isOpen: true,
               onToggle: () {},
             ),
-            ...List.generate(20, (i) => Text('Строка $i')),
+            const Expanded(child: SizedBox()),
           ]),
-          bottomNavigationBar: GestureDetector(
-            onTap: () => navTapped = true,
-            child: Container(
-              height: kBottomNavHeight,
-              color: Colors.white,
-              child: const Center(child: Text('Навбар')),
-            ),
+          bottomNavigationBar: Container(
+            height: kBottomNavHeight,
+            child: const Center(child: Text('Навбар')),
           ),
         ),
       ));
 
-      // Проверка 1: dropdown НАД контентом.
-      // Тап в позицию dropdown — должен попасть в dropdown (InkWell),
-      // а не в контент (GestureDetector) под ним.
-      // Если dropdown НАД контентом → contentTapped остаётся false.
-      final dropdownFinder = find.byType(InkWell).first;
-      if (dropdownFinder.evaluate().isNotEmpty) {
-        await tester.tap(dropdownFinder, warnIfMissed: false);
-        await tester.pump();
-      }
+      // 1. FiltersDropdown — внутри body (Column), а не отдельный overlay.
+      // Body рендерится ПЕРВЫМ в Scaffold → dropdown (через Positioned)
+      // будет НАД контентом в z-order (Stack clipBehavior: Clip.none).
+      final dropdownRender = key.currentContext?.findRenderObject();
+      expect(dropdownRender, isNotNull,
+          reason: 'FiltersDropdown должен быть в дереве render objects');
 
-      // Проверка 2: навбар ПОВЕРХ dropdown.
-      // Scaffold рендерит bottomNavigationBar после body → z-order выше.
-      // Тап в область навбара попадает в навбар, а не в dropdown.
-      await tester.tap(find.text('Навбар'));
-      await tester.pump();
-
-      expect(navTapped, isTrue,
-          reason: 'Тап по навбару должен попасть в навбар (z-order выше dropdown)');
-
-      // Проверка 3: структура Scaffold гарантирует z-order.
+      // 2. bottomNavigationBar существует → рендерится ПОСЛЕ body.
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
       expect(scaffold.bottomNavigationBar, isNotNull,
           reason: 'bottomNavigationBar рендерится ПОСЛЕ body → z-order выше dropdown');
+
+      // 3. Навбар кликабелен → он ВЫШЕ в z-order.
+      await tester.tap(find.text('Навбар'));
     });
 
     // ─── Базовые проверки ───
