@@ -4,23 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="color-scheme" content="light dark">
-  
   <title>🐟 Crazy Trout Arena</title>
-  
+
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
-  <!-- Google Fonts — PT Sans -->
+
+  <!-- Google Fonts — Roboto (как Flutter-приложение) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-  
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <!-- Графики: кастомный Canvas (без Chart.js) -->
+
   <!-- jsQR — декодирование QR из изображений -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-  
+
   <!-- Стили -->
   <link rel="stylesheet" href="src/css/variables.css">
   <link rel="stylesheet" href="src/css/base.css">
@@ -28,33 +26,24 @@
   <link rel="stylesheet" href="src/css/screens.css">
 </head>
 <body>
-  <!-- Загрузчик -->
+  <!-- Загрузчик (как Flutter SplashScreen + FloatPreloader) -->
   <div id="splash" class="splash">
-    <div class="splash-content">
-      <div class="splash-icon">🐟</div>
-      <div class="splash-title">Crazy Trout Arena</div>
-      <div class="splash-loader">
-        <div class="splash-bar"></div>
-      </div>
+    <div class="splash-logo">
+      <img src="src/assets/icons/splash_logo.png" alt="Crazy Trout Arena">
+    </div>
+    <div class="splash-preloader">
+      <div class="splash-spinner"></div>
+      <div class="splash-label">Загрузка…</div>
     </div>
   </div>
 
   <!-- Основной контейнер -->
-  <div id="app" class="app hidden">
-    <!-- Хедер -->
-    <header id="header" class="header">
-      <div class="header-title">Crazy Trout Arena</div>
-    </header>
-
+  <div id="app" class="hidden">
     <!-- Контент экранов -->
-    <main id="screen-container" class="screen-container">
-      <!-- Экраны рендерятся динамически -->
-    </main>
+    <main id="screen-container"></main>
 
     <!-- Нижняя навигация -->
-    <nav id="nav-bar" class="nav-bar">
-      <!-- Рендерится в nav-bar.js -->
-    </nav>
+    <nav id="nav-bar" class="nav-bar"></nav>
   </div>
 
   <!-- Приложение -->

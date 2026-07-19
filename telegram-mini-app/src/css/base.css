@@ -1,157 +1,113 @@
-/* === Base — сброс, типографика, базовые элементы === */
+/* === Base — сброс, типографика (Roboto) === */
 
 *, *::before, *::after {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html {
-  font-size: 16px;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
   font-family: var(--font-family);
-  font-weight: var(--font-weight-regular);
   font-size: var(--font-size-md);
-  line-height: var(--line-height-normal);
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-primary);
+  line-height: 1.5;
+  color: var(--kInk);
+  background: var(--kPaper);
   overflow-x: hidden;
-  min-height: 100vh;
-  min-height: 100dvh;
-  
-  /* Безопасные зоны от Telegram */
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
-  padding-left: var(--safe-left);
-  padding-right: var(--safe-right);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Скроллбар */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-text-secondary);
-  border-radius: 2px;
+/* ─── Скроллбар ─── */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ─── Тач-устройства ─── */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  -webkit-appearance: none;
 }
 
-/* Ссылки */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 a {
-  color: var(--color-accent);
+  color: var(--kOrange);
   text-decoration: none;
 }
 
-/* Изображения */
-img {
-  max-width: 100%;
-  display: block;
+/* ─── Утилиты ─── */
+.hidden { display: none !important; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
 }
 
-/* Скрытый элемент */
-.hidden {
-  display: none !important;
-}
-
-/* Splash screen */
+/* ─── Splash (как Flutter SplashScreen + FloatPreloader) ─── */
 .splash {
   position: fixed;
   inset: 0;
-  background: var(--color-bg-primary);
+  background: #FBF6EC;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 9999;
   transition: opacity 0.3s ease;
 }
-
-.splash.fade-out {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.splash-content {
-  text-align: center;
-}
-
-.splash-icon {
-  font-size: 64px;
-  margin-bottom: var(--spacing-lg);
-  animation: splash-bounce 1s ease infinite;
-}
-
-.splash-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-xl);
-}
-
-.splash-loader {
-  width: 120px;
-  height: 4px;
-  background: var(--color-bg-secondary);
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 0 auto;
-}
-
-.splash-bar {
-  width: 40%;
-  height: 100%;
-  background: var(--color-accent);
-  border-radius: 2px;
-  animation: splash-loading 1.2s ease-in-out infinite;
-}
-
-@keyframes splash-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes splash-loading {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(350%); }
-}
-
-/* App container */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-}
-
-/* Header */
-.header {
-  height: var(--header-height);
+.splash.fade-out { opacity: 0; pointer-events: none; }
+.splash-logo {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--spacing-lg);
-  background: var(--color-bg-primary);
-  border-bottom: 1px solid var(--color-bg-secondary);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  padding: 16px 24px;
 }
-
-.header-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+.splash-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
-
-/* Screen container */
-.screen-container {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+.splash-preloader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 40px;
+}
+.splash-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #F3EEE4;
+  border-top-color: #E89829;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.splash-label {
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8C8576;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

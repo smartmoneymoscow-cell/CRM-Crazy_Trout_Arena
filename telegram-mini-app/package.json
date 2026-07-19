@@ -1,6 +1,6 @@
 {
   "name": "crazy-trout-arena-mini-app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Telegram Mini App для CRM Crazy Trout Arena — чек-касса пруда платной рыбалки",
   "private": true,
   "type": "module",

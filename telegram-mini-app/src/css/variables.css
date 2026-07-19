@@ -1,83 +1,83 @@
-/* === CSS Variables — Crazy Trout Arena Design System === */
+/* === CSS Variables — Crazy Trout Arena (точь-в-точь Flutter app_theme.dart) === */
 
 :root {
-  /* Палитра (идентична Flutter-приложению) */
-  --color-bg-primary:    #FBF6EC;
-  --color-bg-secondary:  #F3EEE4;
-  --color-bg-card:       #FFFFFF;
-  --color-accent:        #E8912B;
-  --color-accent-hover:  #D4811F;
-  --color-accent-light:  rgba(232, 145, 43, 0.12);
-  
-  /* Текст */
-  --color-text-primary:   #2D2D2D;
-  --color-text-secondary: #8E8E8E;
-  --color-text-accent:    #E8912B;
-  --color-text-inverse:   #FFFFFF;
-  
-  /* Семантические цвета */
-  --color-success:  #4CAF50;
-  --color-error:    #E53935;
-  --color-warning:  #FF9800;
-  --color-info:     #2196F3;
-  
-  /* Фон */
-  --color-overlay:  rgba(0, 0, 0, 0.5);
-  
-  /* Типографика */
-  --font-family:    'PT Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-size-xs:   11px;
-  --font-size-sm:   13px;
-  --font-size-md:   15px;
-  --font-size-lg:   17px;
-  --font-size-xl:   20px;
-  --font-size-xxl:  24px;
-  --font-size-hero: 32px;
-  
-  --font-weight-regular: 400;
-  --font-weight-bold:    700;
-  
-  --line-height-tight:  1.2;
-  --line-height-normal: 1.5;
-  
-  /* Отступы */
-  --spacing-xs:  4px;
-  --spacing-sm:  8px;
-  --spacing-md:  12px;
-  --spacing-lg:  16px;
-  --spacing-xl:  20px;
-  --spacing-xxl: 24px;
-  
-  /* Радиусы */
-  --radius-sm:   6px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
-  --radius-xl:   16px;
-  --radius-full: 50%;
-  
-  /* Тени */
-  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md:   0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-lg:   0 4px 16px rgba(0, 0, 0, 0.08);
-  
-  /* Навигация */
-  --nav-height:  60px;
-  --header-height: 48px;
-  
-  /* Безопасные зоны (Telegram Safe Area) */
-  --safe-top:    0px;
-  --safe-bottom: 0px;
-  --safe-left:   0px;
-  --safe-right:  0px;
+  /* ─── Основная палитра ─── */
+  --kInk:        #14130F;
+  --kPaper:      #FBF6EC;
+  --kFill:       #F3EEE4;
+  --kOrange:     #E8912B;
+  --kEmber:      #886F11;
+  --kHairline:   #EFE8D8;
+  --kHairline2:  #E7E0D1;
+  --kOutline:    #DDD3BC;
+  --kMuted:      #8C8576;
+  --kMuted2:     #9C9484;
+  --kSelected:   #EFD9AC;
+  --kWhite:      #FFFFFF;
+  --kDelta:      #4F9D75;
+  --kDeltaLabel: #8B8579;
+  --kGreen:      #3FA66B;
+  --kRed:        #B4483A;
+
+  /* ─── Уровни клиентов (из kLevelStyles) ─── */
+  --level-premium-color:  #B8862E;
+  --level-premium-top:    #FFE18A;
+  --level-premium-mid:    #E0A62E;
+  --level-premium-bottom: #AD7A16;
+  --level-premium-letter: #4A3300;
+
+  --level-std-color:      #8B94A0;
+  --level-std-top:        #F2F5F8;
+  --level-std-mid:        #C9D1D9;
+  --level-std-bottom:     #98A2AD;
+  --level-std-letter:     #2E3438;
+
+  --level-basic-color:    #8C5C34;
+  --level-basic-top:      #E3B98B;
+  --level-basic-mid:      #C08A54;
+  --level-basic-bottom:   #8C5C34;
+  --level-basic-letter:   #FFFFFF;
+
+  /* ─── Типографика ─── */
+  --font-family:  'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-xs:   10px;
+  --font-size-sm:   12px;
+  --font-size-md:   14px;
+  --font-size-lg:   15.5px;
+  --font-size-xl:   18px;
+  --font-size-xxl:  22px;
+  --font-size-hero: 24px;
+
+  /* ─── Отступы ─── */
+  --sp-xs:  4px;
+  --sp-sm:  8px;
+  --sp-md:  12px;
+  --sp-lg:  16px;
+  --sp-xl:  20px;
+  --sp-xxl: 24px;
+
+  /* ─── Радиусы ─── */
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   12px;
+  --r-xl:   14px;
+  --r-xxl:  16px;
+  --r-card: 20px;
+
+  /* ─── Навигация ─── */
+  --nav-height: 60px;
 }
 
-/* Тёмная тема (Telegram может передать) */
+/* ─── Тёмная тема (Telegram может передать) ─── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg-primary:   #1A1A1A;
-    --color-bg-secondary: #2A2A2A;
-    --color-bg-card:      #333333;
-    --color-text-primary: #F0F0F0;
-    --color-text-secondary: #999999;
+    --kPaper:    #1A1A1A;
+    --kFill:     #2A2A2A;
+    --kWhite:    #333333;
+    --kInk:      #F0F0F0;
+    --kMuted:    #999999;
+    --kMuted2:   #888888;
+    --kHairline: #3A3A3A;
+    --kHairline2:#444444;
   }
 }

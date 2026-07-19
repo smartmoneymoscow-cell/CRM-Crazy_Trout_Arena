@@ -1,5 +1,4 @@
 // === App — точка входа, инициализация ===
-
 import { tg } from './core/telegram.js';
 import { router } from './core/router.js';
 import { events } from './core/events.js';
@@ -39,12 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const splash = document.getElementById('splash');
     const app = document.getElementById('app');
-    
+
     splash.classList.add('fade-out');
     app.classList.remove('hidden');
-    
+
     setTimeout(() => splash.remove(), 300);
-    
+
     // Запуск роутера
     router.start();
   }, 800);
@@ -53,10 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tg.isAvailable) {
     const params = tg.getThemeParams();
     if (params.bg_color) {
-      document.documentElement.style.setProperty('--color-bg-primary', params.bg_color);
+      document.documentElement.style.setProperty('--kPaper', params.bg_color);
     }
     if (params.secondary_bg_color) {
-      document.documentElement.style.setProperty('--color-bg-secondary', params.secondary_bg_color);
+      document.documentElement.style.setProperty('--kFill', params.secondary_bg_color);
     }
   }
 });

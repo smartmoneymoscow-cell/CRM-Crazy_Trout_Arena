@@ -1,106 +1,241 @@
-/* === Screens — стили для каждого экрана === */
+/* === Screens — стили для каждого экрана (точь-в-точь Flutter) === */
 
-/* --- Общий экран --- */
+/* ─── Общий экран ─── */
 .screen {
-  padding: var(--spacing-lg);
-  padding-bottom: calc(var(--nav-height) + var(--spacing-lg));
+  padding: 0 20px 24px;
+  padding-bottom: calc(var(--nav-height) + 24px);
   animation: screen-enter 0.2s ease;
 }
-
 @keyframes screen-enter {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* --- Экран: Выставление чека --- */
-.screen-receipt .receipt-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
+.screen-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--kInk);
+  padding: 12px 0;
 }
 
-.screen-receipt .client-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-full);
-  background: var(--color-accent-light);
+/* ═══════════════════════════════════════════════════════════════════════════
+   Экран: Выставление чека (receipt_screen.dart)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.screen-receipt .receipt-section {
+  margin-bottom: 14px;
+}
+
+/* ─── Строка поиска клиента (height=46, radius=14, fill=#F3EEE4) ─── */
+.screen-receipt .client-search-bar {
+  height: 46px;
+  padding: 0 14px;
+  background: var(--kFill);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.screen-receipt .client-search-bar .search-icon { font-size: 18px; color: var(--kMuted2); }
+.screen-receipt .client-search-bar input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14.5px;
+  color: var(--kInk);
+  outline: none;
+}
+.screen-receipt .client-search-bar input::placeholder { color: var(--kMuted2); }
+.screen-receipt .client-search-bar .qr-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #2A6A7E;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+/* ─── Результаты поиска ─── */
+.screen-receipt .search-results {
+  margin-top: 4px;
+}
+.screen-receipt .search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  cursor: pointer;
+  border-bottom: 0.5px solid var(--kHairline2);
+}
+.screen-receipt .search-result-item:last-child { border-bottom: none; }
+.screen-receipt .search-result-item .result-info { flex: 1; min-width: 0; }
+.screen-receipt .search-result-item .result-name {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--kInk);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.screen-receipt .search-result-item .result-meta {
+  font-size: 12.5px;
+  color: var(--kMuted2);
+}
+
+/* ─── Карточка выбранного клиента (как Flutter _SelectedClientCard) ─── */
+.screen-receipt .selected-client-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--kFill);
+  border: 1px solid var(--kOutline);
+  border-radius: var(--r-lg);
+  margin-top: 10px;
+}
+.screen-receipt .selected-client-card .client-info { flex: 1; min-width: 0; }
+.screen-receipt .selected-client-card .client-name {
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.screen-receipt .selected-client-card .client-meta {
+  font-size: 12px;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.screen-receipt .selected-client-card .clear-btn {
+  background: none;
+  border: none;
+  color: var(--kMuted2);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ─── Кнопка «Гость · без анкеты» ─── */
+.screen-receipt .guest-btn {
+  margin-top: 10px;
+}
+
+/* ─── Карточка гостя (как Flutter _GuestCard) ─── */
+.screen-receipt .guest-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--kFill);
+  border: 1px solid var(--kOutline);
+  border-radius: var(--r-lg);
+  margin-top: 10px;
+}
+.screen-receipt .guest-card .guest-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--kHairline2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent);
-  overflow: hidden;
 }
-
-.screen-receipt .client-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.screen-receipt .client-info {
+.screen-receipt .guest-card .guest-label {
   flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+}
+.screen-receipt .guest-card .guest-meta {
+  font-size: 12px;
+  color: #999;
 }
 
-.screen-receipt .client-name {
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
+/* ─── Строка улова (как Flutter CatchRowTile) ─── */
+.screen-receipt .catch-row {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #F9F6EF;
+  border: 1px solid #ECE5D4;
+  border-radius: var(--r-lg);
+}
+.screen-receipt .catch-row .catch-breed-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.screen-receipt .catch-row .catch-breed-row .field-wrap { flex: 1; }
+.screen-receipt .catch-row .catch-fields-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.screen-receipt .catch-row .catch-fields-row .field-wrap { flex: 1; }
+.screen-receipt .catch-row .catch-fields-row .field-wrap.sum-field { flex: 1.3; }
+.screen-receipt .catch-row .catch-sum {
+  font-weight: 800;
+  font-size: 15px;
+  text-align: right;
+  padding: 12px 10px;
 }
 
-.screen-receipt .client-phone {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+/* ─── Итого (как Flutter: чёрный блок, radius=16) ─── */
+.screen-receipt .total-block {
+  background: #1A1A1A;
+  border-radius: 16px;
+  padding: 18px;
+}
+.screen-receipt .total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+.screen-receipt .total-row .total-label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+}
+.screen-receipt .total-row .total-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+}
+.screen-receipt .total-row.big .total-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+.screen-receipt .total-row.big .total-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--kOrange);
+}
+.screen-receipt .total-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  margin: 12px 0;
 }
 
-.screen-receipt .tariff-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xl);
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   Экран: Карта пруда (pond_map_screen.dart)
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-.screen-receipt .tariff-card {
-  padding: var(--spacing-md);
-  background: var(--color-bg-secondary);
-  border: 2px solid transparent;
-  border-radius: var(--radius-md);
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.screen-receipt .tariff-card.selected {
-  border-color: var(--color-accent);
-  background: var(--color-accent-light);
-}
-
-.screen-receipt .tariff-name {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: 2px;
-}
-
-.screen-receipt .tariff-price {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent);
-}
-
-/* --- Экран: Карта пруда --- */
-.screen-pond .pond-map {
+.screen-pond .pond-grid,
+.screen-pond .pond-scene .pond-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xl);
+  gap: var(--sp-sm);
+  margin-bottom: 0;
 }
-
 .screen-pond .sector-cell {
   aspect-ratio: 1;
-  background: var(--color-bg-secondary);
+  background: var(--kFill);
   border: 2px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-md);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -109,159 +244,531 @@
   transition: all 0.15s ease;
   position: relative;
 }
-
 .screen-pond .sector-cell.occupied {
-  background: var(--color-accent-light);
-  border-color: var(--color-accent);
+  background: rgba(232,145,43,0.1);
+  border-color: var(--kOrange);
 }
-
 .screen-pond .sector-cell.selected {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-light);
+  border-color: var(--kOrange);
+  box-shadow: 0 0 0 2px rgba(232,145,43,0.2);
 }
-
 .screen-pond .sector-number {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: 20px;
+  font-weight: 700;
 }
-
 .screen-pond .sector-status {
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
+  margin-top: 2px;
 }
 
-/* --- Экран: Дашборд --- */
+/* ─── Легенда ─── */
+.screen-pond .legend {
+  display: flex;
+  gap: var(--sp-lg);
+  margin-bottom: var(--sp-xl);
+  font-size: var(--font-size-sm);
+}
+.screen-pond .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.screen-pond .legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* ─── Детали сектора ─── */
+.screen-pond .sector-detail .stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-sm);
+  text-align: center;
+  margin-top: var(--sp-lg);
+}
+.screen-pond .sector-detail .stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kOrange);
+}
+.screen-pond .sector-detail .stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--kMuted2);
+  margin-top: 2px;
+}
+
+/* ─── Фильтры карты пруда ─── */
+.screen-pond .filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Экран: Отчёт (report_screen.dart)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .screen-report .kpi-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-xl);
 }
-
 .screen-report .kpi-card {
-  padding: var(--spacing-lg);
+  padding: var(--sp-lg);
 }
-
 .screen-report .kpi-value {
-  font-size: var(--font-size-xxl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--kOrange);
 }
-
 .screen-report .kpi-label {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin-top: var(--spacing-xs);
+  color: var(--kMuted);
+  margin-top: var(--sp-xs);
 }
-
 .screen-report .kpi-change {
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  margin-top: var(--spacing-xs);
+  font-weight: 700;
+  margin-top: var(--sp-xs);
 }
-
-.screen-report .kpi-change.up { color: var(--color-success); }
-.screen-report .kpi-change.down { color: var(--color-error); }
+.screen-report .kpi-change.up { color: var(--kDelta); }
+.screen-report .kpi-change.down { color: var(--kRed); }
 
 .screen-report .chart-container {
   position: relative;
   height: 200px;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--sp-xl);
+}
+.screen-report canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-/* --- Экран: Чеки (история) --- */
-.screen-checks .check-card {
+/* ─── Finance Dashboard Card (чёрный блок со спарклайном) ─── */
+.screen-report .finance-dashboard {
+  background: #1A1A1A;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.screen-report .finance-dashboard .fd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+.screen-report .finance-dashboard .fd-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+.screen-report .finance-dashboard .fd-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+}
+.screen-report .finance-dashboard .fd-delta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--kDelta);
+  text-align: right;
+}
+.screen-report .finance-dashboard .fd-sparkline {
+  height: 40px;
+  margin-top: 8px;
+}
+
+/* ─── Pie Chart Container ─── */
+.screen-report .pie-chart-card {
+  margin-bottom: 14px;
+}
+
+/* ─── Revenue Dynamics ─── */
+.screen-report .dynamics-card {
+  margin-bottom: 14px;
+}
+
+/* ─── Лента оплат клиентов (как Flutter _ClientPaymentRow) ─── */
+.screen-report .payment-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
+  gap: 12px;
+  padding: 13px 2px;
+  border-bottom: 0.5px solid var(--kHairline2);
 }
-
-.screen-checks .check-amount {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-success);
+.screen-report .payment-row .payment-info { flex: 1; min-width: 0; }
+.screen-report .payment-row .payment-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--kInk);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.screen-report .payment-row .payment-date {
+  font-size: 12.5px;
+  color: var(--kMuted2);
+  margin-top: 2px;
+}
+.screen-report .payment-row .payment-amount {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--kGreen);
+  white-space: nowrap;
+}
+.screen-report .payment-row .payment-lt {
+  font-size: 11.5px;
+  color: var(--kMuted2);
+  margin-left: 8px;
   white-space: nowrap;
 }
 
-.screen-checks .check-amount::before {
-  content: '+';
+/* ─── Фильтры отчёта (как Flutter report_screen.dart Row) ─── */
+.screen-report .filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  align-items: center;
 }
-
-.screen-checks .check-info {
+.screen-report .filter-bar > *:first-child {
   flex: 1;
   min-width: 0;
 }
+.screen-report .filter-bar .calendar-chip,
+.screen-report .filter-bar .icon-filter-chip {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Экран: Чеки (checks_screen.dart)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.screen-checks .check-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-sm);
+}
+.screen-checks .check-amount {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--kGreen);
+  white-space: nowrap;
+}
+.screen-checks .check-amount::before { content: '+'; }
+.screen-checks .check-info { flex: 1; min-width: 0; }
 .screen-checks .check-client {
-  font-weight: var(--font-weight-bold);
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .screen-checks .check-meta {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
 }
-
 .screen-checks .check-arrow {
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
   font-size: var(--font-size-sm);
 }
 
-/* --- Экран: Профиль --- */
+/* ─── Сводка чеков ─── */
+.screen-checks .summary-card {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--sp-lg);
+}
+.screen-checks .summary-item .summary-label {
+  font-size: var(--font-size-sm);
+  color: var(--kMuted);
+}
+.screen-checks .summary-item .summary-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+.screen-checks .summary-item .summary-value.green { color: var(--kGreen); }
+
+/* ─── Фильтры чеков ─── */
+.screen-checks .filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+/* ─── Клиент-подсказки ─── */
+.screen-checks .client-suggestions {
+  background: var(--kWhite);
+  border: 1px solid var(--kHairline);
+  border-radius: var(--r-lg);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.screen-checks .client-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 0.5px solid var(--kHairline2);
+}
+.screen-checks .client-suggestion-item:last-child { border-bottom: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Экран: Профиль
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .screen-profile .profile-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-xxl) 0;
+  padding: 24px 0;
 }
-
 .screen-profile .profile-avatar {
   width: 80px;
   height: 80px;
-  border-radius: var(--radius-full);
-  background: var(--color-accent-light);
+  border-radius: 50%;
+  background: var(--kFill);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent);
-  margin-bottom: var(--spacing-md);
+  font-weight: 700;
+  color: var(--kEmber);
+  margin-bottom: var(--sp-md);
   overflow: hidden;
 }
-
 .screen-profile .profile-name {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: 20px;
+  font-weight: 700;
 }
-
-.screen-profile .profile-level {
-  margin-top: var(--spacing-xs);
-}
+.screen-profile .profile-level { margin-top: 4px; }
 
 .screen-profile .profile-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-xl);
+  gap: var(--sp-md);
+  margin-top: var(--sp-xl);
 }
-
-.screen-profile .stat-item {
-  text-align: center;
-}
-
+.screen-profile .stat-item { text-align: center; }
 .screen-profile .stat-value {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--kOrange);
 }
-
 .screen-profile .stat-label {
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
   margin-top: 2px;
 }
+
+/* ─── Меню профиля ─── */
+.screen-profile .menu-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-md);
+  cursor: pointer;
+}
+.screen-profile .menu-card .menu-arrow {
+  color: var(--kMuted2);
+  font-size: 18px;
+}
+
+/* ─── Календарь (FilterDropdown) ─── */
+.calendar-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--kFill);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.calendar-chip.active {
+  background: var(--kSelected);
+  border-color: var(--kOrange);
+}
+
+/* ─── Иконка-фильтр (ruble/clients/fish) ─── */
+.icon-filter-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--kFill);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.icon-filter-chip.active {
+  background: var(--kSelected);
+  border-color: var(--kOrange);
+}
+
+/* ─── Фильтр Dropdown (как Flutter FilterDropdown) ─── */
+.filter-dropdown {
+  position: relative;
+  flex: 1;
+}
+.filter-dropdown .filter-trigger {
+  height: 44px;
+  padding: 0 12px;
+  background: var(--kFill);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--kMuted);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.filter-dropdown .filter-trigger.active {
+  background: var(--kSelected);
+  border-color: var(--kOrange);
+  color: var(--kInk);
+  font-weight: 700;
+}
+.filter-dropdown .filter-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--kWhite);
+  border: 1px solid var(--kHairline);
+  border-radius: var(--r-md);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  z-index: 50;
+  padding: 4px 0;
+}
+.filter-dropdown .filter-menu-item {
+  padding: 10px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.filter-dropdown .filter-menu-item:hover { background: var(--kFill); }
+.filter-dropdown .filter-menu-item.selected {
+  background: var(--kSelected);
+  font-weight: 700;
+}
+.filter-dropdown .filter-menu-item.reset {
+  color: var(--kMuted2);
+  font-style: italic;
+}
+
+/* ─── Диалог фильтров (как Flutter showDialog) ─── */
+.filter-dialog {
+  padding: 24px;
+}
+.filter-dialog .filter-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--kMuted);
+  margin-bottom: 8px;
+}
+.filter-dialog .filter-section {
+  margin-bottom: 16px;
+}
+.filter-dialog .filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.filter-dialog .filter-checkbox input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--kOrange);
+  border-radius: 6px;
+}
+.filter-dialog .filter-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.filter-dialog .filter-actions button {
+  flex: 1;
+  height: 44px;
+  border-radius: var(--r-lg);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.filter-dialog .filter-actions .btn-reset {
+  background: transparent;
+  border: 1px solid var(--kOutline);
+  color: var(--kMuted);
+}
+.filter-dialog .filter-actions .btn-apply {
+  background: var(--kOrange);
+  border: none;
+  color: #fff;
+}
+
+/* ─── Sort chip (dropdown) ─── */
+.sort-chip {
+  position: relative;
+}
+.sort-chip .sort-trigger {
+  height: 44px;
+  width: 44px;
+  background: var(--kFill);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.15s;
+}
+.sort-chip .sort-trigger.active {
+  background: var(--kSelected);
+  border-color: var(--kOrange);
+}
+.sort-chip .sort-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--kWhite);
+  border: 1px solid var(--kHairline);
+  border-radius: var(--r-md);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  z-index: 50;
+  padding: 4px 0;
+  min-width: 150px;
+}
+.sort-chip .sort-menu-item {
+  padding: 10px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sort-chip .sort-menu-item:hover { background: var(--kFill); }
+.sort-chip .sort-menu-item.selected { background: var(--kSelected); font-weight: 700; }

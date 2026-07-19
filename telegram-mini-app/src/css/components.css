@@ -1,124 +1,150 @@
-/* === Components — кнопки, инпуты, карточки, навигация === */
+/* === Components — кнопки, инпуты, карточки, навигация, дропдауны === */
+/* Точная копия стилей Flutter: app_theme.dart, app_dropdown_field.dart, receipt_screen.dart */
 
-/* --- Кнопки --- */
+/* ─── Кнопки ─── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-xl);
-  font-family: var(--font-family);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-bold);
+  gap: var(--sp-sm);
+  padding: var(--sp-md) var(--sp-xl);
+  font-weight: 700;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-lg);
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
   -webkit-user-select: none;
 }
-
-.btn:active {
-  transform: scale(0.97);
-}
+.btn:active { transform: scale(0.97); }
 
 .btn-primary {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
+  background: var(--kOrange);
+  color: var(--kWhite);
+  border-radius: var(--r-xl);
+  padding: 18px var(--sp-xl);
+  font-size: 16px;
+  width: 100%;
 }
-.btn-primary:hover { background: var(--color-accent-hover); }
+.btn-primary:hover { background: #D4811F; }
 
 .btn-secondary {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
+  background: var(--kFill);
+  color: var(--kInk);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--color-accent);
-  border: 1.5px solid var(--color-accent);
+  color: var(--kEmber);
+  border: 1px solid var(--kOutline);
+  border-radius: var(--r-lg);
+  padding: 14px var(--sp-xl);
+  width: 100%;
+  font-weight: 700;
 }
+.btn-outline:hover { border-color: var(--kOrange); }
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
+  padding: 8px;
 }
 
 .btn-full { width: 100%; }
-.btn-sm { padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); }
 
-/* --- Инпуты --- */
+/* ─── Инпуты (точно как Flutter: fill=#F3EEE4, radius=10, vertical=12) ─── */
 .input {
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-family: var(--font-family);
-  font-size: var(--font-size-md);
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
-  border: 1.5px solid transparent;
-  border-radius: var(--radius-md);
+  padding: 12px 10px;
+  font-size: 14px;
+  color: var(--kInk);
+  background: var(--kFill);
+  border: none;
+  border-radius: var(--r-md);
   outline: none;
   transition: border-color 0.15s ease;
-  height: 48px;
+  height: 44px;
 }
-
 .input:focus {
-  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1.5px var(--kOrange);
 }
-
 .input::placeholder {
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
+  font-size: 14.5px;
 }
 
-/* --- Карточки --- */
+/* ─── Поисковая строка (как Flutter: height=46, radius=14, fill=#F3EEE4) ─── */
+.search-bar {
+  position: relative;
+  height: 46px;
+  padding: 0 14px;
+  background: var(--kFill);
+  border-radius: var(--r-xl);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search-bar .search-icon {
+  font-size: 18px;
+  color: var(--kMuted2);
+  flex-shrink: 0;
+}
+.search-bar .input {
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: 14.5px;
+}
+.search-bar .input:focus { box-shadow: none; }
+
+/* ─── Карточки (как Flutter: white, border #EFE8D8, radius=16, padding 18/16/18/18) ─── */
 .card {
-  background: var(--color-bg-card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: var(--spacing-lg);
+  background: var(--kWhite);
+  border-radius: var(--r-xxl);
+  border: 1px solid var(--kHairline);
+  padding: 16px 18px 18px;
 }
-
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 14px;
 }
-
 .card-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kInk);
 }
-
 .card-subtitle {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--kMuted);
 }
 
-/* --- Нижняя навигация --- */
+/* ─── Нижняя навигация (как Flutter HomeShell) ─── */
 .nav-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: var(--nav-height);
-  background: var(--color-bg-card);
-  border-top: 1px solid var(--color-bg-secondary);
+  background: var(--kWhite);
+  border-top: 0.5px solid #E5E5E5;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding-bottom: var(--safe-bottom);
+  padding: 5px 0 4px;
   z-index: 100;
 }
-
 .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
+  padding: 0 var(--sp-sm);
+  color: #6B6B6B;
+  font-size: 12px;
+  font-weight: 400;
   cursor: pointer;
   transition: color 0.15s ease;
   border: none;
@@ -126,155 +152,216 @@
   font-family: var(--font-family);
   -webkit-tap-highlight-color: transparent;
 }
-
 .nav-item.active {
-  color: var(--color-accent);
+  color: var(--kOrange);
+  font-weight: 600;
 }
-
 .nav-item .nav-icon {
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
 }
-
 .nav-item .nav-label {
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
+  font-size: 12px;
+  font-weight: inherit;
 }
 
-/* --- Поиск --- */
-.search-bar {
+/* ─── Dropdown (OverlayEntry-паттерн из Flutter AppDropdownField) ─── */
+.dropdown-field {
   position: relative;
-  margin-bottom: var(--spacing-md);
-}
-
-.search-bar .input {
-  padding-left: 40px;
-}
-
-.search-bar .search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-secondary);
-  font-size: 16px;
-  pointer-events: none;
-}
-
-/* --- Сегментед контроль --- */
-.segmented {
+  background: var(--kFill);
+  border-radius: var(--r-md);
+  padding: 12px 10px;
+  cursor: pointer;
   display: flex;
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 3px;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  transition: border-radius 0.1s;
+}
+.dropdown-field.open {
+  border-radius: var(--r-md) var(--r-md) 0 0;
+}
+.dropdown-field .dropdown-arrow {
+  color: var(--kMuted2);
+  font-size: 18px;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.dropdown-field.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--kFill);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.13);
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 50;
+  padding: 0;
+}
+.dropdown-item {
+  padding: 12px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dropdown-item:hover { background: var(--kSelected); }
+.dropdown-item.selected {
+  background: var(--kSelected);
+  font-weight: 700;
 }
 
-.segmented-item {
-  flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-family: var(--font-family);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  text-align: center;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-secondary);
+/* ─── Сегментед контроль (как Flutter Wrap + _filterChip) ─── */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  padding: 9px 14px;
+  background: var(--kFill);
+  border: 0.5px solid var(--kHairline2);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--kMuted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
-
-.segmented-item.active {
-  background: var(--color-bg-card);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-sm);
+.chip.selected {
+  background: var(--kSelected);
+  border: 1.5px solid var(--kOrange);
+  color: var(--kInk);
+  font-weight: 700;
 }
 
-/* --- Бейджи --- */
+/* ─── Поле-лейбл (как Flutter _labeledField) ─── */
+.field-label {
+  font-size: 10px;
+  color: var(--kMuted2);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* ─── Поле только для чтения (как Flutter _ReadOnlyField) ─── */
+.readonly-field {
+  background: var(--kFill);
+  border-radius: var(--r-md);
+  padding: 12px 10px;
+  font-size: 14px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* ─── Divider ─── */
+.divider {
+  height: 1px;
+  background: var(--kHairline2);
+  margin: var(--sp-md) 0;
+}
+
+/* ─── Модальное окно / Sheet ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.2s ease;
+}
+.sheet {
+  background: var(--kPaper);
+  border-radius: var(--r-card);
+  width: calc(100% - 48px);
+  max-width: 340px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  animation: scale-in 0.2s ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scale-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ─── Бейджи (как Flutter LevelBadge) ─── */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  border-radius: var(--radius-full);
+  font-weight: 700;
+  border-radius: 50%;
+}
+.badge-premium {
+  background: linear-gradient(135deg, var(--level-premium-top), var(--level-premium-mid), var(--level-premium-bottom));
+  color: var(--level-premium-letter);
+  width: 28px;
+  height: 28px;
+  justify-content: center;
+  border: 2px solid var(--level-premium-color);
+  box-shadow: 0 2px 6px rgba(184,134,46,0.4);
+  font-size: 12px;
+}
+.badge-standard {
+  background: linear-gradient(135deg, var(--level-std-top), var(--level-std-mid), var(--level-std-bottom));
+  color: var(--level-std-letter);
+  width: 28px;
+  height: 28px;
+  justify-content: center;
+  border: 2px solid var(--level-std-color);
+  font-size: 12px;
+}
+.badge-basic {
+  background: linear-gradient(135deg, var(--level-basic-top), var(--level-basic-mid), var(--level-basic-bottom));
+  color: var(--level-basic-letter);
+  width: 28px;
+  height: 28px;
+  justify-content: center;
+  border: 2px solid var(--level-basic-color);
+  font-size: 12px;
 }
 
-.badge-accent {
-  background: var(--color-accent-light);
-  color: var(--color-accent);
+/* ─── Аватар клиента (как Flutter _ClientAvatar / ClientAvatar) ─── */
+.client-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--kFill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--kEmber);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.client-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.badge-success {
-  background: rgba(76, 175, 80, 0.12);
-  color: var(--color-success);
-}
-
-/* --- Divider --- */
-.divider {
-  height: 1px;
-  background: var(--color-bg-secondary);
-  margin: var(--spacing-md) 0;
-}
-
-/* --- Пустое состояние --- */
+/* ─── Пустое состояние ─── */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xxl) var(--spacing-lg);
+  padding: 40px var(--sp-lg);
   text-align: center;
-  color: var(--color-text-secondary);
+  color: var(--kMuted2);
 }
-
-.empty-state .empty-icon {
-  font-size: 48px;
-  margin-bottom: var(--spacing-md);
-}
-
-.empty-state .empty-text {
-  font-size: var(--font-size-md);
-}
-
-/* --- Modal / Sheet --- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--color-overlay);
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: fade-in 0.2s ease;
-}
-
-.sheet {
-  background: var(--color-bg-card);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  width: 100%;
-  max-width: 480px;
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: var(--spacing-xl);
-  animation: slide-up 0.3s ease;
-}
-
-.sheet-handle {
-  width: 36px;
-  height: 4px;
-  background: var(--color-bg-secondary);
-  border-radius: 2px;
-  margin: 0 auto var(--spacing-lg);
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: var(--sp-md); }
+.empty-state .empty-text { font-size: var(--font-size-md); }

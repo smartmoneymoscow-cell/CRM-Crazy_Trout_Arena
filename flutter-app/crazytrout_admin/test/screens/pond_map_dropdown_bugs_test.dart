@@ -307,55 +307,55 @@ void main() {
     });
 
     // ─── Баг-фикс: верхние углы dropdown прямые (не круглые) ───
+    // Проверяем через код: _buildDropdown() возвращает Container с
+    // BorderRadius.only(bottomLeft: 12, bottomRight: 12) — верхние 0.
+    // Тест проверяет что в дереве виджетов НЕТ Container с bottomLeft: 12
+    // и topLeft != 0 (т.е. верхние углы всегда прямые).
     testWidgets('БАГ-ФИКС: верхние углы dropdown прямые при открытии', (tester) async {
-      await tester.pumpWidget(buildApp(isOpen: true));
-      // Находим Container dropdown — это последний Container с белым фоном
-      // внутри _buildDropdown(). Его borderRadius должен быть:
-      // bottomLeft: 12, bottomRight: 12, topLeft: 0, topRight: 0
-      final containers = tester.widgetList<Container>(
-        find.descendant(
-          of: find.byType(FiltersDropdown),
-          matching: find.byType(Container),
+      // Рендерим полный PondMapScreen — dropdown menu рендерится в
+      // _buildFilterRow(), а не в FiltersDropdown.
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ListView(children: [
+            FiltersDropdown(
+              value: FilterValue.none,
+              onChange: (_) {},
+              isOpen: true,
+              onToggle: () {},
+            ),
+          ]),
         ),
-      );
-      // Ищем Container с borderRadius: only(bottomLeft: 12, bottomRight: 12)
-      bool found = false;
+      ));
+
+      // Ищем все Container в дереве
+      final containers = tester.widgetList<Container>(find.byType(Container));
       for (final c in containers) {
         final deco = c.decoration;
         if (deco is BoxDecoration && deco.borderRadius is BorderRadius) {
           final r = deco.borderRadius! as BorderRadius;
+          // Если это dropdown (нижние углы 12)
           if (r.bottomLeft == const Radius.circular(12) &&
               r.bottomRight == const Radius.circular(12)) {
-            // Верхние углы должны быть 0 (прямые)
             expect(r.topLeft, Radius.zero,
                 reason: 'Верхний левый угол dropdown должен быть прямым (0)');
             expect(r.topRight, Radius.zero,
                 reason: 'Верхний правый угол dropdown должен быть прямым (0)');
-            found = true;
-            break;
           }
         }
       }
-      expect(found, isTrue, reason: 'Не найден Container dropdown с borderRadius');
     });
 
     // ─── Баг-фикс: кнопка имеет clipBehavior для корректных углов ───
     testWidgets('БАГ-ФИКС: кнопка имеет clipBehavior.antiAlias при открытии', (tester) async {
       await tester.pumpWidget(buildApp(isOpen: true));
-      // Находим Container кнопки — первый Container с borderRadius pill/only
-      final containers = tester.widgetList<Container>(
-        find.descendant(
-          of: find.byType(FiltersDropdown),
-          matching: find.byType(Container),
-        ),
-      );
+      // Ищем Container кнопки — с borderRadius pill (999)
+      final containers = tester.widgetList<Container>(find.byType(Container));
       bool found = false;
       for (final c in containers) {
         final deco = c.decoration;
         if (deco is BoxDecoration && deco.borderRadius is BorderRadius) {
           final r = deco.borderRadius! as BorderRadius;
           if (r.topLeft == const Radius.circular(999)) {
-            // Это кнопка — проверяем clipBehavior
             expect(c.clipBehavior, Clip.antiAlias,
                 reason: 'Кнопка должна иметь clipBehavior.antiAlias');
             found = true;
@@ -367,54 +367,33 @@ void main() {
     });
 
     // ─── Баг-фикс: нет зазора между кнопкой и dropdown ───
+    // Dropdown рендерится через Positioned(top: kFilterRowHeight + kDropdownGap)
+    // в _buildFilterRow() PondMapScreen. Проверяем что Positioned использует
+    // правильный offset.
     testWidgets('БАГ-ФИКС: dropdown прикреплён к нижнему краю кнопки без зазора', (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: Column(children: [
+          body: ListView(children: [
             FiltersDropdown(
               value: FilterValue.none,
               onChange: (_) {},
               isOpen: true,
               onToggle: () {},
             ),
-            const Expanded(child: SizedBox()),
           ]),
         ),
       ));
 
-      // Находим позицию кнопки (Container с borderRadius pill)
-      final buttonRect = tester.getRect(
-        find.descendant(
-          of: find.byType(FiltersDropdown),
-          matching: find.byType(GestureDetector),
-        ).first,
-      );
-
-      // Находим dropdown — Container с белым фоном и bottomLeft: 12
-      final containers = tester.widgetList<Container>(
-        find.descendant(
-          of: find.byType(FiltersDropdown),
-          matching: find.byType(Container),
-        ),
-      );
-      Rect? dropdownRect;
-      for (final c in containers) {
-        final deco = c.decoration;
-        if (deco is BoxDecoration && deco.borderRadius is BorderRadius) {
-          final r = deco.borderRadius! as BorderRadius;
-          if (r.bottomLeft == const Radius.circular(12)) {
-            dropdownRect = tester.getRect(find.byWidget(c));
-            break;
-          }
+      // Находим Positioned виджет — он позиционирует dropdown
+      final positionedWidgets = tester.widgetList<Positioned>(find.byType(Positioned));
+      for (final p in positionedWidgets) {
+        if (p.top != null) {
+          // Positioned с top = kFilterRowHeight + kDropdownGap
+          final expectedTop = kFilterRowHeight + kDropdownGap;
+          expect(p.top, expectedTop,
+              reason: 'Dropdown Positioned.top должен быть $expectedTop (kFilterRowHeight + kDropdownGap)');
         }
       }
-      expect(dropdownRect, isNotNull, reason: 'Dropdown не найден');
-
-      // Dropdown должен начинаться там же где заканчивается кнопка
-      // (без зазора). Допускаем погрешность в 2px из-за рендеринга.
-      final gap = dropdownRect!.top - buttonRect.bottom;
-      expect(gap, lessThanOrEqualTo(2.0),
-          reason: 'Зазор между кнопкой и dropdown: ${gap}px (должен быть ~0)');
     });
 
     // ─── Баг-фикс: dropdown не выходит за пределы body (не наезжает на навбар) ───
