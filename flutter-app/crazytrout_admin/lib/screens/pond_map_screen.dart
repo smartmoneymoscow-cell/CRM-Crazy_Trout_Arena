@@ -833,11 +833,14 @@ class FiltersDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Углы кнопки НИКОГДА не меняются — всегда pill (999).
-    // Это правило 13: верхние углы НИКОГДА не меняются при раскрытии.
-    // Баг 1.1: ранее нижние углы выпрямлялись (999→0), что визуально
-    // искажало восприятие верхних углов.
-    const pill = BorderRadius.all(Radius.circular(999));
+    // Углы кнопки: верхние НИКОГДА не меняются (pill 999),
+    // нижние выпрямляются (0) при раскрытии dropdown (Правило 5+13).
+    final radius = BorderRadius.only(
+      topLeft: const Radius.circular(999),
+      topRight: const Radius.circular(999),
+      bottomLeft: Radius.circular(isOpen ? 0 : 999),
+      bottomRight: Radius.circular(isOpen ? 0 : 999),
+    );
 
     final active = value != FilterValue.none;
 
@@ -849,7 +852,7 @@ class FiltersDropdown extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: pill,
+            borderRadius: radius,
             border: Border.all(color: const Color(0xFFEFE8D8), width: 0.5),
           ),
           child: Row(children: [
