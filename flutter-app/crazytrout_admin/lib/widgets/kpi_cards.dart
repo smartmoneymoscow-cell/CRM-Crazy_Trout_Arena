@@ -13,42 +13,46 @@ class KpiCards extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _KpiCard(
-              icon: Icons.receipt_long_outlined, iconColor: kOrange,
-              title: 'Средний чек',
-              value: '${_fmtMoney(stats.avgCheck.round())} ₽',
-              subtitle: '${stats.paymentsCount} оплат',
-            )),
-            const SizedBox(width: 10),
-            Expanded(child: _KpiCard(
-              icon: Icons.calendar_month_outlined, iconColor: const Color(0xFF4A7C59),
-              title: 'LT / LTV',
-              value: '${stats.avgVisits.toStringAsFixed(1)} / ${_formatLtv(stats.avgLtv)}',
-              subtitle: '${stats.paymentsCount} визитов',
-            )),
-          ],
+        SizedBox(
+          height: 130,
+          child: Row(
+            children: [
+              Expanded(child: _KpiCard(
+                icon: Icons.receipt_long_outlined, iconColor: kOrange,
+                title: 'Средний чек',
+                value: '${_fmtMoney(stats.avgCheck.round())} ₽',
+                subtitle: '${stats.paymentsCount} оплат',
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _KpiCard(
+                icon: Icons.calendar_month_outlined, iconColor: const Color(0xFF4A7C59),
+                title: 'LT / LTV',
+                value: '${stats.avgVisits.toStringAsFixed(1)} / ${_formatLtv(stats.avgLtv)}',
+                subtitle: '${stats.paymentsCount} визитов',
+              )),
+            ],
+          ),
         ),
         const SizedBox(height: 10),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _KpiCard(
-              icon: Icons.people_outline, iconColor: const Color(0xFF6B4226),
-              title: 'Всего клиентов',
-              value: '${stats.totalClients}',
-              subtitle: '${stats.returnPct.toStringAsFixed(0)}% возвращаются',
-            )),
-            const SizedBox(width: 10),
-            Expanded(child: _KpiCard(
-              icon: Icons.phishing, iconColor: const Color(0xFF4A7C59),
-              title: 'Средний улов на клиента',
-              value: '${stats.avgFishPerClient.toStringAsFixed(1).replaceAll('.', ',')} шт.',
-              subtitle: '${stats.avgWeightPerClient.toStringAsFixed(1).replaceAll('.', ',')} кг',
-            )),
-          ],
+        SizedBox(
+          height: 130,
+          child: Row(
+            children: [
+              Expanded(child: _KpiCard(
+                icon: Icons.people_outline, iconColor: const Color(0xFF6B4226),
+                title: 'Всего клиентов',
+                value: '${stats.totalClients}',
+                subtitle: '${stats.returnPct.toStringAsFixed(0)}% возвращаются',
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _KpiCard(
+                icon: Icons.phishing, iconColor: const Color(0xFF4A7C59),
+                title: 'Средний улов на клиента',
+                value: '${stats.avgFishPerClient.toStringAsFixed(1).replaceAll('.', ',')} шт.',
+                subtitle: '${stats.avgWeightPerClient.toStringAsFixed(1).replaceAll('.', ',')} кг',
+              )),
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         _KpiCard(

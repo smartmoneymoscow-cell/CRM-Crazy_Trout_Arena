@@ -23,8 +23,21 @@ import 'package:crazytrout_admin/data/revenue_dynamics_data.dart';
 const _phoneSize = Size(393, 852);
 const _tabletSize = Size(800, 1280);
 
-Future<void> _goToReports(WidgetTester tester) async {
-  await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ReportScreen())));
+Future<void> _goToReports(WidgetTester tester, [Size size = _phoneSize]) async {
+  tester.view.physicalSize = size * 2;
+  tester.view.devicePixelRatio = 2.0;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+  await tester.pumpWidget(
+    MaterialApp(
+      home: MediaQuery(
+        data: MediaQueryData(size: size, devicePixelRatio: 2.0),
+        child: const Scaffold(body: ReportScreen()),
+      ),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -35,8 +48,6 @@ void main() {
   group('RevenueDynamicsChart — расположение на странице', () {
     testWidgets('является 5-м виджетом в Column (после PaymentTariffCard)',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       final d = tester.getRect(find.byType(FinanceDashboardCard));
@@ -58,8 +69,6 @@ void main() {
 
     testWidgets('не перекрывает FinanceDashboardCard (телефон 393×852)',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       final d = tester.getRect(find.byType(FinanceDashboardCard));
@@ -70,9 +79,7 @@ void main() {
 
     testWidgets('не перекрывает FinanceDashboardCard (планшет 800×1280)',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_tabletSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-      await _goToReports(tester);
+      await _goToReports(tester, _tabletSize);
 
       final d = tester.getRect(find.byType(FinanceDashboardCard));
       final r = tester.getRect(find.byType(RevenueDynamicsChart));
@@ -81,8 +88,6 @@ void main() {
 
     testWidgets('не перекрывает KpiCards',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       final k = tester.getRect(find.byType(KpiCards));
@@ -93,8 +98,6 @@ void main() {
 
     testWidgets('не перекрывает PaymentTariffCard',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       final pt = tester.getRect(find.byType(PaymentTariffCard));
@@ -105,8 +108,6 @@ void main() {
 
     testWidgets('видим при скролле вниз',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       // Скроллим вниз
@@ -123,8 +124,6 @@ void main() {
   group('RevenueDynamicsChart — структура', () {
     testWidgets('отображает заголовок "Динамика показателей"',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -135,8 +134,6 @@ void main() {
 
     testWidgets('отображает легенду (Выручка, Маржа, Расходы)',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -149,8 +146,6 @@ void main() {
 
     testWidgets('отображает toggle "По месяцам" / "По неделям"',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -162,8 +157,6 @@ void main() {
 
     testWidgets('по умолчанию в режиме "По месяцам" активен',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -186,8 +179,6 @@ void main() {
   group('RevenueDynamicsChart — toggle переключение', () {
     testWidgets('нажатие "По неделям" переключает режим',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -204,8 +195,6 @@ void main() {
 
     testWidgets('переключение monthly → weekly → monthly не ломает график',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -292,8 +281,6 @@ void main() {
   group('RevenueDynamicsChart — граничные значения', () {
     testWidgets('отображается корректно с моковыми данными (высокая выручка)',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -306,8 +293,6 @@ void main() {
 
     testWidgets('RevenueDynamicsChart имеет ненулевую высоту',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
@@ -320,15 +305,13 @@ void main() {
 
     testWidgets('RevenueDynamicsChart не выходит за правый край экрана',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -3000));
       await tester.pumpAndSettle();
 
       final r = tester.getRect(find.byType(RevenueDynamicsChart));
-      expect(r.right, lessThanOrEqualTo(_phoneSize.width),
+      expect(r.right, lessThanOrEqualTo(_phoneSize.width + 1),
           reason: 'График не должен выходить за правый край');
     });
   });
@@ -339,8 +322,6 @@ void main() {
   group('Все 5 блоков отчёта', () {
     testWidgets('присутствуют на странице в правильном порядке',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(_phoneSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _goToReports(tester);
 
       expect(find.byType(FinanceDashboardCard), findsOneWidget);

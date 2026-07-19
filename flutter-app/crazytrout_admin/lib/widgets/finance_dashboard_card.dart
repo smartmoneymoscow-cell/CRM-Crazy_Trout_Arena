@@ -41,7 +41,7 @@ class FinanceDashboardCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(16),
       child: SizedBox(
-        height: 230,
+        height: 270,
         child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
