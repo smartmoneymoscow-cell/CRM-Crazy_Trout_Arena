@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crazytrout_admin/screens/pond_map_screen.dart';
-import 'package:crazytrout_admin/screens/pond_map_filter_config.dart' show kPillRadius;
+import 'package:crazytrout_admin/screens/pond_map_filter_config.dart';
 
 /// Тесты на баги 1.1 и 1.2 dropdown фильтров карты пруда.
 ///
