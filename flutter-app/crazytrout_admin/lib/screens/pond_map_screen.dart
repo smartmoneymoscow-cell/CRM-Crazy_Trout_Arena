@@ -851,7 +851,6 @@ class FiltersDropdown extends StatelessWidget {
     // высоty кнопки (иконка 13 + текст ~16 + паддинг 8+8 ≈ 32-34dp) —
     // тогда клэмпинг не срабатывает ни в одном из состояний, и верхние
     // углы рендерятся одинаково всегда, независимо от нижних.
-    const kPillRadius = 18.0;
     final radius = BorderRadius.only(
       topLeft: const Radius.circular(kPillRadius),
       topRight: const Radius.circular(kPillRadius),
