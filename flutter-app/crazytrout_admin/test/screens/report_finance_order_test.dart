@@ -116,8 +116,8 @@ void main() {
 
       expect(find.text('Средний чек'), findsOneWidget);
       expect(find.text('LT / LTV'), findsOneWidget);
-      expect(find.text('Всего клиентов'), findsOneWidget);
-      expect(find.text('Средний улов на клиента'), findsOneWidget);
+      expect(find.text('Клиенты'), findsOneWidget);
+      expect(find.text('Ср. улов'), findsOneWidget);
       expect(find.text('Оценка сервиса'), findsOneWidget);
     });
 
