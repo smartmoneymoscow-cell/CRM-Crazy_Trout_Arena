@@ -20,4 +20,4 @@ jobs:
       - name: Deploy
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service crazy-trout-bot
+        run: railway up --service CRM-Crazy_Trout_Arena
