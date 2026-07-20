@@ -425,7 +425,7 @@ function showReceiptResult(receipt) {
         ${receipt.catches.map(c => {
           const weight = c.kg > 0 ? `${c.kg}кг${c.grams > 0 ? c.grams + 'г' : ''}` : `${c.grams}г`;
           return `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-            <span>${c.breedLabel} ${weight} × ${c.pricePerKg}₽/кг</span>
+            <span>${c.label || c.breedLabel} ${weight} × ${c.pricePerKg}₽/кг</span>
             <span style="font-weight:600;">${store.formatMoney(c.sum)} ₽</span>
           </div>`;
         }).join('')}

@@ -84,7 +84,7 @@ function initReportHandlers() {
   document.getElementById('calendar-chip')?.addEventListener('click', async () => {
     const result = await showCalendarPicker(currentDateRange);
     if (result && result.start && result.end) {
-      if (result.start.year === 2000) {
+      if (result.start.getFullYear() === 2000) {
         currentDateRange = null;
         lastFilterSource = currentPeriod ? 'dropdown' : null;
       } else {
@@ -381,14 +381,15 @@ function renderFishStats() {
   const fishStats = {};
   store.receipts.filter(r => isInPeriod(r.date, period) && isInDateRange(r.date, dateRange)).forEach(r => {
     r.catches.forEach(c => {
-      if (!fishStats[c.breedLabel]) fishStats[c.breedLabel] = { count: 0, totalKg: 0, totalSum: 0, emoji: '', image: '' };
-      fishStats[c.breedLabel].count++;
-      fishStats[c.breedLabel].totalKg += c.kg + c.grams / 1000;
-      fishStats[c.breedLabel].totalSum += c.sum;
-      const breed = store.fishBreeds.find(f => f.label === c.breedLabel);
+      const name = c.label || c.breedLabel;
+      if (!fishStats[name]) fishStats[name] = { count: 0, totalKg: 0, totalSum: 0, emoji: '', image: '' };
+      fishStats[name].count++;
+      fishStats[name].totalKg += c.kg + c.grams / 1000;
+      fishStats[name].totalSum += c.sum;
+      const breed = store.fishBreeds.find(f => f.label === name);
       if (breed) {
-        fishStats[c.breedLabel].emoji = breed.emoji;
-        fishStats[c.breedLabel].image = breed.image;
+        fishStats[name].emoji = breed.emoji;
+        fishStats[name].image = breed.image;
       }
     });
   });
@@ -401,7 +402,7 @@ function renderFishStats() {
   const totalRevenue = fishEntries.reduce((s, [, v]) => s + v.totalSum, 0);
   const totalCount = fishEntries.reduce((s, [, v]) => s + v.count, 0);
   const totalRemaining = Object.entries(fishRemaining).reduce((s, [k, v]) => s + v + (addedFish[k] || 0), 0);
-  const totalMargin = fishEntries.length ? Math.round(fishEntries.reduce((s, [, v]) => s + (fishMargin[v.emoji ? Object.keys(fishStats).find(k => fishStats[k] === v) : ''] || 30), 0) / fishEntries.length) : 0;
+  const totalMargin = fishEntries.length ? Math.round(fishEntries.reduce((s, [name]) => s + (fishMargin[name] || 30), 0) / fishEntries.length) : 0;
 
   const revenues = fishEntries.map(([, s]) => s.totalSum);
   const minRev = revenues.length ? Math.min(...revenues) : 0;
