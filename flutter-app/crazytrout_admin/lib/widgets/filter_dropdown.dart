@@ -141,30 +141,34 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
                   ),
                 ),
               ),
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    _open
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
-                    size: 20,
-                    color: kMuted2,
-                  ),
-                  if (widget.active)
-                    const Positioned(
-                      top: 7,
-                      right: 7,
-                      child: SizedBox(
-                        width: 7,
-                        height: 7,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                              color: kOrange, shape: BoxShape.circle),
+              SizedBox(
+                width: 44,
+                height: 44,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      _open
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                      color: kMuted2,
+                    ),
+                    if (widget.active)
+                      const Positioned(
+                        top: 7,
+                        right: 7,
+                        child: SizedBox(
+                          width: 7,
+                          height: 7,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                                color: kOrange, shape: BoxShape.circle),
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

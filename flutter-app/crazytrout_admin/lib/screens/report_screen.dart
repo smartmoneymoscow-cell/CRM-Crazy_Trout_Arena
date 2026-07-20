@@ -190,12 +190,13 @@ class _ReportScreenState extends State<ReportScreen> {
                   child: FilterDropdown<PeriodFilter>(
                     value: _period,
                     label: 'Период',
+                    active: _period != null,
                     items: [
                       FilterDropdownItem<PeriodFilter>(
                         value: null,
                         label: 'Нет',
                         isReset: true,
-                        enabled: _period != null,
+                        enabled: true,
                       ),
                       for (final p in PeriodFilter.values)
                         FilterDropdownItem<PeriodFilter>(
@@ -852,6 +853,9 @@ class _FishStatsContentState extends State<_FishStatsContent> {
 
   // Размеры рыб в отчёте — пропорции из dropdown чека, уменьшены на 25%.
   // Каждая рыба имеет свой размер, не единый квадрат.
+  // Рыбы, которые должны заполнять всю ширину ячейки без обрезки.
+  static const _fullWidthFish = {'Осётр', 'Амур'};
+
   static const Map<String, double> _imageHeight = {
     'Осётр': 32,
     'Амур': 28,
@@ -963,13 +967,22 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(
-                                height: _imageHeight[s.species] ?? _imageHeightDefault,
-                                child: Image.asset(
-                                  s.imageAsset,
-                                  fit: BoxFit.fitHeight,
-                                ),
-                              ),
+                              _fullWidthFish.contains(s.species)
+                                  ? SizedBox(
+                                      width: double.infinity,
+                                      child: Image.asset(
+                                        s.imageAsset,
+                                        width: double.infinity,
+                                        fit: BoxFit.fitWidth,
+                                      ),
+                                    )
+                                  : SizedBox(
+                                      height: _imageHeight[s.species] ?? _imageHeightDefault,
+                                      child: Image.asset(
+                                        s.imageAsset,
+                                        fit: BoxFit.fitHeight,
+                                      ),
+                                    ),
                               const SizedBox(height: 4),
                               Text(s.species,
                                   textAlign: TextAlign.center,
@@ -1170,13 +1183,22 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      SizedBox(
-                                        height: _imageHeight[s.species] ?? _imageHeightDefault,
-                                        child: Image.asset(
-                                          s.imageAsset,
-                                          fit: BoxFit.fitHeight,
-                                        ),
-                                      ),
+                                      _fullWidthFish.contains(s.species)
+                                          ? SizedBox(
+                                              width: double.infinity,
+                                              child: Image.asset(
+                                                s.imageAsset,
+                                                width: double.infinity,
+                                                fit: BoxFit.fitWidth,
+                                              ),
+                                            )
+                                          : SizedBox(
+                                              height: _imageHeight[s.species] ?? _imageHeightDefault,
+                                              child: Image.asset(
+                                                s.imageAsset,
+                                                fit: BoxFit.fitHeight,
+                                              ),
+                                            ),
                                       const SizedBox(height: 4),
                                       Text(s.species,
                                           textAlign: TextAlign.center,

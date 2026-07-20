@@ -1,8 +1,0 @@
-[build]
-builder = "dockerfilePath"
-dockerfilePath = "telegram-mini-app/bot/Dockerfile"
-
-[deploy]
-startCommand = "node index.js"
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3

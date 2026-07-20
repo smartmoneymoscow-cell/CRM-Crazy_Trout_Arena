@@ -335,7 +335,6 @@ class _LegendTable extends StatelessWidget {
           1: FlexColumnWidth(),
           2: IntrinsicColumnWidth(),
           3: IntrinsicColumnWidth(),
-          4: IntrinsicColumnWidth(),
         },
         children: [
           _headerRow(),
@@ -374,10 +373,6 @@ class _LegendTable extends StatelessWidget {
     const Padding(
       padding: EdgeInsets.only(bottom: 4),
       child: Text('КАТЕГОРИЯ', style: _headerStyle),
-    ),
-    const Padding(
-      padding: EdgeInsets.only(left: 10, bottom: 4),
-      child: Text('ДОЛЯ', textAlign: TextAlign.right, style: _headerStyle),
     ),
     const Padding(
       padding: EdgeInsets.only(left: 12, bottom: 4),
@@ -446,11 +441,6 @@ class _LegendTable extends StatelessWidget {
         padding: pad(10),
         child: Text(label, maxLines: 1, softWrap: false, overflow: TextOverflow.visible,
           style: labelStyle),
-      ),
-      Padding(
-        padding: pad(10),
-        child: Text('${_fmtPct(pct)}%', textAlign: TextAlign.right, maxLines: 1,
-          softWrap: false, overflow: TextOverflow.visible, style: pctStyle),
       ),
       Padding(
         padding: pad(12),

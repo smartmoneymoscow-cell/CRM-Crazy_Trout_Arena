@@ -872,7 +872,7 @@ class _SortChipState extends State<_SortChip> {
         onTap: _toggle,
         behavior: HitTestBehavior.opaque,
         child: Container(
-          width: 52,
+          width: 44,
           height: 44,
           decoration: BoxDecoration(
               color: kFill, borderRadius: BorderRadius.circular(12)),

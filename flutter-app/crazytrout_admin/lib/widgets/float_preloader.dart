@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Прелоадер — анимированный поплавок с надписью.
+/// Прелоадер — анимированная катушка с надписью.
 ///
-/// GIF-анимация поплавка (30 кадров, 10 fps, цикл).
+/// GIF-анимация катушки (90 кадров, 30 fps, цикл).
 class FloatPreloader extends StatefulWidget {
   final String label;
   final double? progress;
@@ -27,14 +27,14 @@ class _FloatPreloaderState extends State<FloatPreloader> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 36,
-            height: 36,
+            width: 48,
+            height: 48,
             child: Image.asset(
-              'assets/icon/float_bobber.gif',
-              width: 36,
-              height: 36,
+              'assets/icon/fishing_reel.gif',
+              width: 48,
+              height: 48,
               fit: BoxFit.contain,
-              filterQuality: FilterQuality.none,
+              filterQuality: FilterQuality.medium,
             ),
           ),
           const SizedBox(height: 8),
