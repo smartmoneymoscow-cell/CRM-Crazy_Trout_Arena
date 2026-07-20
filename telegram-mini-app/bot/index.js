@@ -1,4 +1,4 @@
-// === Telegram Bot — Crazy Trout Arena CRM ===
+// === Telegram Bot — Crazy Trout Arena CRM v0.5.0 ===
 // Принимает данные из Mini App, отправляет чеки в чат, управляет печатью
 
 const { Bot, GrammyError, HttpError } = require('grammy');
