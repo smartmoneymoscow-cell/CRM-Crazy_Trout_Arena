@@ -39,9 +39,16 @@ class FinanceDashboardCard extends StatelessWidget {
         color: _cream,
         borderRadius: BorderRadius.circular(18),
       ),
-      padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        height: 280,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Выручка и маржинальная прибыль',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kInk)),
+        const SizedBox(height: 4),
+        const Text('за выбранный период',
+          style: TextStyle(fontSize: 12, color: kMuted2)),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 280,
         child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -104,7 +111,8 @@ class FinanceDashboardCard extends StatelessWidget {
             ],
           ),
         ),
-      );
+      ]),
+    );
   }
 }
 
