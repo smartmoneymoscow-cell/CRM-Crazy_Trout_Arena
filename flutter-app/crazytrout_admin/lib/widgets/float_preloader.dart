@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 
 /// Прелоадер — анимированный поплавок с надписью.
 ///
-/// GIF-анимация поплавка (30 кадров, 10 fps,循环).
+/// GIF-анимация поплавка (30 кадров, 10 fps, цикл).
 class FloatPreloader extends StatefulWidget {
   final String label;
+  final double? progress;
 
   const FloatPreloader({
     super.key,
     this.label = 'Загрузка…',
+    this.progress,
   });
 
   @override
