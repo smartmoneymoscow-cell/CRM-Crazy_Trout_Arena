@@ -38,7 +38,7 @@ void main() {
       final closedButton = _findButtonContainer(tester);
       expect(closedButton, isNotNull, reason: 'Кнопка не найдена в закрытом состоянии');
       final closedRadius = (closedButton!.decoration as BoxDecoration).borderRadius! as BorderRadius;
-      expect(closedRadius, const BorderRadius.all(Radius.circular(999)),
+      expect(closedRadius, const BorderRadius.all(Radius.circular(kPillRadius)),
           reason: 'Закрытая кнопка: все углы 999');
 
       // Открытое состояние — верхние углы ДОЛЖНЫ остаться 999
@@ -58,9 +58,9 @@ void main() {
       final openRadius = (openButton!.decoration as BoxDecoration).borderRadius! as BorderRadius;
 
       // КРИТИЧЕСКАЯ ПРОВЕРКА: верхние углы НЕ меняются
-      expect(openRadius.topLeft, const Radius.circular(999),
+      expect(openRadius.topLeft, const Radius.circular(kPillRadius),
           reason: 'БАГ 1.1: верхний левый угол кнопки изменился с 999 на ${openRadius.topLeft}');
-      expect(openRadius.topRight, const Radius.circular(999),
+      expect(openRadius.topRight, const Radius.circular(kPillRadius),
           reason: 'БАГ 1.1: верхний правый угол кнопки изменился с 999 на ${openRadius.topRight}');
     });
 
@@ -203,7 +203,7 @@ Container? _findButtonContainer(WidgetTester tester) {
     if (d is BoxDecoration && d.borderRadius is BorderRadius) {
       final r = d.borderRadius! as BorderRadius;
       // Кнопка: хотя бы один угол = 999
-      if (r.topLeft == const Radius.circular(999)) {
+      if (r.topLeft == const Radius.circular(kPillRadius)) {
         return c;
       }
     }

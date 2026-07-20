@@ -73,7 +73,7 @@ void main() {
   // ───────────────────────────────────────────────────────────────────
 
   group('Требование 13: верхние углы кнопки НЕ меняются при раскрытии', () {
-    testWidgets('кнопка закрыта — все углы pill (999)', (tester) async {
+    testWidgets('кнопка закрыта — все углы pill (kPillRadius)', (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: FiltersDropdown(
           value: FilterValue.none,
@@ -93,13 +93,13 @@ void main() {
       final radius = decoration.borderRadius as BorderRadius;
 
       // Все углы должны быть 999 (pill)
-      expect(radius.topLeft, const Radius.circular(999));
-      expect(radius.topRight, const Radius.circular(999));
-      expect(radius.bottomLeft, const Radius.circular(999));
-      expect(radius.bottomRight, const Radius.circular(999));
+      expect(radius.topLeft, const Radius.circular(kPillRadius));
+      expect(radius.topRight, const Radius.circular(kPillRadius));
+      expect(radius.bottomLeft, const Radius.circular(kPillRadius));
+      expect(radius.bottomRight, const Radius.circular(kPillRadius));
     });
 
-    testWidgets('кнопка открыта — верхние углы 999, нижние 0', (tester) async {
+    testWidgets('кнопка открыта — верхние углы kPillRadius, нижние 0', (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: FiltersDropdown(
           value: FilterValue.none,
@@ -119,9 +119,9 @@ void main() {
       final radius = decoration.borderRadius as BorderRadius;
 
       // Верхние углы ДОЛЖНЫ остаться 999 (требование 13)
-      expect(radius.topLeft, const Radius.circular(999),
+      expect(radius.topLeft, const Radius.circular(kPillRadius),
         reason: 'Верхний левый угол НЕ должен меняться при раскрытии');
-      expect(radius.topRight, const Radius.circular(999),
+      expect(radius.topRight, const Radius.circular(kPillRadius),
         reason: 'Верхний правый угол НЕ должен меняться при раскрытии');
       // Нижние углы выпрямляются
       expect(radius.bottomLeft, const Radius.circular(0));

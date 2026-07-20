@@ -31,7 +31,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../data/demo_data.dart' as app_data show kDemoClients;
-import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap, kFilterRowHeight;
+import 'pond_map_filter_config.dart' show FilterValue, filterOptions, filterButtonLabels, kDropdownVPadding, kDropdownWidth, kDropdownGap, kFilterRowHeight, kPillRadius;
 import '../theme/app_theme.dart';
 import '../widgets/level_badge.dart';
 import '../widgets/active_dot.dart';
@@ -851,7 +851,6 @@ class FiltersDropdown extends StatelessWidget {
     // высоty кнопки (иконка 13 + текст ~16 + паддинг 8+8 ≈ 32-34dp) —
     // тогда клэмпинг не срабатывает ни в одном из состояний, и верхние
     // углы рендерятся одинаково всегда, независимо от нижних.
-    const kPillRadius = 18.0;
     final radius = BorderRadius.only(
       topLeft: const Radius.circular(kPillRadius),
       topRight: const Radius.circular(kPillRadius),

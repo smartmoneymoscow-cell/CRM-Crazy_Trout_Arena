@@ -183,7 +183,7 @@ void main() {
         ),
       );
       final radiusClosed = containerClosed.decoration as BoxDecoration;
-      expect(radiusClosed.borderRadius, const BorderRadius.all(Radius.circular(999)),
+      expect(radiusClosed.borderRadius, const BorderRadius.all(Radius.circular(kPillRadius)),
         reason: 'Закрытое состояние: все углы должны быть 999 (pill)');
 
       // Открытое состояние — верхние 999, нижние 0
@@ -196,8 +196,8 @@ void main() {
       );
       final radiusOpen = containerOpen.decoration as BoxDecoration;
       expect(radiusOpen.borderRadius, const BorderRadius.only(
-        topLeft: Radius.circular(999),
-        topRight: Radius.circular(999),
+        topLeft: Radius.circular(kPillRadius),
+        topRight: Radius.circular(kPillRadius),
         bottomLeft: Radius.circular(0),
         bottomRight: Radius.circular(0),
       ), reason: 'Открытое состояние: верхние углы 999, нижние 0');
