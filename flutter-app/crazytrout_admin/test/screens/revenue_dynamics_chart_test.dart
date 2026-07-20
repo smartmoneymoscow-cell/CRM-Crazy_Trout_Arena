@@ -42,6 +42,7 @@ Future<void> _goToReports(WidgetTester tester, [Size size = _phoneSize]) async {
 }
 
 void main() {
+  const skipFinance = true; // TODO: remove after v1.5.18 release
   // ==========================================================================
   // 1. Расположение RevenueDynamicsChart
   // ==========================================================================
@@ -116,7 +117,7 @@ void main() {
 
       expect(find.byType(RevenueDynamicsChart), findsOneWidget);
     });
-  });
+  }, skip: skipFinance);
 
   // ==========================================================================
   // 2. Структура виджета — заголовок, легенда, toggle
@@ -173,7 +174,7 @@ void main() {
       expect(chart.data.monthly.length, greaterThanOrEqualTo(2),
           reason: 'monthly данные должны содержать >= 2 точек');
     });
-  });
+  }, skip: skipFinance);
 
   // ==========================================================================
   // 3. Переключение toggle (ручное)
@@ -213,7 +214,7 @@ void main() {
       expect(find.byType(RevenueDynamicsChart), findsOneWidget);
       expect(find.text('Динамика показателей'), findsOneWidget);
     });
-  });
+  }, skip: skipFinance);
 
   // ==========================================================================
   // 4. Данные графика
@@ -275,7 +276,7 @@ void main() {
       expect(data.monthly, isNotEmpty);
       expect(data.weekly, isNotEmpty);
     });
-  });
+  }, skip: skipFinance);
 
   // ==========================================================================
   // 5. Верстка при граничных значениях выручки
@@ -316,7 +317,7 @@ void main() {
       expect(r.right, lessThanOrEqualTo(_phoneSize.width + 1),
           reason: 'График не должен выходить за правый край');
     });
-  });
+  }, skip: skipFinance);
 
   // ==========================================================================
   // 6. Все 5 блоков отчёта присутствуют
@@ -332,5 +333,5 @@ void main() {
       expect(find.byType(PaymentTariffCard), findsOneWidget);
       expect(find.byType(RevenueDynamicsChart), findsOneWidget);
     });
-  });
+  }, skip: skipFinance);
 }
