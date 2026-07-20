@@ -16,28 +16,28 @@ class SplashScreen extends StatelessWidget {
           children: [
             // Логотип + анимация карпов на заднем плане
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Анимация карпов — строго за логотипом
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Image.asset(
-                        'assets/icon/carp_swim.gif',
-                        fit: BoxFit.contain,
-                        width: double.infinity,
-                        filterQuality: FilterQuality.medium,
-                      ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Анимация карпов — на всю ширину экрана
+                  // (рыбы плывут от левого края к правому)
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/icon/carp_swim.gif',
+                      fit: BoxFit.fitWidth,
+                      alignment: Alignment.center,
+                      filterQuality: FilterQuality.medium,
                     ),
-                    // Логотип поверх анимации
-                    Image.asset(
+                  ),
+                  // Логотип поверх анимации
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Image.asset(
                       'assets/icon/splash_logo.png',
                       fit: BoxFit.contain,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             // Поплавок-прелоадер
