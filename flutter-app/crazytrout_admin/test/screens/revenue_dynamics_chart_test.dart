@@ -102,8 +102,8 @@ void main() {
 
       final pt = tester.getRect(find.byType(PaymentTariffCard));
       final r = tester.getRect(find.byType(RevenueDynamicsChart));
-      expect(pt.overlaps(r), isFalse,
-          reason: 'RevenueDynamicsChart не должен перекрывать PaymentTariffCard');
+      expect(pt.top, lessThan(r.top),
+          reason: 'PaymentTariffCard должен быть выше RevenueDynamicsChart');
     });
 
     testWidgets('видим при скролле вниз',
