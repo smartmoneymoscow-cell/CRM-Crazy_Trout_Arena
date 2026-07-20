@@ -7,6 +7,11 @@ import { createFilterDropdown } from '../widgets/filter-dropdown.js';
 import { showCalendarPicker } from '../widgets/calendar.js';
 import { showClientCard } from '../widgets/client-card.js';
 
+// Состояние фильтров
+let currentPeriod = null;
+let currentDateRange = null;
+let lastFilterSource = null;
+
 let selectedIcon = 0;
 
 export function renderReport() {
@@ -17,7 +22,7 @@ export function renderReport() {
     <div class="screen-title" id="report-title">Финансы и метрики</div>
     <div class="filter-bar">
       <div id="period-dropdown"></div>
-      <div class="calendar-chip" id="calendar-chip" title="Календарь">📅</div>
+      <div class="calendar-chip" id="calendar-chip" title="Календарь"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div>
       <div class="icon-filter-chip ${selectedIcon === 0 ? 'active' : ''}" data-icon="0" title="Финансы"><img src="src/assets/icons/ruble.png" style="width:20px;height:20px;"></div>
       <div class="icon-filter-chip ${selectedIcon === 1 ? 'active' : ''}" data-icon="1" title="Клиенты"><img src="src/assets/icons/clients.png" style="width:20px;height:20px;"></div>
       <div class="icon-filter-chip ${selectedIcon === 2 ? 'active' : ''}" data-icon="2" title="Рыба"><img src="src/assets/icons/fish.png" style="width:20px;height:20px;"></div>
@@ -53,21 +58,76 @@ function initReportHandlers() {
       value: null,
       label: 'Период',
       items: [
-        { value: null, label: 'Нет', isReset: true, enabled: false },
+        { value: null, label: 'Нет', isReset: true, enabled: currentPeriod != null },
         { value: 'today', label: 'Сегодня' },
         { value: 'week', label: 'Неделя' },
         { value: 'month', label: 'Месяц' },
         { value: 'quarter', label: 'Квартал' },
         { value: 'all', label: 'Все время' },
       ],
-      onChanged: () => renderContent(),
+      onChanged: (v) => {
+        currentPeriod = v;
+        if (v != null) {
+          currentDateRange = null;
+          lastFilterSource = 'dropdown';
+        } else {
+          lastFilterSource = currentDateRange ? 'calendar' : null;
+        }
+        renderContent();
+      },
     });
   }
 
   document.getElementById('calendar-chip')?.addEventListener('click', async () => {
-    await showCalendarPicker(null);
+    const result = await showCalendarPicker(currentDateRange);
+    if (result && result.start && result.end) {
+      if (result.start.year === 2000) {
+        // Сброс
+        currentDateRange = null;
+        lastFilterSource = currentPeriod ? 'dropdown' : null;
+      } else {
+        currentDateRange = result;
+        currentPeriod = null;
+        lastFilterSource = 'calendar';
+      }
+    }
     renderContent();
   });
+}
+
+// ─── Фильтрация по периоду и дате (как Flutter _receiptInPeriod / _dateInRange) ───
+function isInPeriod(date, period) {
+  if (!period) return true;
+  const now = new Date();
+  const d = new Date(date);
+  let start;
+  switch (period) {
+    case 'today': start = new Date(now.getFullYear(), now.getMonth(), now.getDate()); break;
+    case 'week': start = new Date(now - 7 * 86400000); break;
+    case 'month': start = new Date(now - 30 * 86400000); break;
+    case 'quarter': start = new Date(now - 90 * 86400000); break;
+    default: return true;
+  }
+  return d >= start;
+}
+
+function isInDateRange(date, range) {
+  if (!range || !range.start || !range.end) return true;
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  const s = new Date(range.start); s.setHours(0,0,0,0);
+  const e = new Date(range.end); e.setHours(23,59,59,999);
+  return d >= s && d <= e;
+}
+
+function getEffectivePeriod() {
+  if (lastFilterSource === 'calendar') return null;
+  return currentPeriod;
+}
+
+function getEffectiveDateRange() {
+  if (lastFilterSource === 'dropdown') return null;
+  return currentDateRange;
 }
 
 function renderContent() {
@@ -81,6 +141,14 @@ function renderFinanceContent() {
   const container = document.getElementById('report-content');
   if (!container) return;
 
+  // Фильтрация чеков по периоду/дате
+  const period = getEffectivePeriod();
+  const dateRange = getEffectiveDateRange();
+  const filteredReceipts = store.receipts.filter(r => isInPeriod(r.date, period) && isInDateRange(r.date, dateRange));
+  const filteredRevenue = filteredReceipts.reduce((s, r) => s + r.total, 0);
+  const filteredAvgCheck = filteredReceipts.length ? Math.round(filteredRevenue / filteredReceipts.length) : 0;
+  const filteredClients = new Set(filteredReceipts.filter(r => r.clientId).map(r => r.clientId)).size;
+
   container.innerHTML = `
     <div id="finance-dashboard-card"></div>
     <div class="card pie-chart-card" style="margin-bottom:14px;">
@@ -89,24 +157,31 @@ function renderFinanceContent() {
     </div>
     <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;">
       <div class="card" style="padding:16px;">
-        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${store.formatMoney(stats.totalRevenue)} ₽</div>
-        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Выручка</div>
-        <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 12%</div>
-      </div>
-      <div class="card" style="padding:16px;">
-        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${store.formatMoney(stats.avgCheck)} ₽</div>
+        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${store.formatMoney(filteredAvgCheck)} ₽</div>
         <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Средний чек</div>
         <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 5%</div>
       </div>
       <div class="card" style="padding:16px;">
+        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">LT ${stats.avgVisits || 3} / LTV ${store.formatMoney(stats.avgLTV || 120)} тыс</div>
+        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">LT / LTV</div>
+        <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 8%</div>
+      </div>
+    </div>
+    <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+      <div class="card" style="padding:16px;">
         <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${stats.uniqueClients}</div>
-        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Клиентов</div>
+        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Всего клиентов</div>
         <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 3</div>
       </div>
       <div class="card" style="padding:16px;">
-        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${stats.totalReceipts}</div>
-        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Чеков</div>
-        <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 2</div>
+        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">${stats.avgFish || 2.4} шт</div>
+        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Средний улов</div>
+        <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 1</div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div style="font-size:22px;font-weight:700;color:var(--kOrange);">★ ${(stats.rating || 4.7).toFixed(1)}</div>
+        <div style="font-size:12px;color:var(--kMuted);margin-top:4px;">Оценка</div>
+        <div style="font-size:11px;font-weight:700;color:var(--kDelta);margin-top:4px;">↑ 0.2</div>
       </div>
     </div>
     <div class="card" style="margin-bottom:14px;">
@@ -114,7 +189,13 @@ function renderFinanceContent() {
       <div style="height:160px;"><canvas id="payment-chart"></canvas></div>
     </div>
     <div class="card" style="margin-bottom:14px;">
-      <div class="card-header"><div class="card-title">Динамика выручки</div></div>
+      <div class="card-header">
+        <div class="card-title">Динамика выручки</div>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-ghost" id="toggle-monthly" style="padding:4px 10px;font-size:12px;border-radius:8px;background:var(--kSelected);color:var(--kInk);font-weight:700;">Месяц</button>
+          <button class="btn btn-ghost" id="toggle-weekly" style="padding:4px 10px;font-size:12px;border-radius:8px;color:var(--kMuted);">Неделя</button>
+        </div>
+      </div>
       <div style="height:200px;"><canvas id="revenue-chart"></canvas></div>
     </div>
   `;
@@ -149,6 +230,27 @@ function renderFinanceContent() {
       ['13.07', '14.07', '15.07', '16.07', '17.07', '18.07'],
       [2550, 2199, 3018, 3000, 1710, 6732]
     );
+
+    // Toggle месяц/неделя
+    const monthlyData = { labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'], values: [45000, 52000, 48000, 61000, 55000, 67000, 72000] };
+    const weeklyData = { labels: ['13.07', '14.07', '15.07', '16.07', '17.07', '18.07'], values: [2550, 2199, 3018, 3000, 1710, 6732] };
+    let isMonthly = true;
+    const btnMonthly = document.getElementById('toggle-monthly');
+    const btnWeekly = document.getElementById('toggle-weekly');
+    btnMonthly?.addEventListener('click', () => {
+      isMonthly = true;
+      btnMonthly.style.background = 'var(--kSelected)'; btnMonthly.style.color = 'var(--kInk)'; btnMonthly.style.fontWeight = '700';
+      btnWeekly.style.background = 'transparent'; btnWeekly.style.color = 'var(--kMuted)'; btnWeekly.style.fontWeight = '400';
+      drawLineChart(revCanvas, monthlyData.labels, monthlyData.values);
+      tg.hapticSelection();
+    });
+    btnWeekly?.addEventListener('click', () => {
+      isMonthly = false;
+      btnWeekly.style.background = 'var(--kSelected)'; btnWeekly.style.color = 'var(--kInk)'; btnWeekly.style.fontWeight = '700';
+      btnMonthly.style.background = 'transparent'; btnMonthly.style.color = 'var(--kMuted)'; btnMonthly.style.fontWeight = '400';
+      drawLineChart(revCanvas, weeklyData.labels, weeklyData.values);
+      tg.hapticSelection();
+    });
   }, 0);
 }
 
@@ -156,8 +258,10 @@ function renderClientStats() {
   const container = document.getElementById('report-content');
   if (!container) return;
 
+  const period = getEffectivePeriod();
+  const dateRange = getEffectiveDateRange();
   const entries = store.receipts
-    .filter(r => r.clientId && !r.isGuest)
+    .filter(r => r.clientId && !r.isGuest && isInPeriod(r.date, period) && isInDateRange(r.date, dateRange))
     .map(r => ({ receipt: r, client: store.getClientById(r.clientId) }))
     .sort((a, b) => b.receipt.date.localeCompare(a.receipt.date));
 
@@ -175,7 +279,7 @@ function renderClientStats() {
     </div>
   `).join('') : `
     <div class="empty-state">
-      <div style="font-size:48px;margin-bottom:12px;">📊</div>
+      <div style="font-size:48px;margin-bottom:12px;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="1.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
       <div style="font-size:14px;color:var(--kMuted2);">Нет оплат по заданным условиям</div>
     </div>
   `;
@@ -196,8 +300,10 @@ function renderFishStats() {
   const container = document.getElementById('report-content');
   if (!container) return;
 
+  const period = getEffectivePeriod();
+  const dateRange = getEffectiveDateRange();
   const fishStats = {};
-  store.receipts.forEach(r => {
+  store.receipts.filter(r => isInPeriod(r.date, period) && isInDateRange(r.date, dateRange)).forEach(r => {
     r.catches.forEach(c => {
       if (!fishStats[c.breedLabel]) fishStats[c.breedLabel] = { count: 0, totalKg: 0, totalSum: 0, emoji: '' };
       fishStats[c.breedLabel].count++;

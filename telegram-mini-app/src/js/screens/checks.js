@@ -13,22 +13,17 @@ export function renderChecks() {
   el.innerHTML = `
     <div class="screen-title">Чеки</div>
     <div class="search-bar" style="margin-bottom:10px;">
-      <span class="search-icon">🔍</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" id="checks-search" placeholder="Имя, сумма, телефон, дата" autocomplete="off">
+      <svg id="checks-clear" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;display:none;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
     </div>
-    <div id="checks-client-suggestions" class="hidden"></div>
+    <div id="checks-client-suggestions"></div>
     <div class="filter-bar">
       <div id="checks-period-dropdown"></div>
-      <div class="calendar-chip" id="checks-calendar" title="Календарь">📅</div>
-      <div class="icon-filter-chip" id="checks-filter-btn" title="Фильтры">⚙️</div>
+      <div class="calendar-chip" id="checks-calendar" title="Календарь"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div>
+      <div class="icon-filter-chip" id="checks-filter-btn" title="Фильтры"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div>
       <div class="sort-chip" id="checks-sort">
-        <div class="sort-trigger" id="sort-trigger" title="Сортировка">↕️</div>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:var(--sp-lg);">
-      <div style="display:flex;justify-content:space-between;">
-        <div><div style="font-size:13px;color:var(--kMuted);">Всего чеков</div><div style="font-size:20px;font-weight:700;">${stats.totalReceipts}</div></div>
-        <div style="text-align:right;"><div style="font-size:13px;color:var(--kMuted);">Выручка</div><div style="font-size:20px;font-weight:700;color:var(--kGreen);">+${store.formatMoney(stats.totalRevenue)} ₽</div></div>
+        <div class="sort-trigger" id="sort-trigger" title="Сортировка"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div>
       </div>
     </div>
     <div id="checks-list"></div>
@@ -55,7 +50,7 @@ function renderChecksList(filter = '') {
     const client = store.getClientById(r.clientId);
     return `
       <div class="card check-card" data-receipt-id="${r.id}" style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;cursor:pointer;">
-        ${client ? `<div class="client-avatar" data-client-id="${r.clientId}" style="width:44px;height:44px;border-radius:50%;background:var(--kFill);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--kEmber);overflow:hidden;flex-shrink:0;">${client.avatarAsset ? `<img src="${client.avatarAsset}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : store.getClientInitials(client)}</div>` : `<div style="width:44px;height:44px;border-radius:50%;background:var(--kFill);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>`}
+        ${client ? `<div class="client-avatar" data-client-id="${r.clientId}" style="width:44px;height:44px;border-radius:50%;background:var(--kFill);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--kEmber);overflow:hidden;flex-shrink:0;">${client.avatarAsset ? `<img src="${client.avatarAsset}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : store.getClientInitials(client)}</div>` : `<div style="width:44px;height:44px;border-radius:50%;background:var(--kFill);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`}
         <div style="flex:1;min-width:0;">
           <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.isGuest ? 'Гость' : (client?.name || 'Неизвестен')}</div>
           <div style="font-size:12px;color:var(--kMuted2);">${r.date} · ${r.tariffLabel}</div>
@@ -83,7 +78,53 @@ function renderChecksList(filter = '') {
 
 function initChecksHandlers() {
   const searchInput = document.getElementById('checks-search');
-  searchInput?.addEventListener('input', e => renderChecksList(e.target.value.trim()));
+  const clearBtn = document.getElementById('checks-clear');
+  const suggestionsDiv = document.getElementById('checks-client-suggestions');
+
+  function updateSuggestions(q) {
+    if (!suggestionsDiv) return;
+    if (!q) { suggestionsDiv.innerHTML = ''; suggestionsDiv.className = 'hidden'; return; }
+    const query = q.toLowerCase();
+    const seen = new Set();
+    const clients = store.receipts
+      .map(r => store.getClientById(r.clientId))
+      .filter(c => c && !seen.has(c.id) && (c.name.toLowerCase().includes(query) || c.phone.includes(query)) && seen.add(c.id))
+      .sort((a, b) => {
+        const aS = a.name.toLowerCase().startsWith(query) ? 0 : 1;
+        const bS = b.name.toLowerCase().startsWith(query) ? 0 : 1;
+        return aS !== bS ? aS - bS : a.name.localeCompare(b.name);
+      })
+      .slice(0, 4);
+    if (!clients.length) { suggestionsDiv.innerHTML = ''; suggestionsDiv.className = 'hidden'; return; }
+    suggestionsDiv.className = 'client-suggestions';
+    suggestionsDiv.innerHTML = clients.map(c => `
+      <div class="client-suggestion-item" data-name="${c.name}">
+        ${store.renderAvatar(c, 36)}
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</div><div style="font-size:12px;color:var(--kMuted2);">${c.phone}</div></div>
+      </div>
+    `).join('');
+    suggestionsDiv.querySelectorAll('.client-suggestion-item').forEach(item => {
+      item.addEventListener('click', () => {
+        searchInput.value = item.dataset.name;
+        suggestionsDiv.innerHTML = '';
+        suggestionsDiv.className = 'hidden';
+        renderChecksList(item.dataset.name);
+      });
+    });
+  }
+
+  searchInput?.addEventListener('input', e => {
+    const q = e.target.value.trim();
+    clearBtn.style.display = q ? 'block' : 'none';
+    updateSuggestions(q);
+    renderChecksList(q);
+  });
+  clearBtn?.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.style.display = 'none';
+    if (suggestionsDiv) { suggestionsDiv.innerHTML = ''; suggestionsDiv.className = 'hidden'; }
+    renderChecksList();
+  });
 
   const periodContainer = document.getElementById('checks-period-dropdown');
   if (periodContainer) {
@@ -177,7 +218,7 @@ function showCheckDetail(receipt) {
       ${receipt.fiscal ? `<div style="border-top:1px dashed var(--kHairline2);margin:12px 0 8px;"></div><div style="font-size:10px;color:var(--kMuted2);text-align:center;">СНО: УСН доходы<br>ФН: 8710000100412345<br>ФД: ${receipt.fiscalDoc || receipt.id}<br>ФПД: 6789012345<br>Сайт ФНС: nalog.gov.ru</div>` : ''}
       ${client ? `<div style="margin-top:16px;padding:10px;background:var(--kFill);border-radius:12px;display:flex;align-items:center;gap:10px;cursor:pointer;" id="detail-client"><div class="client-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--kFill);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--kEmber);overflow:hidden;flex-shrink:0;">${client.avatarAsset ? `<img src="${client.avatarAsset}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : store.getClientInitials(client)}</div><div style="flex:1;"><div style="font-size:13px;font-weight:600;">${client.name}</div><div style="font-size:11px;color:var(--kMuted2);">${client.phone}</div></div><span style="color:var(--kMuted2);">›</span></div>` : ''}
       <div style="display:flex;gap:12px;margin-top:16px;">
-        <button class="btn btn-outline" id="detail-print" style="flex:1;">🖨️ Печать</button>
+        <button class="btn btn-outline" id="detail-print" style="flex:1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Печать</button>
         <button class="btn btn-ghost btn-full" id="detail-close" style="color:var(--kMuted2);">Закрыть</button>
       </div>
     </div>

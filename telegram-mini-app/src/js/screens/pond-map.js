@@ -3,6 +3,7 @@ import { store } from '../core/store.js';
 import { tg } from '../core/telegram.js';
 import { showClientCard } from '../widgets/client-card.js';
 import { showCalendarPicker } from '../widgets/calendar.js';
+import { createFilterDropdown } from '../widgets/filter-dropdown.js';
 
 const FILTER_OPTIONS = [
   { value: 'none',      label: 'Нет' },
@@ -75,33 +76,12 @@ export function renderPondMap() {
   el.className = 'screen screen-pond';
   el.innerHTML = `
     <div class="screen-title">Карта пруда</div>
-    <div style="display:flex;gap:10px;margin-bottom:14px;">
-      <div style="flex:1;background:linear-gradient(135deg,#1F1D18,#14130F);border-radius:18px;border:1px solid rgba(255,255,255,0.1);padding:16px;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(232,145,43,0.20),transparent 70%);pointer-events:none;"></div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-          <div style="width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;">📊</span></div>
-          <span style="font-size:10.5px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.54);">ЗАГРУЗКА</span>
-        </div>
-        <div style="text-align:center;font-size:26px;font-weight:800;color:var(--kOrange);">${Math.round(occupied / 16 * 100)}%</div>
-      </div>
-      <div style="flex:1;background:linear-gradient(135deg,#fff,#FCFAF4);border-radius:18px;border:1px solid var(--kHairline);padding:16px;">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-          <div style="width:22px;height:22px;border-radius:7px;background:rgba(136,111,17,0.1);display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;">📅</span></div>
-          <span style="font-size:10.5px;font-weight:700;letter-spacing:0.5px;color:rgba(0,0,0,0.45);">БРОНЕЙ</span>
-        </div>
-        <div style="text-align:center;font-size:26px;font-weight:800;color:var(--kInk);">${occupied} / 16</div>
-      </div>
-    </div>
 
     <!-- Пруд с Canvas-рендерингом (как Flutter CustomPainter) -->
     <div id="pond-canvas-wrap" style="position:relative;margin-bottom:16px;border-radius:16px;overflow:hidden;">
       <canvas id="pond-canvas" style="width:100%;display:block;"></canvas>
-      <!-- Фильтры ВНУТРИ сцены -->
-      <div id="pond-filters" style="position:absolute;top:12px;left:12px;right:12px;display:flex;gap:6px;z-index:3;flex-wrap:wrap;">
-        ${FILTER_OPTIONS.map(f => `
-          <div class="chip ${f.value === currentFilter ? 'selected' : ''}" data-filter="${f.value}" style="font-size:12px;padding:6px 10px;">${f.label}</div>
-        `).join('')}
-      </div>
+      <!-- Фильтры ВНУТРИ сцены (как Flutter FilterDropdown) -->
+      <div id="pond-filters" style="position:absolute;top:12px;left:12px;right:12px;z-index:3;max-width:200px;"></div>
       <!-- Маркеры секторов (поверх Canvas) -->
       <div id="pond-grid" style="position:absolute;inset:0;z-index:2;"></div>
     </div>
@@ -128,13 +108,65 @@ export function renderPondMap() {
     <div id="sector-details" class="card sector-detail hidden"></div>
   `;
 
-  setTimeout(() => {
+  setTimeout(async () => {
+    await loadTextures();
     renderPondCanvas();
     renderSectorMarkers();
     renderBookingFeed();
     initPondHandlers();
   }, 0);
   return el;
+}
+
+// ─── Загрузка текстур (из Flutter base64) ───
+const _treeImages = [];
+let _grassTile = null;
+let _texturesLoaded = false;
+
+function loadTextures() {
+  if (_texturesLoaded) return Promise.resolve();
+  const sources = [
+    'src/assets/textures/treemain.png',
+    'src/assets/textures/treeextra0.png',
+    'src/assets/textures/treeextra1.png',
+    'src/assets/textures/treeextra2.png',
+  ];
+  return Promise.all(sources.map(src => new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => { _treeImages.push(img); resolve(); };
+    img.onerror = () => { _treeImages.push(null); resolve(); };
+    img.src = src;
+  }))).then(() => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => { _grassTile = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = 'src/assets/textures/grasstile.png';
+    });
+  }).then(() => { _texturesLoaded = true; });
+}
+
+// ─── Forest spots (точь-в-точь Flutter _forestSpots) ───
+const _forestSpots = [
+  [0.05, 0.045, 0, 0.62], [0.15, 0.03, 1, 0.7], [0.26, 0.045, 2, 0.56], [0.37, 0.028, 3, 0.68],
+  [0.63, 0.03, 0, 0.63], [0.74, 0.045, 1, 0.7], [0.85, 0.03, 2, 0.58], [0.95, 0.045, 3, 0.68],
+  [0.05, 0.955, 0, 0.65], [0.16, 0.97, 1, 0.56], [0.28, 0.955, 2, 0.7], [0.4, 0.97, 3, 0.62],
+  [0.6, 0.955, 0, 0.65], [0.72, 0.97, 1, 0.56], [0.84, 0.955, 2, 0.72], [0.95, 0.97, 3, 0.63],
+  [0.018, 0.16, 0, 0.62], [0.014, 0.3, 1, 0.56], [0.014, 0.44, 2, 0.65], [0.014, 0.58, 3, 0.56],
+  [0.014, 0.72, 0, 0.63], [0.018, 0.86, 1, 0.56],
+  [0.982, 0.16, 2, 0.62], [0.986, 0.3, 3, 0.56], [0.986, 0.44, 0, 0.68], [0.986, 0.58, 1, 0.58],
+  [0.986, 0.72, 2, 0.65], [0.982, 0.86, 3, 0.56],
+];
+
+// ─── Lily data (точь-в-точь Flutter _lilies) ───
+function getLilies(W, H) {
+  return [
+    { x: W * 0.50 - 118, y: H * 0.50 - 70, r: 15 },
+    { x: W * 0.50 + 96, y: H * 0.50 - 40, r: 12 },
+    { x: W * 0.50 - 40, y: H * 0.50 + 100, r: 13 },
+    { x: W * 0.50 + 130, y: H * 0.50 + 60, r: 10 },
+    { x: W * 0.50 - 150, y: H * 0.50 + 20, r: 9 },
+  ];
 }
 
 // ─── Canvas рендеринг пруда (точь-в-точь Flutter _PondPainter) ───
@@ -150,114 +182,250 @@ function renderPondCanvas() {
   const ctx = canvas.getContext('2d');
   ctx.scale(2, 2);
 
-  // 1. Фон — трава (зелёный)
-  const grassGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.7);
-  grassGrad.addColorStop(0, '#5A9B3A');
-  grassGrad.addColorStop(1, '#3D7A24');
+  const cx = W / 2, cy = H / 2;
+
+  // ── 1. Фон-трава (градиент как Flutter) ──
+  const grassGrad = ctx.createRadialGradient(cx, cy * 0.52, 0, cx, cy, W * 0.78);
+  grassGrad.addColorStop(0, '#548F5F');
+  grassGrad.addColorStop(0.45, '#3F7C4A');
+  grassGrad.addColorStop(1, '#2A5533');
   ctx.fillStyle = grassGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // 2. Сплайн пруда
+  // ── 2. Текстура травы (tile pattern, как Flutter ImageShader) ──
+  if (_grassTile) {
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    try {
+      const pattern = ctx.createPattern(_grassTile, 'repeat');
+      if (pattern) {
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, W, H);
+      }
+    } catch (e) {}
+    ctx.restore();
+    // Второй слой градиента поверх
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = grassGrad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // ── 3. Деревья (4 варианта текстур, 28 точек, рандомный поворот) ──
+  _forestSpots.forEach((s, i) => {
+    const treeCx = s[0] * W, treeCy = s[1] * H;
+    const imgIdx = Math.round(s[2]);
+    const treeSize = 92 * s[3];
+    const img = _treeImages.length > imgIdx ? _treeImages[imgIdx] : null;
+    if (!img) return;
+    const rot = ((i * 47) % 360) * Math.PI / 180;
+
+    // Тень под деревом
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.beginPath();
+    ctx.ellipse(treeCx, treeCy + treeSize * 0.36, treeSize * 0.36, treeSize * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Рисунок дерева с поворотом
+    ctx.save();
+    ctx.translate(treeCx, treeCy);
+    ctx.rotate(rot);
+    ctx.drawImage(img, -treeSize / 2, -treeSize / 2, treeSize, treeSize);
+    ctx.restore();
+  });
+
+  // ── 4. Сплайн пруда ──
   const splinePts = catmullRomSpline(getPondSplinePoints(W, H));
 
-  // Берег/дорожка
+  // ── 5. Берег/дорожка (градиент как Flutter) ──
   ctx.beginPath();
   splinePts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
   ctx.closePath();
   const bankGrad = ctx.createLinearGradient(0, 0, W, H);
   bankGrad.addColorStop(0, '#E4C486');
+  bankGrad.addColorStop(0.55, '#CE9F57');
   bankGrad.addColorStop(1, '#B4874A');
-  ctx.strokeStyle = bankGrad;
-  ctx.lineWidth = 16;
+  ctx.fillStyle = bankGrad;
+  ctx.fill();
+  // Рамка берега
+  ctx.strokeStyle = 'rgba(0,0,0,0.13)';
+  ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Вода
+  // ── 6. Кусты между секторами (как Flutter _drawBush) ──
+  const bushDarkTones = ['#2E5C38', '#3B6E42', '#356749'];
+  const bushMidTones = ['#4C8A58', '#57935F', '#4E8A5A'];
+  function drawBush(ox, oy, scale, tone) {
+    const dark = bushDarkTones[tone % 3];
+    const mid = bushMidTones[tone % 3];
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.scale(scale, scale);
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.10)';
+    ctx.beginPath(); ctx.ellipse(0, 10, 34, 9, 0, 0, Math.PI * 2); ctx.fill();
+    // Круги куста
+    ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(-16, 0, 17, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = mid; ctx.beginPath(); ctx.arc(10, -6, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(20, 6, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = mid; ctx.beginPath(); ctx.arc(-2, 8, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(99,164,104,0.85)'; ctx.beginPath(); ctx.arc(4, -10, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  // Позиции кустов (между секторами, как Flutter _midBankPoint)
+  function midBankPoint(n1, n2, push = 6) {
+    const p1 = getSectorPosition(n1, W, H), p2 = getSectorPosition(n2, W, H);
+    if (!p1 || !p2) return null;
+    const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+    const dx = mx - cx, dy = my - cy;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const k = len === 0 ? 0 : push / len;
+    return { x: mx + dx * k, y: my + dy * k };
+  }
+  const bushPositions = [
+    { n1: 2, n2: 3, s: 0.6, t: 1 }, { n1: 6, n2: 7, s: 0.55, t: 0 },
+    { n1: 11, n2: 12, s: 0.6, t: 2 }, { n1: 14, n2: 15, s: 0.52, t: 1 },
+  ];
+  bushPositions.forEach(({ n1, n2, s, t }) => {
+    const p = midBankPoint(n1, n2);
+    if (p) drawBush(p.x, p.y, s, t);
+  });
+
+  // ── 7. Тростник (как Flutter _drawReedTuft — квадратичные кривые) ──
+  function drawReedTuft(ox, oy, scale) {
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = '#3C6B34';
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    function stem(c1x, c1y, ex, ey) {
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(c1x, c1y, ex, ey);
+      ctx.stroke();
+    }
+    stem(-2, -18, -10, -40);
+    stem(5, -22, 2, -46);
+    stem(12, -16, 22, -34);
+    stem(-8, -14, -20, -28);
+    // Цветок на конце
+    ctx.fillStyle = '#6B5A2E';
+    ctx.beginPath(); ctx.arc(2, -46, 2.6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  const reedPositions = [
+    { n1: 4, n2: 5, s: 0.75 }, { n1: 12, n2: 13, s: 0.7 }, { n1: 15, n2: 16, s: 0.68 },
+  ];
+  reedPositions.forEach(({ n1, n2, s }) => {
+    const p = midBankPoint(n1, n2);
+    if (p) drawReedTuft(p.x, p.y, s);
+  });
+  // Дополнительные тростники у берега
+  drawReedTuft(cx - 150, cy - 150, 0.55);
+  drawReedTuft(cx + 170, cy - 120, 0.5);
+
+  // ── 8. Вода (градиент + клип по сплайну) ──
   ctx.save();
   ctx.beginPath();
   splinePts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
   ctx.closePath();
   ctx.clip();
-  const waterGrad = ctx.createRadialGradient(W * 0.45, H * 0.4, W * 0.05, W * 0.5, H * 0.5, W * 0.55);
+
+  const waterGrad = ctx.createRadialGradient(cx * 0.76, cy * 0.64, W * 0.05, cx, cy, W * 0.75);
   waterGrad.addColorStop(0, '#4AA0C6');
-  waterGrad.addColorStop(0.4, '#2B7A9B');
-  waterGrad.addColorStop(0.75, '#1A5C78');
+  waterGrad.addColorStop(0.35, '#2A7E9E');
+  waterGrad.addColorStop(0.7, '#186286');
   waterGrad.addColorStop(1, '#0F4C6C');
   ctx.fillStyle = waterGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // Блики
-  ctx.globalAlpha = 0.05;
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.ellipse(W * 0.38, H * 0.28, W * 0.14, H * 0.10, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.globalAlpha = 0.06;
-  ctx.beginPath(); ctx.ellipse(W * 0.55, H * 0.23, W * 0.10, H * 0.06, 0, 0, Math.PI * 2); ctx.fill();
+  // Блики (как Flutter)
+  const hlGrad1 = ctx.createRadialGradient(cx - 70, cy - 90, 0, cx - 70, cy - 90, 160);
+  hlGrad1.addColorStop(0, 'rgba(255,255,255,0.5)');
+  hlGrad1.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = hlGrad1;
+  ctx.beginPath(); ctx.ellipse(cx - 70, cy - 90, 160, 70, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.beginPath(); ctx.ellipse(cx + 120, cy + 60, 90, 40, 0, 0, Math.PI * 2); ctx.fill();
 
   // Рябь
-  ctx.globalAlpha = 0.12;
-  ctx.strokeStyle = '#fff';
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
   ctx.lineWidth = 1;
-  [[0.28, 0.50, 24, 4], [0.65, 0.35, 18, 3], [0.48, 0.70, 20, 3]].forEach(([rx, ry, rw, rh]) => {
-    ctx.beginPath(); ctx.ellipse(W * rx, H * ry, rw, rh, 0, 0, Math.PI * 2); ctx.stroke();
-  });
-  ctx.globalAlpha = 1;
-
-  // Кувшинки
-  [[0.15, 0.25], [0.75, 0.38], [0.32, 0.72], [0.82, 0.65], [0.55, 0.85]].forEach(([lx, ly]) => {
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = '#3D8B37';
-    ctx.beginPath(); ctx.ellipse(W * lx, H * ly, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = '#2D6B27';
-    ctx.beginPath(); ctx.arc(W * lx, H * ly, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#1A5C14'; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.moveTo(W * lx, H * ly); ctx.lineTo(W * lx + 8, H * ly - 4); ctx.stroke();
-    ctx.globalAlpha = 1;
+  [[cx - 30, cy + 130, 70, 6], [cx + 40, cy + 130, 60, 6], [cx + 110, cy + 130, 50, 6]].forEach(([rx, ry, rw, rh]) => {
+    ctx.beginPath(); ctx.ellipse(rx, ry, rw, rh, 0, 0, Math.PI * 2); ctx.stroke();
   });
 
-  // Деревья по периметру
-  const treePositions = [
-    [0.08, 0.05], [0.22, 0.02], [0.38, 0.01], [0.55, 0.02], [0.72, 0.04], [0.88, 0.08],
-    [0.96, 0.22], [0.98, 0.42], [0.97, 0.62], [0.94, 0.78],
-    [0.85, 0.90], [0.68, 0.95], [0.50, 0.97], [0.32, 0.95], [0.15, 0.88],
-    [0.04, 0.72], [0.02, 0.52], [0.03, 0.32], [0.05, 0.15],
-  ];
-  treePositions.forEach(([tx, ty]) => {
-    ctx.fillStyle = '#2D5016';
-    ctx.beginPath(); ctx.arc(W * tx, H * ty, 14 + Math.random() * 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#3D7A24';
-    ctx.beginPath(); ctx.arc(W * tx - 3, H * ty - 3, 10 + Math.random() * 4, 0, Math.PI * 2); ctx.fill();
-  });
-
-  // Кусты
-  [[0.08, 0.42], [0.92, 0.15], [0.88, 0.82], [0.12, 0.82]].forEach(([bx, by]) => {
-    ctx.fillStyle = '#3D7A24';
-    ctx.beginPath(); ctx.arc(W * bx, H * by, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(W * bx + 6, H * by + 3, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(W * bx - 4, H * by + 5, 7, 0, Math.PI * 2); ctx.fill();
-  });
-
-  // Тростник
-  [[0.05, 0.25], [0.95, 0.45], [0.08, 0.65]].forEach(([rx, ry]) => {
-    ctx.strokeStyle = '#5A7A3A'; ctx.lineWidth = 1.5;
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath(); ctx.moveTo(W * rx + i * 4, H * ry); ctx.lineTo(W * rx + i * 4 - 2, H * ry - 20); ctx.stroke();
+  // Кувшинки (точь-в-точь Flutter _drawLilyPad)
+  getLilies(W, H).forEach(l => {
+    // Тень
+    ctx.fillStyle = 'rgba(14,58,80,0.35)';
+    ctx.beginPath(); ctx.ellipse(l.x + 1.5, l.y + 2, l.r, l.r * 0.62, 0, 0, Math.PI * 2); ctx.fill();
+    // Лист
+    ctx.save();
+    ctx.translate(l.x, l.y);
+    ctx.rotate(18 * Math.PI / 180);
+    ctx.fillStyle = '#3E8F52';
+    ctx.beginPath(); ctx.arc(0, 0, l.r, 0, Math.PI * 2); ctx.fill();
+    // Линия на листе
+    ctx.strokeStyle = 'rgba(44,107,60,0.6)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(l.r * 0.85, 0); ctx.stroke();
+    ctx.restore();
+    // Цветок (если r > 11)
+    if (l.r > 11) {
+      ctx.fillStyle = 'rgba(244,227,232,0.9)';
+      ctx.beginPath(); ctx.arc(l.x - l.r * 0.15, l.y - l.r * 0.05, l.r * 0.16, 0, Math.PI * 2); ctx.fill();
     }
   });
 
-  // Удочки у занятых секторов
-  store.sectors.filter(s => s.occupied).forEach(s => {
-    const pos = getSectorPosition(s.id, W, H);
-    if (!pos) return;
-    ctx.strokeStyle = '#8B6914'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(pos.x, pos.y); ctx.lineTo(pos.x + 30, pos.y - 40); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.moveTo(pos.x + 30, pos.y - 40); ctx.lineTo(pos.x + 35, pos.y - 10); ctx.stroke();
-    ctx.fillStyle = '#FF6B35'; ctx.beginPath(); ctx.arc(pos.x + 35, pos.y - 10, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.ellipse(pos.x + 35, pos.y - 6, 10, 3, 0, 0, Math.PI * 2); ctx.stroke();
-  });
+  ctx.restore(); // clip
 
-  ctx.restore();
+  // Рамка воды
+  ctx.strokeStyle = 'rgba(10,58,84,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  splinePts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.closePath();
+  ctx.stroke();
+
+  // ── 9. Удочки у занятых секторов (как Flutter _drawFishingRod) ──
+  store.sectors.filter(s => s.occupied).forEach(s => {
+    const marker = getSectorPosition(s.id, W, H);
+    if (!marker) return;
+    const dx = cx - marker.x, dy = cy - marker.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len === 0) return;
+    const ux = dx / len, uy = dy / len;
+    const markerR = 20;
+    const bankX = marker.x + ux * (markerR + 6);
+    const bankY = marker.y + uy * (markerR + 6);
+    const tipX = marker.x + ux * (markerR + 26) + (-uy) * 10;
+    const tipY = marker.y + uy * (markerR + 26) + ux * 10 - 14;
+    const floatX = marker.x + ux * (len * 0.4);
+    const floatY = marker.y + uy * (len * 0.4);
+
+    // Удилище
+    ctx.strokeStyle = '#7A5533';
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(bankX, bankY); ctx.lineTo(tipX, tipY); ctx.stroke();
+    // Леска
+    ctx.strokeStyle = 'rgba(237,230,214,0.85)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(floatX, floatY); ctx.stroke();
+    // Рябь вокруг поплавка
+    ctx.strokeStyle = 'rgba(220,239,246,0.35)';
+    ctx.beginPath(); ctx.arc(floatX, floatY, 9, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(220,239,246,0.2)';
+    ctx.beginPath(); ctx.arc(floatX, floatY, 14, 0, Math.PI * 2); ctx.stroke();
+    // Поплавок
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(floatX, floatY, 3.6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#D6412E';
+    ctx.beginPath(); ctx.arc(floatX, floatY, 3.6, Math.PI, Math.PI * 2); ctx.fill();
+  });
 }
 
 function getSectorPosition(sectorId, W, H) {
@@ -305,7 +473,7 @@ function renderSectorMarkers() {
         border:2.5px solid ${isOccupied ? '#E07B1F' : '#2D8A4E'};
       ">
         <span style="font-size:15px;font-weight:800;color:#fff;line-height:1;">${sector.id}</span>
-        <span style="font-size:7px;color:rgba(255,255,255,0.8);line-height:1;">${isOccupied ? (client ? store.getClientInitials(client) : '👤') : 'Своб.'}</span>
+        <span style="font-size:7px;color:rgba(255,255,255,0.8);line-height:1;">${isOccupied ? (client ? store.getClientInitials(client) : '<svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>') : 'Своб.'}</span>
       </div>
     `;
   }).join('');
@@ -358,15 +526,26 @@ function renderBookingFeed() {
 }
 
 function initPondHandlers() {
-  document.getElementById('pond-filters')?.addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    currentFilter = chip.dataset.filter;
-    document.querySelectorAll('#pond-filters .chip').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-    renderSectorMarkers();
-    tg.hapticSelection();
-  });
+  // FilterDropdown (как Flutter FilterDropdown с Правилом 5)
+  const filtersContainer = document.getElementById('pond-filters');
+  if (filtersContainer) {
+    createFilterDropdown(filtersContainer, {
+      value: null,
+      label: 'Нет',
+      items: [
+        { value: null, label: 'Нет', isReset: true, enabled: true },
+        { value: 'all', label: 'Все клиенты' },
+        { value: 'premium', label: 'Премиум' },
+        { value: 'standard', label: 'Стандарт' },
+        { value: 'basic', label: 'Базовый' },
+      ],
+      onChanged: (v) => {
+        currentFilter = v || 'none';
+        renderSectorMarkers();
+        tg.hapticSelection();
+      },
+    });
+  }
 
   document.getElementById('pond-grid')?.addEventListener('click', (e) => {
     const marker = e.target.closest('.sector-marker');

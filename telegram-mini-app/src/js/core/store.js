@@ -159,8 +159,13 @@ class Store {
     const receipts = this.receipts;
     const totalRevenue = receipts.reduce((sum, r) => sum + r.total, 0);
     const avgCheck = receipts.length ? Math.round(totalRevenue / receipts.length) : 0;
-    const uniqueClients = new Set(receipts.map(r => r.clientId)).size;
-    return { totalRevenue, avgCheck, uniqueClients, totalReceipts: receipts.length };
+    const uniqueClients = new Set(receipts.filter(r => r.clientId).map(r => r.clientId)).size;
+    const clientIds = [...new Set(receipts.filter(r => r.clientId).map(r => r.clientId))];
+    const avgVisits = clientIds.length ? Math.round(clientIds.reduce((s, id) => s + (this.getClientById(id)?.visits || 0), 0) / clientIds.length) : 0;
+    const avgLTV = clientIds.length ? Math.round(clientIds.reduce((s, id) => s + (this.getClientById(id)?.ltvK || 0), 0) / clientIds.length) : 0;
+    const totalFish = receipts.reduce((s, r) => s + r.catches.length, 0);
+    const avgFish = receipts.length ? (totalFish / receipts.length).toFixed(1) : 0;
+    return { totalRevenue, avgCheck, uniqueClients, totalReceipts: receipts.length, avgVisits, avgLTV, avgFish, rating: 4.7 };
   }
 
   formatMoney(v) {

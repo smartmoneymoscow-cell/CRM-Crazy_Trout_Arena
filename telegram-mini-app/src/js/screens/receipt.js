@@ -24,9 +24,9 @@ export function renderReceipt() {
     <div class="card receipt-section">
       <div class="card-header"><div class="card-title">Клиент</div></div>
       <div class="client-search-bar">
-        <span class="search-icon">🔍</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="client-search" placeholder="Поиск по имени или телефону…" autocomplete="off">
-        <button class="qr-btn" id="btn-scan-qr" title="Сканировать QR клиента">📷</button>
+        <button class="qr-btn" id="btn-scan-qr" title="Сканировать QR клиента"><svg width="20" height="20" viewBox="0 0 24 24" fill="#2A6A7E"><path d="M3 11h2V3H3v8zm0 10h2v-8H3v8zm4 0h2V7H7v14zm4 0h2V3h-2v18zm4 0h2v-8h-2v8zm4-14v14h2V7h-2z"/></svg></button>
       </div>
       <div id="search-results" class="search-results"></div>
       <div id="client-section"></div>
@@ -202,7 +202,7 @@ function selectClient(client) {
         <div class="client-name">${client.name}</div>
         <div class="client-meta">${client.phone} · ${client.tariff === 'standard' ? 'Стандарт' : client.tariff === 'pensioner' ? 'Пенсионер' : 'Гостевой'}</div>
       </div>
-      <button class="clear-btn" id="clear-client">✕</button>
+      <button class="clear-btn" id="clear-client"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </div>
   `;
   document.getElementById('clear-client')?.addEventListener('click', () => {
@@ -247,7 +247,7 @@ function attachGuestHandler() {
           <div class="guest-label">Гость · без анкеты</div>
           <div class="guest-meta">Без регистрации</div>
         </div>
-        <button class="clear-btn" id="clear-guest">✕</button>
+        <button class="clear-btn" id="clear-guest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C9484" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     `;
     document.getElementById('clear-guest')?.addEventListener('click', () => {
@@ -403,7 +403,7 @@ function showReceiptResult(receipt) {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="sheet">
-      <div style="text-align:center;font-size:24px;margin-bottom:16px;">🧾</div>
+      <div style="text-align:center;font-size:24px;margin-bottom:16px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kOrange)" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 10h8"/><path d="M8 14h4"/></svg></div>
       <div style="text-align:center;font-size:18px;font-weight:700;margin-bottom:8px;">Чек №${receipt.id}</div>
       <div style="text-align:center;font-size:13px;color:var(--kMuted2);margin-bottom:20px;">${receipt.date}</div>
       <div style="font-size:14px;margin-bottom:12px;">
@@ -446,8 +446,8 @@ function showReceiptResult(receipt) {
         </div>
       `}
       <div style="display:flex;gap:12px;margin-top:20px;">
-        <button class="btn btn-outline" id="receipt-print" style="flex:1;">🖨️ Печать</button>
-        <button class="btn btn-primary" id="receipt-send" style="flex:1;">💬 В чат</button>
+        <button class="btn btn-outline" id="receipt-print" style="flex:1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> Печать</button>
+        <button class="btn btn-primary" id="receipt-send" style="flex:1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> В чат</button>
       </div>
       <button class="btn btn-ghost btn-full" id="receipt-close" style="margin-top:8px;color:var(--kMuted2);">Закрыть</button>
     </div>

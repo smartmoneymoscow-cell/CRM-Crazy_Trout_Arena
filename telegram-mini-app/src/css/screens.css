@@ -22,6 +22,12 @@
    Экран: Выставление чека (receipt_screen.dart)
    ═══════════════════════════════════════════════════════════════════════════ */
 
+.screen-receipt {
+  background: #EFE9DC;
+  margin: 0 -20px;
+  padding: 0 20px 24px;
+  padding-bottom: calc(var(--nav-height) + 24px);
+}
 .screen-receipt .receipt-section {
   margin-bottom: 14px;
 }
