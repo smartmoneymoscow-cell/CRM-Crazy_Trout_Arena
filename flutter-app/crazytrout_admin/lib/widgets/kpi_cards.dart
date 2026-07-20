@@ -61,6 +61,7 @@ class KpiCards extends StatelessWidget {
           value: stats.avgRating.toStringAsFixed(1).replaceAll('.', ','),
           subtitle: '${stats.reviewsCount} отзывов',
           stars: stats.avgRating,
+        starSize: 26,
           wide: true,
         ),
       ],
@@ -100,12 +101,13 @@ class _KpiCard extends StatelessWidget {
   final String? delta;
   final bool deltaPositive;
   final double? stars;
+  final double starSize;
   final bool wide;
 
   const _KpiCard({
     required this.icon, required this.iconColor, required this.title,
     required this.value, this.subtitle, this.delta, this.deltaPositive = true,
-    this.stars, this.wide = false,
+    this.stars, this.starSize = 18, this.wide = false,
   });
 
   @override
@@ -168,7 +170,7 @@ class _KpiCard extends StatelessWidget {
           Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kInk, letterSpacing: -0.3)),
           if (stars != null) ...[
             const SizedBox(width: 12),
-            Expanded(child: _StarRating(rating: stars!, size: 22)),
+            Expanded(child: _StarRating(rating: stars!, size: starSize)),
           ],
         ]),
         if (subtitle != null) ...[const SizedBox(height: 4),
