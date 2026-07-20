@@ -851,8 +851,13 @@ class _FishStatsContentState extends State<_FishStatsContent> {
   // Счётчик добавленной рыбы (по породам).
   final Map<String, int> _addedFish = {};
 
-  // Размеры рыб в отчёте — пропорции из dropdown чека, уменьшены на 25%.
-  // Каждая рыба имеет свой размер, не единый квадрат.
+  // GlobalKeys для измерения реального размера картинок осетра/амура в первой таблице.
+  final _sturgeonKey = GlobalKey();
+  final _amurKey = GlobalKey();
+  // Измеренные размеры картинок из первой таблицы (заполняются после первого кадра).
+  Size? _sturgeonSize;
+  Size? _amurSize;
+
   // Рыбы, которые должны заполнять всю ширину ячейки без обрезки.
   static const _fullWidthFish = {'Осётр', 'Амур'};
 
@@ -874,8 +879,30 @@ class _FishStatsContentState extends State<_FishStatsContent> {
     return Color.lerp(_revenueMin, _revenueMax, t)!;
   }
 
+  /// Измеряет реальный размер картинок осетра и амура после первого кадра.
+  void _measureFishImages() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Size? measured(String name, GlobalKey key) {
+        final ctx = key.currentContext;
+        if (ctx == null) return null;
+        final box = ctx.findRenderObject() as RenderBox?;
+        return box?.size;
+      }
+      final sSize = measured('Осётр', _sturgeonKey);
+      final aSize = measured('Амур', _amurKey);
+      if (sSize != null || aSize != null) {
+        setState(() {
+          if (sSize != null) _sturgeonSize = sSize;
+          if (aSize != null) _amurSize = aSize;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _measureFishImages();
     // ── Фильтрация данных по периоду / календарю ──
     List<FishSpeciesStats> stats = kDemoFishStats;
     if (widget.period != null && widget.period != PeriodFilter.all) {
@@ -969,11 +996,13 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                             children: [
                               _fullWidthFish.contains(s.species)
                                   ? SizedBox(
+                                      key: s.species == 'Осётр' ? _sturgeonKey
+                                          : s.species == 'Амур' ? _amurKey : null,
                                       width: double.infinity,
                                       child: Image.asset(
                                         s.imageAsset,
                                         width: double.infinity,
-                                        fit: BoxFit.fitWidth,
+                                        fit: BoxFit.contain,
                                       ),
                                     )
                                   : SizedBox(
@@ -1184,14 +1213,30 @@ class _FishStatsContentState extends State<_FishStatsContent> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       _fullWidthFish.contains(s.species)
-                                          ? SizedBox(
-                                              width: double.infinity,
-                                              child: Image.asset(
-                                                s.imageAsset,
+                                          ? Builder(builder: (_) {
+                                              final measured = s.species == 'Осётр' ? _sturgeonSize
+                                                  : s.species == 'Амур' ? _amurSize : null;
+                                              if (measured != null) {
+                                                return SizedBox(
+                                                  width: measured.width,
+                                                  height: measured.height,
+                                                  child: Image.asset(
+                                                    s.imageAsset,
+                                                    width: measured.width,
+                                                    height: measured.height,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                );
+                                              }
+                                              return SizedBox(
                                                 width: double.infinity,
-                                                fit: BoxFit.fitWidth,
-                                              ),
-                                            )
+                                                child: Image.asset(
+                                                  s.imageAsset,
+                                                  width: double.infinity,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              );
+                                            })
                                           : SizedBox(
                                               height: _imageHeight[s.species] ?? _imageHeightDefault,
                                               child: Image.asset(
