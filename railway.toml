@@ -1,8 +1,8 @@
 [build]
-builder = "nixpacks"
-buildCommand = "cd telegram-mini-app/bot && npm install"
+builder = "dockerfilePath"
+dockerfilePath = "telegram-mini-app/bot/Dockerfile"
 
 [deploy]
-startCommand = "cd telegram-mini-app/bot && node index.js"
+startCommand = "node index.js"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
