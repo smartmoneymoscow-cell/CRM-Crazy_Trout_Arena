@@ -290,6 +290,7 @@ body {
   padding: 0;
   border-radius: 22px;
   overflow: hidden;
+  max-height: calc(100% - 128px);
   /* Animation: start from QR button position (top-right) */
   transform-origin: 88% 8%;
   transform: scale(0.15);
@@ -508,8 +509,8 @@ body {
     </div>
   </div>
 
-<!-- QR Code Overlay — covers content only, status bar + nav stay visible -->
-<div id="qr-overlay" class="qr-overlay">
+  <!-- QR Code Overlay — inside iphone-mockup, above screen, below status bar -->
+  <div id="qr-overlay" class="qr-overlay">
   <!-- Close button (X) top-right -->
   <button class="qr-close-btn" id="qr-close-btn">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
