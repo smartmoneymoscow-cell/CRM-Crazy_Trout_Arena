@@ -20,7 +20,8 @@ bot.command('start', async (ctx) => {
       reply_markup: {
         inline_keyboard: [
           [{ text: '🧾 Открыть CRM', web_app: { url: MINI_APP_URL } }],
-          [{ text: '📊 Статистика', callback_data: 'stats' }],
+          [{ text: '📊 Статистика за день', callback_data: 'day_stats' }, { text: '🐠 Остатки', callback_data: 'fish_stock' }],
+          [{ text: '📊 Общая статистика', callback_data: 'stats' }],
           [{ text: '❓ Помощь', callback_data: 'help' }],
         ]
       }
@@ -43,6 +44,7 @@ bot.command('menu', async (ctx) => {
       reply_markup: {
         inline_keyboard: [
           [{ text: '🐟 Открыть CRM', web_app: { url: MINI_APP_URL } }],
+          [{ text: '📊 Статистика за день', callback_data: 'day_stats' }, { text: '🐠 Остатки', callback_data: 'fish_stock' }],
         ]
       }
     }
@@ -216,6 +218,104 @@ bot.callbackQuery(/^client_(\d+)$/, async (ctx) => {
     'LTV: —₽',
     { parse_mode: 'Markdown' }
   );
+});
+
+// --- Callback: статистика за день ---
+bot.callbackQuery('day_stats', async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  // Демо-данные (в продакшене — из БД)
+  const dayReceipts = [
+    { tariff: 'Стандарт', catches: [{ breed: 'Осётр', kg: 2.4, sum: 4536 }], total: 5286, payment: 'card', fiscal: true },
+    { tariff: 'Стандарт', catches: [{ breed: 'Карп', kg: 1.8, sum: 1062 }], total: 1812, payment: 'cash', fiscal: false },
+    { tariff: 'Гостевой', catches: [], total: 500, payment: 'card', fiscal: true },
+    { tariff: 'Стандарт', catches: [{ breed: 'Форель', kg: 1.2, sum: 1440 }], total: 2190, payment: 'card', fiscal: true },
+    { tariff: 'Пенсионер', catches: [{ breed: 'Линь', kg: 0.9, sum: 621 }], total: 621, payment: 'cash', fiscal: false },
+  ];
+
+  const totalRevenue = dayReceipts.reduce((s, r) => s + r.total, 0);
+  const totalCatch = dayReceipts.reduce((s, r) => s + r.catches.reduce((cs, c) => cs + c.sum, 0), 0);
+  const tariffBreakdown = {};
+  const paymentBreakdown = {};
+  const fishBreakdown = {};
+
+  dayReceipts.forEach(r => {
+    tariffBreakdown[r.tariff] = (tariffBreakdown[r.tariff] || 0) + r.total;
+    const pLabel = r.payment === 'card' ? '💳 Карта' : r.payment === 'cash' ? '💵 Наличные' : '🏢 Счёт';
+    paymentBreakdown[pLabel] = (paymentBreakdown[pLabel] || 0) + 1;
+    r.catches.forEach(c => {
+      if (!fishBreakdown[c.breed]) fishBreakdown[c.breed] = { kg: 0, sum: 0 };
+      fishBreakdown[c.breed].kg += c.kg;
+      fishBreakdown[c.breed].sum += c.sum;
+    });
+  });
+
+  let text = `📊 *Статистика за ${today}*\n`;
+  text += '━━━━━━━━━━━━━━━\n\n';
+  text += `💰 *Выручка: ${totalRevenue.toLocaleString('ru-RU')}₽*\n`;
+  text += `🧾 Чеков: ${dayReceipts.length}\n`;
+  text += `🐟 Улов: ${totalCatch.toLocaleString('ru-RU')}₽\n\n`;
+
+  text += '📋 *По тарифам:*\n';
+  for (const [tariff, sum] of Object.entries(tariffBreakdown)) {
+    const pct = Math.round(sum / totalRevenue * 100);
+    text += `  • ${tariff}: ${sum.toLocaleString('ru-RU')}₽ (${pct}%)\n`;
+  }
+
+  text += '\n💳 *По оплате:*\n';
+  for (const [method, count] of Object.entries(paymentBreakdown)) {
+    text += `  • ${method}: ${count} чек.\n`;
+  }
+
+  if (Object.keys(fishBreakdown).length) {
+    text += '\n🐠 *По породам:*\n';
+    for (const [breed, data] of Object.entries(fishBreakdown)) {
+      text += `  • ${breed}: ${data.kg.toFixed(1)} кг = ${data.sum.toLocaleString('ru-RU')}₽\n`;
+    }
+  }
+
+  text += '\n_Данные демонстрационные_';
+
+  await ctx.reply(text, { parse_mode: 'Markdown' });
+});
+
+// --- Callback: остатки по рыбам ---
+bot.callbackQuery('fish_stock', async (ctx) => {
+  await ctx.answerCallbackQuery();
+
+  // Демо-данные остатков (в продакшене — из БД)
+  // Последний столбец верхней таблицы рыб: остаток в кг
+  const stock = [
+    { breed: '🐟 Осётр', stock: 45.2, max: 80, price: 1890 },
+    { breed: '🐠 Карп', stock: 62.8, max: 100, price: 590 },
+    { breed: '🐡 Амур', stock: 28.4, max: 50, price: 750 },
+    { breed: '🎣 Линь', stock: 15.6, max: 40, price: 690 },
+    { breed: '🍣 Форель', stock: 33.1, max: 60, price: 1200 },
+  ];
+
+  let text = '🐠 *Остатки по рыбам*\n';
+  text += '━━━━━━━━━━━━━━━\n\n';
+
+  stock.forEach(f => {
+    const pct = Math.round(f.stock / f.max * 100);
+    const bar = pct > 60 ? '🟢' : pct > 30 ? '🟡' : '🔴';
+    const barLen = Math.round(pct / 10);
+    const barStr = '█'.repeat(barLen) + '░'.repeat(10 - barLen);
+    text += `${f.breed}\n`;
+    text += `  ${bar} \`${barStr}\` ${pct}%\n`;
+    text += `  Остаток: *${f.stock.toFixed(1)} кг* / ${f.max} кг\n`;
+    text += `  Цена: ${f.price}₽/кг\n\n`;
+  });
+
+  const totalStock = stock.reduce((s, f) => s + f.stock, 0);
+  const totalValue = stock.reduce((s, f) => s + f.stock * f.price, 0);
+  text += `📦 *Всего: ${totalStock.toFixed(1)} кг*\n`;
+  text += `💰 *На сумму: ${totalValue.toLocaleString('ru-RU')}₽*\n`;
+  text += '\n_Данные демонстрационные_';
+
+  await ctx.reply(text, { parse_mode: 'Markdown' });
 });
 
 // --- Обработка ошибок ---
