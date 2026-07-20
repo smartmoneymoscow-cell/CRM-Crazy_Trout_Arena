@@ -20,4 +20,6 @@ jobs:
       - name: Deploy
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service CRM-Crazy_Trout_Arena
+        run: |
+          cd telegram-mini-app/bot
+          railway up --service CRM-Crazy_Trout_Arena
