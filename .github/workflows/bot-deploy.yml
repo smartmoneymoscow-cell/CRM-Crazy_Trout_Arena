@@ -14,10 +14,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
       - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service crazy-trout-bot --detach
+        uses: bervProject/railway-deploy@v1.3.0
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: crazy-trout-bot
