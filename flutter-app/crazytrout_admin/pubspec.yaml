@@ -43,7 +43,7 @@ dependencies:
   # (см. workflow) — так Sentry стартует ДО инициализации Dart/Flutter и
   # ловит даже самые ранние нативные краши, которые Dart-level init()
   # мог бы пропустить.
-  sentry_flutter: ^9.0.0
+  sentry_flutter: ^10.0.0
 
 dev_dependencies:
   integration_test:
