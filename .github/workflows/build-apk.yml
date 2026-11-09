@@ -35,7 +35,7 @@ jobs:
           cache: true
 
       - name: Кэш pub зависимостей
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -58,7 +58,7 @@ jobs:
       # поверх старой версии становится невозможным. Кэшируем keystore по
       # фиксированному ключу, чтобы он был одним и тем же между релизами.
       - name: Кэш debug-keystore (стабильная подпись между релизами)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.android/debug.keystore
           key: android-debug-keystore-v1
@@ -178,7 +178,7 @@ jobs:
           cache: true
 
       - name: Кэш pub зависимостей
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
